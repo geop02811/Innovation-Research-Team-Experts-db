@@ -1,13 +1,58 @@
 package org.innov.expertdb.dtos;
 
-import org.innov.expertdb.models.Role;
+import org.innov.expertdb.models.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.Set;
 
-// Notice: NO 'id' here! Swagger will not ask for it.
-// We DO ask for a raw password here, which we will hash later.
 public record UserCreateRequest(
-    String name,
-    String email,
+    
+    @NotBlank(message = "Full name is required")
+    String fullName,
+    
+    TitlePrefix titlePrefix,
+    
+    AcademicRank academicRank,
+    
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    String universityEmail,
+    
+    @Size(min = 8, message = "Password must be at least 8 characters")
     String password,
+    
+    String phoneNumber,
+    
+    String highestQualification,
+    
+    String professionalMemberships,
+    
+    String complianceAccreditation,
+    
+    String faculty,
+    
+    Department department,
+    
+    YearsOfExperience yearsConsultancyExperience,
+    
+    String consultancyExperience,
+    
+    Availability consultancyAvailability,
+    
+    Set<String> preferredConsultancyTypes,
+    
+    GeographicScope geographicScope,
+    
+    Set<String> skillsCompetences,
+    
+    Set<String> languagesSpoken,
+    
+    Set<String> areasOfExpertise,
+    
+    Set<String> industrialAreasExpertise,
+    
+    String notes,
+    
     Set<Role> roles
 ) {}

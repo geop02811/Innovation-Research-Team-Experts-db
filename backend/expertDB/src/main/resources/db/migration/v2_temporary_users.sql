@@ -1,5 +1,4 @@
--- Users table with all profile fields
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS temporary_users (
     id UUID PRIMARY KEY,
     title_prefix VARCHAR(10),
     full_name VARCHAR(255) NOT NULL,
@@ -22,22 +21,12 @@ CREATE TABLE IF NOT EXISTS users (
     industrial_areas_expertise TEXT,
     notes TEXT,
     password_hash VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- User roles table (separate)
-CREATE TABLE IF NOT EXISTS user_roles (
-    user_id UUID NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    PRIMARY KEY (user_id, role)
-);
-
--- Indexes for performance
-CREATE INDEX idx_users_email ON users(university_email);
-CREATE INDEX idx_users_status ON users(status);
-CREATE INDEX idx_users_department ON users(department);
-CREATE INDEX idx_users_faculty ON users(faculty);
-CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
+-- Indexes
+CREATE INDEX idx_temporary_users_email ON temporary_users(university_email);
+CREATE INDEX idx_temporary_users_status ON temporary_users(status);
