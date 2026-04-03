@@ -12,7 +12,7 @@
 <div class="filter-group">
 	<label for={label}>{label}</label>
 	<select id={label} value={value} onchange={(e) => onchange(e.currentTarget.value)}>
-		<option value="">Select {label}</option>
+		<option value="">{label}</option>
 		{#each options as option}
 			<option value={option}>{option}</option>
 		{/each}
@@ -24,6 +24,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		min-width: 0;
 	}
 
 	label {
@@ -32,12 +33,17 @@
 	}
 
 	select {
+		width: 100%;
 		padding: 0.5rem;
+		padding-right: 2rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
 		font-size: 0.875rem;
 		background-color: white;
 		cursor: pointer;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	select:hover {

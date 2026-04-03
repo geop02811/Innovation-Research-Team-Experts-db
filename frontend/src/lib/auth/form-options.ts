@@ -6,7 +6,23 @@ export const academicRankOptions = [
 	'Professor'
 ] as const;
 export const highestQualificationOptions = ['BSc', 'Masters', 'PhD'] as const;
-export const departmentOptions = [
+export const facultyOptions = [
+	'Agriculture Environment And Food Systems',
+	'Arts and Humanities',
+	'Business Management Sciences And Economics',
+	'Computer Engineering',
+	'Informatics And Communications',
+	'Education',
+	'Engineering And The Built Environment',
+	'Law',
+	'Medicine And Health Sciences',
+	'Science',
+	'Social And Behavioural Sciences',
+	'Veterinary Science',
+	'Institutes & Units'
+] as const;
+
+const defaultDepartmentOptions = [
 	'Business',
 	'Engineering',
 	'ICT',
@@ -15,6 +31,76 @@ export const departmentOptions = [
 	'Agriculture',
 	'Social Sciences'
 ] as const;
+
+type FacultyName = (typeof facultyOptions)[number];
+
+export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
+	'Agriculture Environment And Food Systems': [
+		'Agricultural Economics and Development',
+		'Animal Science',
+		'Crop Science',
+		'Soil Science and Agricultural Engineering'
+	],
+	'Arts and Humanities': ['Arts', 'Humanities', 'Languages and Culture'],
+	'Business Management Sciences And Economics': [
+		'Accounting and Finance',
+		'Business Management',
+		'Economics and Econometrics'
+	],
+	'Computer Engineering': [
+		'Analytics and Informatics',
+		'Computer Engineering',
+		'Computer Science',
+		'Electronics and Telecommunications',
+		'Centre for ICT Product Development Services and Training',
+		'Centre for Computer Technology Training and Development'
+	],
+	'Informatics And Communications': [
+		'Analytics and Informatics',
+		'Computer Engineering',
+		'Computer Science',
+		'Electronics and Telecommunications',
+		'Centre for ICT Product Development Services and Training',
+		'Centre for Computer Technology Training and Development'
+	],
+	Education: ['Teacher Education', 'Curriculum and Instruction', 'Educational Foundations'],
+	'Engineering And The Built Environment': [
+		'Civil Engineering',
+		'Mechanical Engineering',
+		'Electrical Engineering',
+		'Architecture and Built Environment'
+	],
+	Law: ['Public Law', 'Private Law', 'Commercial Law'],
+	'Medicine And Health Sciences': [
+		'Clinical Medicine',
+		'Public Health',
+		'Nursing and Midwifery',
+		'Allied Health Sciences'
+	],
+	Science: ['Biological Sciences', 'Chemical Sciences', 'Mathematical Sciences', 'Physical Sciences'],
+	'Social And Behavioural Sciences': [
+		'Psychology',
+		'Sociology',
+		'Social Work',
+		'Political and Administrative Studies'
+	],
+	'Veterinary Science': ['Veterinary Clinical Studies', 'Veterinary Pathobiology', 'Veterinary Public Health'],
+	'Institutes & Units': ['Research Institutes', 'Centers of Excellence', 'University Units']
+};
+
+export const allDepartmentOptions = Array.from(
+	new Set([...defaultDepartmentOptions, ...Object.values(facultyDepartmentMap).flat()])
+);
+
+export const departmentOptions = allDepartmentOptions;
+
+export const getDepartmentOptionsByFaculty = (faculty: string) => {
+	if (!faculty) {
+		return allDepartmentOptions;
+	}
+
+	return facultyDepartmentMap[faculty as FacultyName] ?? defaultDepartmentOptions;
+};
 export const yearsOfConsultancyOptions = ['0-2 years', '3-5 years', '6-10 years', '10+ years'] as const;
 export const consultancyAvailabilityOptions = [
 	'Full-time',

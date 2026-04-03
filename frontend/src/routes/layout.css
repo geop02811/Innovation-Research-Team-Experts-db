@@ -319,13 +319,24 @@ nav a:hover {
 	gap: 0.45rem;
 }
 
-.tags span {
+.tags span,
+.tags button {
 	padding: 0.22rem 0.6rem;
 	border-radius: 100px;
 	background: #e7f1ee;
 	color: var(--accent-deep);
 	font-size: 0.84rem;
 	font-weight: 600;
+}
+
+.tags button {
+	border: 0;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.tags button:hover {
+	background: #d6e8e2;
 }
 
 .empty-state {

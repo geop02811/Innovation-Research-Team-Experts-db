@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { facultyOptions, getDepartmentOptionsByFaculty } from '$lib/auth/form-options';
 	import { authService } from '$lib/auth/auth.service';
 	import type { PageData } from './$types';
 
@@ -23,6 +24,15 @@
 		consultancyExperience: data.profile?.consultancyExperience || '',
 		notes: data.profile?.notes || ''
 	});
+
+	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(formData.faculty));
+
+	const onFacultyChange = (value: string) => {
+		formData.faculty = value;
+		if (formData.department && !getDepartmentOptionsByFaculty(value).includes(formData.department)) {
+			formData.department = '';
+		}
+	};
 
 	const handleSave = async () => {
 		isSaving = true;
@@ -103,7 +113,12 @@
 					<div class="info-item">
 						<label>Faculty:</label>
 						{#if isEditing}
-							<input type="text" bind:value={formData.faculty} />
+							<select value={formData.faculty} onchange={(e) => onFacultyChange(e.currentTarget.value)}>
+								<option value="">Select faculty</option>
+								{#each facultyOptions as item}
+									<option value={item}>{item}</option>
+								{/each}
+							</select>
 						{:else}
 							<p>{formData.faculty}</p>
 						{/if}
@@ -111,7 +126,12 @@
 					<div class="info-item">
 						<label>Department:</label>
 						{#if isEditing}
-							<input type="text" bind:value={formData.department} />
+							<select bind:value={formData.department}>
+								<option value="">Select department</option>
+								{#each availableDepartmentOptions as item}
+									<option value={item}>{item}</option>
+								{/each}
+							</select>
 						{:else}
 							<p>{formData.department}</p>
 						{/if}

@@ -4,6 +4,18 @@
 	import SelectFilter from '$lib/components/scholars/SelectFilter.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
+	import {
+		areasOfExpertiseOptions,
+		consultancyAvailabilityOptions,
+		facultyOptions,
+		getDepartmentOptionsByFaculty,
+		geographicScopeOptions,
+		highestQualificationOptions,
+		industrialAreasOptions,
+		languageOptions,
+		preferredConsultancyTypeOptions,
+		yearsOfConsultancyOptions
+	} from '$lib/auth/form-options';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -25,64 +37,19 @@
 	let areasOfExpertise = $state<string[]>([]);
 	let industrialAreasOfExpertise = $state<string[]>([]);
 
-	// Filter options
-	const highestQualificationOptions = ['BSc', 'Masters', 'PhD'];
-	const facultyOptions = ['Computer Engineering', 'Medicine'];
-	const departmentOptions = [
-		'Business',
-		'Engineering',
-		'ICT',
-		'Education',
-		'Health Sciences',
-		'Agriculture',
-		'Social Sciences'
-	];
-	const yearsOfExperienceOptions = [
-		'0–2 years',
-		'3–5 years',
-		'6–10 years',
-		'10+ years'
-	];
-	const consultancyAvailabilityOptions = [
-		'Full-time',
-		'Part-time',
-		'Short-term (<3 months)',
-		'Medium-term (3–12 months)',
-		'Long-term (>1 year)'
-	];
-	const preferredConsultancyTypesOptions = [
-		'Advisory',
-		'Training & Capacity Building',
-		'Project Implementation',
-		'Monitoring & Evaluation',
-		'Research & Policy Analysis',
-		'Technical Support',
-		'Workshop Facilitation'
-	];
-	const geographicScopeOptions = ['Local', 'Regional', 'Continental', 'International'];
-	const languagesSpokenOptions = ['English', 'Ndebele', 'Shona', 'French', 'Portuguese', 'Swahili'];
-	const areasOfExpertiseOptions = [
-		'Human Capital Development',
-		'Organizational Development',
-		'Strategic Management',
-		'Engineering Design',
-		'Renewable Energy',
-		'ICT Systems',
-		'Finance & Accounting',
-		'Marketing',
-		'Public Policy',
-		'Education',
-		'Health',
-		'Agriculture',
-		'Legal'
-	];
-	const industrialAreasOfExpertiseOptions = [
-		'Health',
-		'Solar Energy',
-		'Mining',
-		'Education',
-		'Agriculture'
-	];
+	// Filter options (from shared source)
+	const yearsOfExperienceOptions = yearsOfConsultancyOptions;
+	const preferredConsultancyTypesOptions = preferredConsultancyTypeOptions;
+	const languagesSpokenOptions = languageOptions;
+	const industrialAreasOfExpertiseOptions = industrialAreasOptions;
+	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
+
+	const onFacultyChange = (value: string) => {
+		faculty = value;
+		if (department && !getDepartmentOptionsByFaculty(value).includes(department)) {
+			department = '';
+		}
+	};
 
 	const filteredScholars = $derived(
 		data.scholars.filter((scholar) => {
@@ -170,6 +137,13 @@
 		areasOfExpertise = [];
 		industrialAreasOfExpertise = [];
 	};
+
+	const onExpertiseTagClick = (expertise: string) => {
+		if (!areasOfExpertise.includes(expertise)) {
+			areasOfExpertise = [...areasOfExpertise, expertise];
+		}
+		showAdvancedFilters = true;
+	};
 </script>
 
 <svelte:head>
@@ -208,12 +182,12 @@
 				label="Faculty"
 				value={faculty}
 				options={facultyOptions}
-				onchange={(value) => (faculty = value)}
+				onchange={onFacultyChange}
 			/>
 			<SelectFilter
 				label="Department"
 				value={department}
-				options={departmentOptions}
+				options={availableDepartmentOptions}
 				onchange={(value) => (department = value)}
 			/>
 		</div>
@@ -280,7 +254,7 @@
 		{/if}
 	</section>
 
-	<ScholarGrid scholars={filteredScholars} />
+	<ScholarGrid scholars={filteredScholars} onTagClick={onExpertiseTagClick} />
 </main>
 
 <style>
@@ -300,10 +274,13 @@
 		display: flex;
 		gap: 1rem;
 		margin-bottom: 1.5rem;
+		align-items: stretch;
+		flex-wrap: wrap;
 	}
 
 	.search-bar input {
 		flex: 1;
+		min-width: 260px;
 		padding: 0.75rem 1rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
@@ -319,6 +296,7 @@
 	.search-btn,
 	.clear-btn {
 		padding: 0.75rem 1.5rem;
+		min-height: 48px;
 		border: 1px solid #333;
 		background-color: #333;
 		color: white;
@@ -348,7 +326,7 @@
 
 	.default-filters {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 		gap: 1.5rem;
 		margin-bottom: 2rem;
 	}
@@ -380,7 +358,7 @@
 
 	.filters-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 		gap: 1.5rem;
 		margin-bottom: 1.5rem;
 	}
@@ -390,5 +368,46 @@
 		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 		gap: 2rem;
 		margin-top: 1.5rem;
+	}
+
+	@media (max-width: 1024px) {
+		.filters-container {
+			padding: 1.4rem;
+			padding-bottom: 2rem;
+		}
+
+		.default-filters,
+		.filters-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 760px) {
+		.filters-container {
+			padding: 1rem;
+			padding-bottom: 1.4rem;
+			margin-bottom: 1.8rem;
+		}
+
+		.search-bar {
+			gap: 0.65rem;
+		}
+
+		.search-bar input {
+			min-width: 0;
+			width: 100%;
+		}
+
+		.search-btn,
+		.clear-btn {
+			width: 100%;
+		}
+
+		.default-filters,
+		.filters-grid,
+		.tag-filters {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
 	}
 </style>

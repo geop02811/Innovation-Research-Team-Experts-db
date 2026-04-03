@@ -37,7 +37,7 @@
 			aria-haspopup="listbox"
 		>
 			<span class="selected-count">
-				{selected.length > 0 ? `${selected.length} selected` : `Select ${label}`}
+				{selected.length > 0 ? `${selected.length} selected` : `${label}`}
 			</span>
 			<span class="arrow">▼</span>
 		</button>
@@ -75,6 +75,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		min-width: 0;
 	}
 
 	.label-container {
@@ -92,6 +93,7 @@
 
 	.dropdown-button {
 		width: 100%;
+		min-width: 0;
 		padding: 0.5rem;
 		border: 1px solid #ccc;
 		border-radius: 4px;
@@ -115,8 +117,16 @@
 	}
 
 	.arrow {
+		flex: 0 0 auto;
 		font-size: 0.7rem;
 		color: #666;
+	}
+
+	.selected-count {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.dropdown-menu {

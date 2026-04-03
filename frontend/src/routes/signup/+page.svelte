@@ -7,7 +7,8 @@
 		academicRankOptions,
 		areasOfExpertiseOptions,
 		consultancyAvailabilityOptions,
-		departmentOptions,
+		getDepartmentOptionsByFaculty,
+		facultyOptions,
 		geographicScopeOptions,
 		highestQualificationOptions,
 		industrialAreasOptions,
@@ -47,6 +48,15 @@
 	let professionalPhotoConfirmed = $state(false);
 	let error = $state('');
 	let submitting = $state(false);
+
+	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
+
+	const onFacultyChange = (value: string) => {
+		faculty = value;
+		if (department && !getDepartmentOptionsByFaculty(value).includes(department)) {
+			department = '';
+		}
+	};
 
 	const onPhotoChange = async (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
@@ -259,13 +269,18 @@
 			<div class="grid two">
 				<label>
 					Faculty
-					<input bind:value={faculty} required placeholder="Computer Engineering, Medicine..." />
+					<select value={faculty} onchange={(e) => onFacultyChange(e.currentTarget.value)} required>
+						<option value="">Select faculty</option>
+						{#each facultyOptions as item}
+							<option value={item}>{item}</option>
+						{/each}
+					</select>
 				</label>
 				<label>
 					Department
 					<select bind:value={department} required>
 						<option value="">Select department</option>
-						{#each departmentOptions as item}
+						{#each availableDepartmentOptions as item}
 							<option value={item}>{item}</option>
 						{/each}
 					</select>

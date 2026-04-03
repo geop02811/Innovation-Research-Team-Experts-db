@@ -2,7 +2,12 @@
 	import ScholarCard from '$lib/components/scholars/ScholarCard.svelte';
 	import type { Scholar } from '$lib/types/scholar';
 
-	let { scholars }: { scholars: Scholar[] } = $props();
+	interface Props {
+		scholars: Scholar[];
+		onTagClick?: (expertise: string) => void;
+	}
+
+	let { scholars, onTagClick }: Props = $props();
 </script>
 
 <section class="grid-shell" aria-label="Scholars list">
@@ -11,7 +16,7 @@
 	{:else}
 		<div class="grid">
 			{#each scholars as scholar (scholar.id)}
-				<ScholarCard {scholar} />
+				<ScholarCard {scholar} {onTagClick} />
 			{/each}
 		</div>
 	{/if}
