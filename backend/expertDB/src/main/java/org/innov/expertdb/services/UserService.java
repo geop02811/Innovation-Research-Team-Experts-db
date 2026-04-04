@@ -1,19 +1,18 @@
-t stapackage org.innov.expertdb.services;
+package org.innov.expertdb.services;
 
 import org.innov.expertdb.auth.dtos.login.LoginRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
 import org.innov.expertdb.repos.UserRepository;
+import org.innov.expertdb.user.AccountStatus;
 import org.innov.expertdb.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,29 +23,43 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Original method 
     @Transactional
     public RegisterResponse createUser(RegisterRequest request) {
-        // 1. Map DTO to Entity
         User user = new User();
         user.setName(request.name());
+        user.setSurname(request.surname());
         user.setEmail(request.email());
         user.setRole(request.role());
 
-        // Hash The Password
         String hashedPassword = passwordEncoder.encode(request.password());
         user.setPasswordHash(hashedPassword);
 
-        // 2. Save to database
         User savedUser = userRepository.save(user);
+        return mapToResponse(savedUser);
+    }
 
-        // 3. Map Entity back to DTO
+    // NEW overloaded method that accepts status
+    @Transactional
+    public RegisterResponse createUser(RegisterRequest request, AccountStatus status) {
+        User user = new User();
+        user.setName(request.name());
+        user.setSurname(request.surname());
+        user.setEmail(request.email());
+        user.setRole(request.role());
+        user.setStatus(status);  // This is the key difference
+
+        String hashedPassword = passwordEncoder.encode(request.password());
+        user.setPasswordHash(hashedPassword);
+
+        User savedUser = userRepository.save(user);
         return mapToResponse(savedUser);
     }
 
     public List<RegisterResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::mapToResponse) // Convert every entity to a DTO
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -60,7 +73,6 @@ public class UserService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        // Check if the password matches
         if (passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             return mapToResponse(user);
         } else {
@@ -68,7 +80,6 @@ public class UserService {
         }
     }
 
-    // Helper method to keep code clean
     private RegisterResponse mapToResponse(User user) {
         return new RegisterResponse(
                 user.getId(),
