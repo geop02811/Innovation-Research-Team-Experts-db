@@ -63,3 +63,36 @@ export interface LoginResponse {
 	email: string;
 	role: UserRole;
 }
+
+/** Flat user record returned by GET /api/admin/users */
+export interface AdminUser {
+	id: string;
+	name: string;
+	surname: string;
+	email: string;
+	role: UserRole;
+	status: AccountStatus;
+	// Profile fields (null for admin/seeded accounts)
+	titlePrefix: string | null;
+	fullName: string | null;
+	contactDetails: string | null;
+	academicRank: string | null;
+	universityEmail: string | null;
+	phoneNumber: string | null;
+	highestQualification: string | null;
+	professionalMemberships: string | null;
+	complianceAccreditation: string | null;
+	faculty: string | null;
+	department: string | null;
+	yearsOfConsultancyExperience: string | null;
+	consultancyExperience: string | null;
+	consultancyAvailability: string | null;
+	preferredConsultancyTypes: string | null;
+	geographicScope: string | null;
+	skillsAndCompetences: string | null;
+	languagesSpoken: string | null;
+	areasOfExpertise: string | null;
+	industrialAreasOfExpertise: string | null;
+	notes: string | null;
+	profilePhotoDataUrl: string | null;
+}

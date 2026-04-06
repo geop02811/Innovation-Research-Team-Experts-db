@@ -25,16 +25,40 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public RegisterResponse createUser(RegisterRequest request, AccountStatus status) {
+    public RegisterResponse createUser(RegisterRequest request, AccountStatus status, Role role) {
         User user = new User();
         user.setName(request.name());
         user.setSurname(request.surname());
         user.setEmail(request.email());
-        user.setRole(Role.USER);
-        user.setStatus(status); 
+        user.setRole(role);
+        user.setStatus(status);
 
         String hashedPassword = passwordEncoder.encode(request.password());
         user.setPasswordHash(hashedPassword);
+
+        // Expert profile fields
+        user.setTitlePrefix(request.titlePrefix());
+        user.setFullName(request.fullName());
+        user.setContactDetails(request.contactDetails());
+        user.setAcademicRank(request.academicRank());
+        user.setUniversityEmail(request.universityEmail());
+        user.setPhoneNumber(request.phoneNumber());
+        user.setHighestQualification(request.highestQualification());
+        user.setProfessionalMemberships(request.professionalMemberships());
+        user.setComplianceAccreditation(request.complianceAccreditation());
+        user.setFaculty(request.faculty());
+        user.setDepartment(request.department());
+        user.setYearsOfConsultancyExperience(request.yearsOfConsultancyExperience());
+        user.setConsultancyExperience(request.consultancyExperience());
+        user.setConsultancyAvailability(request.consultancyAvailability());
+        user.setPreferredConsultancyTypes(request.preferredConsultancyTypes());
+        user.setGeographicScope(request.geographicScope());
+        user.setSkillsAndCompetences(request.skillsAndCompetences());
+        user.setLanguagesSpoken(request.languagesSpoken());
+        user.setAreasOfExpertise(request.areasOfExpertise());
+        user.setIndustrialAreasOfExpertise(request.industrialAreasOfExpertise());
+        user.setNotes(request.notes());
+        user.setProfilePhotoDataUrl(request.profilePhotoDataUrl());
 
         User savedUser = userRepository.save(user);
         return mapToResponse(savedUser);

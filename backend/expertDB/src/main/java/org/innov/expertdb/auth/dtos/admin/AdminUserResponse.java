@@ -1,22 +1,17 @@
-package org.innov.expertdb.auth.dtos.register;
+package org.innov.expertdb.auth.dtos.admin;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
 
-public record RegisterRequest(
+import org.innov.expertdb.user.AccountStatus;
+import org.innov.expertdb.user.Role;
 
-        @NotBlank(message = "Name is required")
+public record AdminUserResponse(
+        UUID id,
         String name,
-
-        @NotBlank(message = "Surname is required")
         String surname,
-
-        @NotBlank(message = "Email is required")
-        @Email(message = "Email must be valid")
         String email,
-
-        @NotBlank(message = "Password is required")
-        String password,
+        Role role,
+        AccountStatus status,
 
         // Expert profile fields
         String titlePrefix,
@@ -33,18 +28,12 @@ public record RegisterRequest(
         String yearsOfConsultancyExperience,
         String consultancyExperience,
         String consultancyAvailability,
-        /** Comma-separated */
         String preferredConsultancyTypes,
         String geographicScope,
-        /** Comma-separated */
         String skillsAndCompetences,
-        /** Comma-separated */
         String languagesSpoken,
-        /** Comma-separated */
         String areasOfExpertise,
-        /** Comma-separated */
         String industrialAreasOfExpertise,
         String notes,
-        String profilePhotoDataUrl) { }
-
-
+        String profilePhotoDataUrl
+) {}

@@ -1,7 +1,10 @@
 package org.innov.expertdb.services;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.innov.expertdb.auth.dtos.admin.AdminUserResponse;
 import org.innov.expertdb.repos.UserRepository;
 import org.innov.expertdb.user.AccountStatus;
 import org.innov.expertdb.user.Role;
@@ -51,5 +54,35 @@ public class AdminService {
             throw new RuntimeException("User not found");
         }
         userRepository.deleteById(id);
+    }
+
+    public List<AdminUserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toAdminResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateRole(UUID id, String role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(Role.valueOf(role));
+        userRepository.save(user);
+    }
+
+    private AdminUserResponse toAdminResponse(User u) {
+        return new AdminUserResponse(
+                u.getId(), u.getName(), u.getSurname(), u.getEmail(), u.getRole(), u.getStatus(),
+                u.getTitlePrefix(), u.getFullName(), u.getContactDetails(), u.getAcademicRank(),
+                u.getUniversityEmail(), u.getPhoneNumber(), u.getHighestQualification(),
+                u.getProfessionalMemberships(), u.getComplianceAccreditation(),
+                u.getFaculty(), u.getDepartment(), u.getYearsOfConsultancyExperience(),
+                u.getConsultancyExperience(), u.getConsultancyAvailability(),
+                u.getPreferredConsultancyTypes(), u.getGeographicScope(),
+                u.getSkillsAndCompetences(), u.getLanguagesSpoken(),
+                u.getAreasOfExpertise(), u.getIndustrialAreasOfExpertise(),
+                u.getNotes(), u.getProfilePhotoDataUrl()
+        );
     }
 }

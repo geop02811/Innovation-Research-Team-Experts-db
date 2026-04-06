@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { authService } from '$lib/auth/auth.service';
 
@@ -28,6 +28,8 @@
 			error = result.message;
 			return;
 		}
+
+		await invalidateAll();
 
 		const returnTo = page.url.searchParams.get('returnTo');
 		if (result.session.role === 'ADMIN') {

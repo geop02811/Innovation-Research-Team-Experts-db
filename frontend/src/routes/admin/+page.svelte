@@ -1,34 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authService } from '$lib/auth/auth.service';
-	import type { UserAccount, UserRole } from '$lib/auth/types';
+	import type { AdminUser, UserRole } from '$lib/auth/types';
 
-	let users = $state<UserAccount[]>([]);
+	let users = $state<AdminUser[]>([]);
 	let activeTab = $state<'pending' | 'approved' | 'all'>('pending');
-	let moderationComment = $state<Record<string, string>>({});
+	let loading = $state(false);
+	let fetchError = $state('');
 
-	const loadUsers = () => {
-		users = authService.listUsers();
+	const loadUsers = async () => {
+		loading = true;
+		fetchError = '';
+		const result = await authService.listUsers();
+		users = result.users;
+		fetchError = result.error ?? '';
+		loading = false;
 	};
 
 	onMount(loadUsers);
 
-	const pendingUsers = $derived(users.filter((user) => user.status === 'PENDING'));
-	const approvedUsers = $derived(users.filter((user) => user.status === 'APPROVED' || user.status === 'ACTIVE'));
+	const pendingUsers = $derived(users.filter((u) => u.status === 'PENDING'));
+	const approvedUsers = $derived(users.filter((u) => u.status === 'APPROVED' || u.status === 'ACTIVE'));
 
-	const approve = (id: string) => {
-		authService.approveUser(id, moderationComment[id] || 'Approved by admin');
-		loadUsers();
+	const approve = async (id: string) => {
+		await authService.approveUser(id);
+		await loadUsers();
 	};
 
-	const reject = (id: string) => {
-		authService.rejectUser(id, moderationComment[id] || 'Rejected by admin');
-		loadUsers();
+	const reject = async (id: string) => {
+		await authService.rejectUser(id);
+		await loadUsers();
 	};
 
-	const changeRole = (id: string, role: UserRole) => {
-		authService.updateRole(id, role);
-		loadUsers();
+	const changeRole = async (id: string, role: UserRole) => {
+		await authService.updateRole(id, role);
+		await loadUsers();
 	};
 </script>
 
@@ -50,21 +56,26 @@
 			<button class:active={activeTab === 'all'} onclick={() => (activeTab = 'all')}>All Users & Permissions</button>
 		</div>
 
+		{#if loading}
+			<p class="status-msg">Loading...</p>
+		{/if}
+
+		{#if fetchError}
+			<p class="error-msg">{fetchError}</p>
+		{/if}
+
 		{#if activeTab === 'pending'}
 			<section class="panel">
-				{#if pendingUsers.length === 0}
+				{#if !loading && pendingUsers.length === 0}
 					<p>No pending users.</p>
 				{:else}
 					{#each pendingUsers as user}
 						<article class="user-card">
-							<h3>{user.profile.titlePrefix} {user.profile.fullName}</h3>
-							<p>{user.email} • {user.profile.department} • {user.profile.faculty}</p>
-							<p>{user.profile.consultancyExperience}</p>
-							<textarea
-								bind:value={moderationComment[user.id]}
-								rows="2"
-								placeholder="Comment for approval/rejection"
-							></textarea>
+							<h3>{user.titlePrefix ?? ''} {user.fullName ?? user.name + ' ' + user.surname}</h3>
+							<p>{user.email} • {user.department ?? '—'} • {user.faculty ?? '—'}</p>
+							{#if user.consultancyExperience}
+								<p>{user.consultancyExperience}</p>
+							{/if}
 							<div class="actions">
 								<button type="button" onclick={() => approve(user.id)}>Approve</button>
 								<button type="button" class="danger" onclick={() => reject(user.id)}>Reject</button>
@@ -77,14 +88,13 @@
 
 		{#if activeTab === 'approved'}
 			<section class="panel">
-				{#if approvedUsers.length === 0}
+				{#if !loading && approvedUsers.length === 0}
 					<p>No approved users.</p>
 				{:else}
 					{#each approvedUsers as user}
 						<article class="user-card">
-							<h3>{user.profile.titlePrefix} {user.profile.fullName}</h3>
+							<h3>{user.titlePrefix ?? ''} {user.fullName ?? user.name + ' ' + user.surname}</h3>
 							<p>{user.email} • Status: {user.status}</p>
-							<p>Approval comment: {user.approvalComment || 'None'}</p>
 						</article>
 					{/each}
 				{/if}
@@ -96,12 +106,13 @@
 				{#each users as user}
 					<article class="user-card compact">
 						<div>
-							<h3>{user.profile.fullName}</h3>
+							<h3>{user.fullName ?? user.name + ' ' + user.surname}</h3>
 							<p>{user.email}</p>
 						</div>
 						<div class="row-actions">
-							<select value={user.role} onchange={(event) => changeRole(user.id, (event.currentTarget as HTMLSelectElement).value as UserRole)}>
+							<select value={user.role} onchange={(e) => changeRole(user.id, (e.currentTarget as HTMLSelectElement).value as UserRole)}>
 								<option value="USER">USER</option>
+								<option value="VIEWER">VIEWER</option>
 								<option value="ADMIN">ADMIN</option>
 							</select>
 							<span class="status">{user.status}</span>
@@ -225,5 +236,16 @@
 		font-size: 0.85rem;
 		font-weight: 700;
 		color: #124f40;
+	}
+
+	.status-msg {
+		color: var(--ink-soft);
+	}
+
+	.error-msg {
+		background: #fee;
+		color: #7c1020;
+		padding: 0.65rem 0.8rem;
+		border-radius: 10px;
 	}
 </style>

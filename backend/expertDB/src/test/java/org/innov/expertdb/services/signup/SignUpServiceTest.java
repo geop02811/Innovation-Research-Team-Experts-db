@@ -45,7 +45,10 @@ class SignUpServiceTest {
                 "John",
                 "Doe",
                 "john.doe@university.edu",
-                "password123"
+                "password123",
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null
         );
 
         expectedResponse = new RegisterResponse(
@@ -61,7 +64,7 @@ class SignUpServiceTest {
     void signUp_WithNewUser_ShouldCreateUserWithPendingStatus() {
         // Arrange
         when(userRepository.findByEmail(validRequest.email())).thenReturn(Optional.empty());
-        when(userService.createUser(validRequest, AccountStatus.PENDING)).thenReturn(expectedResponse);
+        when(userService.createUser(validRequest, AccountStatus.PENDING, Role.USER)).thenReturn(expectedResponse);
 
         // Act
         RegisterResponse response = signUpService.signUp(validRequest);
@@ -72,7 +75,7 @@ class SignUpServiceTest {
         assertEquals(validRequest.email(), response.email());
         
         verify(userRepository).findByEmail(validRequest.email());
-        verify(userService).createUser(validRequest, AccountStatus.PENDING);
+        verify(userService).createUser(validRequest, AccountStatus.PENDING, Role.USER);
     }
 
     @Test
@@ -92,7 +95,7 @@ class SignUpServiceTest {
         assertEquals("User with this email already exists and is active", exception.getMessage());
         
         verify(userRepository).findByEmail(validRequest.email());
-        verify(userService, never()).createUser(any(), any());
+        verify(userService, never()).createUser(any(), any(), any());
     }
 
     @Test
@@ -112,7 +115,7 @@ class SignUpServiceTest {
         assertEquals("Registration with this email is already pending approval", exception.getMessage());
         
         verify(userRepository).findByEmail(validRequest.email());
-        verify(userService, never()).createUser(any(), any());
+        verify(userService, never()).createUser(any(), any(), any());
     }
 
     @Test
@@ -132,7 +135,7 @@ class SignUpServiceTest {
         assertEquals("User with this email already exists and is approved", exception.getMessage());
         
         verify(userRepository).findByEmail(validRequest.email());
-        verify(userService, never()).createUser(any(), any());
+        verify(userService, never()).createUser(any(), any(), any());
     }
 
     @Test
@@ -152,6 +155,6 @@ class SignUpServiceTest {
         assertEquals("This account is disabled. Contact administrator for reactivation.", exception.getMessage());
         
         verify(userRepository).findByEmail(validRequest.email());
-        verify(userService, never()).createUser(any(), any());
+        verify(userService, never()).createUser(any(), any(), any());
     }
 }
