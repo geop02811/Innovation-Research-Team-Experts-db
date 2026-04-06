@@ -1,5 +1,5 @@
 export type AccountStatus = 'PENDING' | 'APPROVED' | 'ACTIVE' | 'DISABLED';
-export type UserRole = 'USER' | 'ADMIN';
+export type UserRole = 'USER' | 'VIEWER' | 'ADMIN';
 
 export interface ExpertProfile {
 	titlePrefix: 'Eng' | 'Dr' | 'Prof' | 'Mr' | 'Mrs' | 'Ms';

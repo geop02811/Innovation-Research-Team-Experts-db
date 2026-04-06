@@ -9,6 +9,7 @@ import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
 import org.innov.expertdb.repos.UserRepository;
 import org.innov.expertdb.user.AccountStatus;
+import org.innov.expertdb.user.Role;
 import org.innov.expertdb.user.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class UserService {
         user.setName(request.name());
         user.setSurname(request.surname());
         user.setEmail(request.email());
-        user.setRole(request.role());
+        user.setRole(Role.USER);
         user.setStatus(status); 
 
         String hashedPassword = passwordEncoder.encode(request.password());

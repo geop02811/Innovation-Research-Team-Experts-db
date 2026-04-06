@@ -32,10 +32,14 @@ public class LoginService {
         }
 
         String token = jwtService.generateToken(user);
+        String fullName = (user.getName() + " " + user.getSurname()).trim();
         return new LoginResponse(
                 token,
+                user.getId(),
                 user.getEmail(),
-                user.getRole()
+                fullName,
+                user.getRole(),
+                user.getStatus()
         );
     }
 }

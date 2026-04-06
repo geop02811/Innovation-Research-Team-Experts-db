@@ -172,7 +172,7 @@
 			profilePhotoDataUrl
 		};
 
-		const result = authService.signup({ email, password, profile });
+		const result = await authService.signup({ email, password, profile });
 		submitting = false;
 		if (!result.ok) {
 			error = result.message;

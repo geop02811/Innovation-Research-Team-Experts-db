@@ -22,7 +22,7 @@
 		error = '';
 		loading = true;
 
-		const result = authService.login(email, password);
+		const result = await authService.login(email, password);
 		loading = false;
 		if (!result.ok || !result.session) {
 			error = result.message;
@@ -71,7 +71,6 @@
 
 		<div class="hint-block">
 			<p>Need an account? <a href="/signup">Create expert profile</a></p>
-			<p>Demo admin: admin@uz.ac.zw / Admin@123</p>
 		</div>
 	</section>
 </main>
