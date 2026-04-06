@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="175b1e88-a5bb-467f-8e2e-09484102031c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/expertDB/src/main/java/org/innov/expertdb/repos/UserRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/expertDB/src/main/java/org/innov/expertdb/user/AccountStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/expertDB/src/main/java/org/innov/expertdb/user/Role.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/expertDB/src/main/java/org/innov/expertdb/user/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/expertDB/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/expertDB/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/expertDB/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backend/expertDB/src/main/resources/application.properties" afterDir="false" />
-    </list>
+    <list default="true" id="175b1e88-a5bb-467f-8e2e-09484102031c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,6 +18,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Mazly2004"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/geop02811/Innovation-Research-Team-Experts-db.git",
+    "accountId": "fd2ec0ed-1933-4d3c-b6a1-51b14a7da07f"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -41,7 +44,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "developer",
+    "git-widget-placeholder": "sign-up",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/olivermazorodze/Documents/Personal Projects/db_management_system/Innovation-Research-Team-Experts-db",
@@ -71,6 +74,7 @@
       <updated>1774420173784</updated>
       <workItem from="1774420176790" duration="179000" />
       <workItem from="1774922093039" duration="598000" />
+      <workItem from="1775446483644" duration="119000" />
     </task>
     <servers />
   </component>

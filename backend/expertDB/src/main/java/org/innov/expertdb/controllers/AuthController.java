@@ -2,6 +2,7 @@ package org.innov.expertdb.controllers;
 
 // import org.innov.expertdb.auth.dtos.login.LoginRequest;
 // import org.innov.expertdb.auth.dtos.login.LoginResponse;
+import jakarta.validation.Valid;
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
 // import org.innov.expertdb.services.AuthService;
