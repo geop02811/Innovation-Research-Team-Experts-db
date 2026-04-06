@@ -1,5 +1,6 @@
 package org.innov.expertdb.auth.dtos.register;
 
+import jakarta.validation.constraints.NotNull;
 import org.innov.expertdb.user.Role;
 
 import jakarta.validation.constraints.Email;

@@ -1,5 +1,9 @@
 package org.innov.expertdb.services;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.innov.expertdb.auth.dtos.login.LoginRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
@@ -12,10 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -23,23 +23,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Original method 
-    @Transactional
-    public RegisterResponse createUser(RegisterRequest request) {
-        User user = new User();
-        user.setName(request.name());
-        user.setSurname(request.surname());
-        user.setEmail(request.email());
-        user.setRole(request.role());
-
-        String hashedPassword = passwordEncoder.encode(request.password());
-        user.setPasswordHash(hashedPassword);
-
-        User savedUser = userRepository.save(user);
-        return mapToResponse(savedUser);
-    }
-
-    // NEW overloaded method that accepts status
     @Transactional
     public RegisterResponse createUser(RegisterRequest request, AccountStatus status) {
         User user = new User();
@@ -47,7 +30,7 @@ public class UserService {
         user.setSurname(request.surname());
         user.setEmail(request.email());
         user.setRole(request.role());
-        user.setStatus(status);  // This is the key difference
+        user.setStatus(status); 
 
         String hashedPassword = passwordEncoder.encode(request.password());
         user.setPasswordHash(hashedPassword);
