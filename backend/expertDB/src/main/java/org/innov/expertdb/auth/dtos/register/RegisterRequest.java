@@ -17,3 +17,5 @@ public record RegisterRequest(
 
         @NotBlank(message = "Password is required")
         String password) { }
+
+

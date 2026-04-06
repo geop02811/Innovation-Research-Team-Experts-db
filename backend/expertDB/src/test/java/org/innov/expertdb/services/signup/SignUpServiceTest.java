@@ -1,5 +1,8 @@
 package org.innov.expertdb.services.signup;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
 import org.innov.expertdb.repos.UserRepository;
@@ -7,19 +10,19 @@ import org.innov.expertdb.services.UserService;
 import org.innov.expertdb.user.AccountStatus;
 import org.innov.expertdb.user.Role;
 import org.innov.expertdb.user.User;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SignUpServiceTest {
@@ -42,8 +45,7 @@ class SignUpServiceTest {
                 "John",
                 "Doe",
                 "john.doe@university.edu",
-                "password123",
-                Role.USER
+                "password123"
         );
 
         expectedResponse = new RegisterResponse(
