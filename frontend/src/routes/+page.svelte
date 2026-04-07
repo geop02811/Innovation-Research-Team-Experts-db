@@ -131,6 +131,26 @@
 					</div>
 				</div>
 			</article>
+			<article class="hp-card" style="background-image: url('/Arts.jpg')">
+				<div class="hp-card-inner">
+					<div class="hp-card-tag">Arts &amp; Humanities</div>
+					<div class="hp-card-body">
+						<h3>Preserving Zimbabwe's visual heritage through digital archiving</h3>
+						<p>Digitising and cataloguing pre-colonial and post-independence artworks to create an open-access national cultural repository.</p>
+						<div class="hp-card-meta">Dr. A. Mutasa · Faculty of Arts</div>
+					</div>
+				</div>
+			</article>
+			<article class="hp-card" style="background-image: url('/Music.jpg')">
+				<div class="hp-card-inner">
+					<div class="hp-card-tag">Music</div>
+					<div class="hp-card-body">
+						<h3>Ethnomusicology &amp; the living traditions of Mbira</h3>
+						<p>Documenting and analysing the Mbira dzavadzimu as a living cultural practice, exploring its role in contemporary Zimbabwean identity and spiritual life.</p>
+						<div class="hp-card-meta">Prof. C. Nhongo · Faculty of Arts</div>
+					</div>
+				</div>
+			</article>
 		</div>
 	</div>
 </section>
@@ -504,21 +524,21 @@
 /* ─── Research cards ───────────────────────────────── */
 .hp-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 1.2rem;
 }
 .hp-card {
 	background: var(--uz-navy);
 	border: none;
-	border-radius: 16px;
-	padding: 1.4rem;
+	border-radius: 0;
+	padding: 2rem;
 	box-shadow: 0 4px 16px rgba(27,43,78,0.15);
 	transition: transform 0.18s, box-shadow 0.18s;
 	position: relative;
 	overflow: hidden;
 	background-size: cover;
 	background-position: center;
-	min-height: 260px;
+	min-height: 340px;
 }
 .hp-card::before {
 	content: '';
@@ -679,14 +699,14 @@
 /* ─── Competitions ─────────────────────────────────── */
 .hp-comp-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 1.2rem;
 }
 .hp-comp-card {
 	background: #fff;
 	border: 1px solid var(--line);
-	border-radius: 16px;
-	padding: 1.4rem;
+	border-radius: 0;
+	padding: 2rem;
 	box-shadow: 0 4px 16px rgba(27,43,78,0.07);
 	display: flex;
 	flex-direction: column;

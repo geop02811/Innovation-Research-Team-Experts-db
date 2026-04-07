@@ -28,7 +28,7 @@
 
 <div class="multi-select-filter">
 	<div class="label-container"><span class="label-text">{label}</span></div>
-	<div class="dropdown-wrapper">
+	<div class="dropdown-wrapper" onmouseleave={closeDropdown}>
 		<button
 			type="button"
 			class="dropdown-button"

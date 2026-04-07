@@ -6,283 +6,289 @@
 </script>
 
 <article class="profile-shell">
-	<div class="profile-breadcrumb">
-		{scholar.faculty || 'Faculty'} / People / {scholar.fullName}
-	</div>
 
-	<header class="profile-header">
-		<div class="profile-media">
+	<nav class="profile-breadcrumb">
+		<a href="/experts">← {scholar.faculty || 'Faculty'}</a>
+		<span>/ People /</span>
+		<span>{scholar.fullName?.toUpperCase()}</span>
+	</nav>
+
+	<!-- Full-width navy banner -->
+	<header class="profile-banner">
+		<div class="banner-photo">
 			<img src={scholar.avatarUrl} alt={scholar.fullName} loading="eager" />
 		</div>
-		<div class="profile-identity">
-			<h1>{scholar.fullName}</h1>
-			<p class="qualifications">{scholar.qualifications}</p>
-			<p class="role-badge">{scholar.role}</p>
-			<p class="role">{scholar.headline}</p>
-			<p class="role-sub">Faculty of {scholar.faculty || scholar.college}</p>
+		<div class="banner-info">
+			<h1>
+				{scholar.fullName}
+				{#if scholar.qualifications}<span class="quals">{scholar.qualifications}</span>{/if}
+			</h1>
+			<div class="accent-bar"></div>
+			{#if scholar.role}<p class="role-badge">{scholar.role}</p>{/if}
+			{#if scholar.headline}<p class="banner-headline">{scholar.headline}</p>{/if}
+			{#if scholar.faculty}<p class="banner-faculty">Faculty of {scholar.faculty}</p>{/if}
 		</div>
 	</header>
 
-	<section class="profile-contact-grid">
-		<div>
-			<h3>Email:</h3>
-			<p>{scholar.email}</p>
+	<!-- Contact section — indented to clear the hanging photo -->
+	<section class="profile-meta">
+		<div class="meta-links">
+			{#each scholar.links as link}
+				<a class="meta-link-item" href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
+			{/each}
 		</div>
-		<div>
-			<h3>Institution:</h3>
-			<p>{scholar.college}</p>
-		</div>
-		<div>
-			<h3>Tel:</h3>
-			<p>{scholar.phone}</p>
-		</div>
-		<div>
-			<h3>Location:</h3>
-			<p>{scholar.location}</p>
+		<div class="contact-grid">
+			{#if scholar.email}
+				<div class="contact-cell">
+					<span class="contact-label">Email:</span>
+					<p>{scholar.email}</p>
+				</div>
+			{/if}
+			{#if scholar.college}
+				<div class="contact-cell">
+					<span class="contact-label">College:</span>
+					<p>{scholar.college}</p>
+				</div>
+			{/if}
+			{#if scholar.phone}
+				<div class="contact-cell">
+					<span class="contact-label">Tel:</span>
+					<p>{scholar.phone}</p>
+				</div>
+			{/if}
+			{#if scholar.location}
+				<div class="contact-cell">
+					<span class="contact-label">Location:</span>
+					<p>{scholar.location}</p>
+				</div>
+			{/if}
 		</div>
 	</section>
 
-	<div class="profile-content">
-		<aside>
-			<h2>Research Areas</h2>
-			<ul>
-				{#each scholar.researchAreas as area}
-					<li>{area}</li>
-				{/each}
-			</ul>
-
-			{#if scholar.areasOfExpertise && scholar.areasOfExpertise.length > 0}
-				<h3>Areas of Expertise</h3>
+	<!-- Body: sidebar + tabs -->
+	<div class="profile-body">
+		<aside class="profile-aside">
+			{#if scholar.researchAreas?.length}
+				<h3 class="aside-heading">Research Areas</h3>
 				<ul>
-					{#each scholar.areasOfExpertise as area}
-						<li>{area}</li>
-					{/each}
+					{#each scholar.researchAreas as area}<li>{area}</li>{/each}
 				</ul>
 			{/if}
-
-			{#if scholar.industrialAreasOfExpertise && scholar.industrialAreasOfExpertise.length > 0}
-				<h3>Industrial Areas</h3>
+			{#if scholar.areasOfExpertise?.length}
+				<h3 class="aside-heading">Areas of Expertise</h3>
 				<ul>
-					{#each scholar.industrialAreasOfExpertise as area}
-						<li>{area}</li>
-					{/each}
+					{#each scholar.areasOfExpertise as area}<li>{area}</li>{/each}
 				</ul>
 			{/if}
-
-			{#if scholar.languagesSpoken && scholar.languagesSpoken.length > 0}
-				<h3>Languages</h3>
+			{#if scholar.industrialAreasOfExpertise?.length}
+				<h3 class="aside-heading">Industrial Areas</h3>
 				<ul>
-					{#each scholar.languagesSpoken as lang}
-						<li>{lang}</li>
-					{/each}
+					{#each scholar.industrialAreasOfExpertise as area}<li>{area}</li>{/each}
 				</ul>
 			{/if}
-
-			<div class="profile-links">
-				{#each scholar.links as link}
-					<a href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
-				{/each}
-			</div>
+			{#if scholar.languagesSpoken?.length}
+				<h3 class="aside-heading">Languages</h3>
+				<ul>
+					{#each scholar.languagesSpoken as lang}<li>{lang}</li>{/each}
+				</ul>
+			{/if}
 		</aside>
 
 		<section class="profile-sections">
 			<ProfileTabs sections={scholar.sections} />
 		</section>
 	</div>
+
 </article>
 
 <style>
+	/* ── Shell ── */
 	.profile-shell {
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: 1.5rem 2rem 2rem;
+		background: #fff;
 	}
 
+	/* ── Breadcrumb ── */
 	.profile-breadcrumb {
-		font-size: 0.875rem;
-		color: #666;
-		margin-bottom: 2rem;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.75rem 2rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #59606f;
+		border-bottom: 1px solid var(--line);
+	}
+	.profile-breadcrumb a { color: inherit; text-decoration: none; }
+	.profile-breadcrumb a:hover { text-decoration: underline; }
+
+	/* ── Banner ── */
+	.profile-banner {
+		background: var(--uz-navy, #1b2b4e);
+		border-bottom: 4px solid var(--uz-orange, #e87722);
+		display: flex;
+		align-items: flex-end;
+		gap: 2.5rem;
+		padding: 2rem 2rem 0;
 	}
 
-	.profile-header {
-		display: grid;
-		grid-template-columns: 210px 1fr;
-		gap: 2rem;
-		margin-bottom: 2rem;
-		align-items: start;
-		padding: 1.5rem;
-		border: 1px solid #d6d0d5;
-		border-radius: 14px;
-		background: #f5f3f5;
+	/* Photo hangs below the banner */
+	.banner-photo {
+		flex-shrink: 0;
+		position: relative;
+		z-index: 2;
 	}
-
-	.profile-media img {
-		width: 100%;
-		aspect-ratio: 4 / 5;
+	.banner-photo img {
+		display: block;
+		width: 220px;
+		aspect-ratio: 3 / 4;
 		object-fit: cover;
-		border-radius: 12px;
-		box-shadow: 0 12px 24px rgba(22, 10, 20, 0.2);
+		margin-bottom: -3.5rem;
+		box-shadow: 0 8px 28px rgba(0,0,0,0.35);
 	}
 
-	.profile-identity {
-		background: #65275f;
+	/* Text info in banner */
+	.banner-info {
+		flex: 1;
 		color: #fff;
-		padding: 1.6rem 1.8rem;
-		border-radius: 10px;
+		padding-bottom: 1.8rem;
 	}
-
-	.profile-identity h1 {
-		margin: 0 0 0.5rem 0;
+	.banner-info h1 {
 		font-family: 'Fraunces', serif;
-		font-size: clamp(2rem, 5.2vw, 4.25rem);
-		line-height: 0.95;
-		letter-spacing: 0.01em;
+		font-size: clamp(2rem, 4.5vw, 3.8rem);
+		line-height: 1;
+		margin: 0 0 0.4rem;
 		color: #fff;
 	}
-
-	.qualifications {
-		font-size: clamp(0.95rem, 1.65vw, 1.45rem);
+	.quals {
+		font-size: clamp(1rem, 1.8vw, 1.5rem);
 		font-style: italic;
 		font-weight: 500;
-		color: rgba(255, 255, 255, 0.95);
-		margin: 0 0 1.35rem;
+		color: rgba(255,255,255,0.85);
+		margin-left: 0.5rem;
+		vertical-align: baseline;
 	}
-
+	.accent-bar {
+		width: 2.5rem;
+		height: 3px;
+		background: var(--uz-orange, #e87722);
+		margin: 0.6rem 0 1rem;
+	}
 	.role-badge {
 		display: inline-block;
-		margin: 0 0 1rem 0;
-		background-color: rgba(255, 255, 255, 0.14);
-		padding: 0.4rem 0.95rem;
-		border-radius: 999px;
-		font-size: 0.82rem;
+		background: rgba(255,255,255,0.14);
+		border: 1px solid rgba(255,255,255,0.25);
+		color: #fff;
+		font-size: 0.78rem;
+		font-weight: 700;
 		letter-spacing: 0.14em;
-		font-weight: 700;
 		text-transform: uppercase;
-		color: #fff;
+		padding: 0.3rem 0.8rem;
+		margin-bottom: 0.8rem;
 	}
-
-	.role {
-		font-size: clamp(1.15rem, 2.05vw, 1.7rem);
-		line-height: 1.15;
-		font-weight: 700;
+	.banner-headline {
+		font-size: clamp(1rem, 1.6vw, 1.3rem);
+		font-weight: 600;
+		color: #fff;
 		margin: 0;
+	}
+	.banner-faculty {
+		font-size: 0.95rem;
+		color: rgba(255,255,255,0.7);
+		margin: 0.3rem 0 0;
+	}
+
+	/* ── Meta / contact section ── */
+	.profile-meta {
+		display: flex;
+		gap: 2rem;
+		align-items: flex-start;
+		padding: calc(3.5rem + 1.5rem) 2rem 1.5rem;
+		border-bottom: 1px solid var(--line);
+	}
+	.meta-links {
+		flex-shrink: 0;
+		width: 220px;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.meta-link-item {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		background: var(--uz-orange, #e87722);
 		color: #fff;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-decoration: none;
+		border-radius: 50%;
 	}
-
-	.role-sub {
-		font-size: clamp(0.95rem, 1.4vw, 1.25rem);
-		font-weight: 500;
-		color: rgba(255, 255, 255, 0.9);
-		margin: 0.7rem 0 0 0;
-	}
-
-	.profile-contact-grid {
+	.contact-grid {
+		flex: 1;
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
-		gap: 1.5rem;
-		margin-bottom: 2rem;
-		padding: 1.5rem;
-		background-color: #fff;
-		border: 1px solid #e6e0e5;
-		border-radius: 8px;
+		gap: 1.2rem 2rem;
 	}
-
-	.profile-contact-grid h3 {
-		font-size: 0.76rem;
-		font-weight: 600;
+	.contact-label {
+		display: block;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: #8a1b62;
-		letter-spacing: 0.08em;
-		margin: 0 0 0.5rem 0;
+		color: var(--uz-orange, #e87722);
+		margin-bottom: 0.25rem;
 	}
-
-	.profile-contact-grid p {
+	.contact-cell p {
 		margin: 0;
-		font-size: 0.98rem;
-		color: #1f2a44;
-		line-height: 1.35;
+		font-size: 0.95rem;
+		color: var(--ink, #1f2a44);
 	}
 
-	.profile-content {
+	/* ── Body ── */
+	.profile-body {
 		display: grid;
-		grid-template-columns: 250px 1fr;
+		grid-template-columns: 230px 1fr;
 		gap: 3rem;
+		padding: 2rem;
 	}
 
-	aside h2 {
-		font-size: 1rem;
-		margin: 0 0 1rem 0;
+	.profile-aside { border-right: 1px solid var(--line); padding-right: 2rem; }
+	.aside-heading {
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--uz-navy, #1b2b4e);
+		margin: 1.5rem 0 0.5rem;
+		padding-bottom: 0.3rem;
+		border-bottom: 2px solid var(--uz-orange, #e87722);
 	}
-
-	aside h3 {
-		font-size: 0.9rem;
-		margin: 1.5rem 0 0.75rem 0;
-	}
-
-	aside ul {
+	.profile-aside ul {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 	}
-
-	aside li {
-		padding: 0.5rem 0;
-		font-size: 0.9rem;
+	.profile-aside li {
+		padding: 0.35rem 0;
+		font-size: 0.88rem;
 		color: #555;
+		border-bottom: 1px solid var(--line);
 	}
 
-	.profile-links {
-		margin-top: 2rem;
-		padding-top: 1rem;
-		border-top: 1px solid #e0e0e0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.profile-links a {
-		color: #0066cc;
-		text-decoration: none;
-		font-size: 0.9rem;
-	}
-
-	.profile-links a:hover {
-		text-decoration: underline;
-	}
-
-	.profile-sections {
-		padding-left: 2rem;
-	}
-
+	/* ── Responsive ── */
 	@media (max-width: 768px) {
-		.profile-header {
-			grid-template-columns: 1fr;
-			padding: 1rem;
-			gap: 1rem;
-		}
-
-		.profile-media {
-			max-width: 260px;
-		}
-
-		.profile-identity {
-			padding: 1rem 1.1rem;
-		}
-
-		.profile-identity h1 {
-			line-height: 1.02;
-		}
-
-		.profile-contact-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		.profile-content {
-			grid-template-columns: 1fr;
-		}
-
-		.profile-sections {
-			padding-left: 0;
-		}
+		.profile-banner { flex-direction: column; align-items: flex-start; padding-bottom: 1.5rem; }
+		.banner-photo img { margin-bottom: 0; width: 140px; }
+		.profile-meta { flex-direction: column; padding-top: 1.5rem; }
+		.meta-links { width: auto; flex-direction: row; }
+		.contact-grid { grid-template-columns: 1fr 1fr; }
+		.profile-body { grid-template-columns: 1fr; }
+		.profile-aside { border-right: none; padding-right: 0; border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; }
 	}
 </style>
