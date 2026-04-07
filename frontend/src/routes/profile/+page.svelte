@@ -8,6 +8,7 @@
 
 	let isEditing = $state(false);
 	let isSaving = $state(false);
+	let saveError = $state('');
 
 	// Form state
 	let formData = $state({
@@ -22,7 +23,8 @@
 		skillsAndCompetences: data.profile?.skillsAndCompetences || [],
 		languagesSpoken: data.profile?.languagesSpoken || [],
 		consultancyExperience: data.profile?.consultancyExperience || '',
-		notes: data.profile?.notes || ''
+		notes: data.profile?.notes || '',
+		profilePhotoDataUrl: data.profile?.profilePhotoDataUrl || ''
 	});
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(formData.faculty));
@@ -34,12 +36,39 @@
 		}
 	};
 
+	const onPhotoChange = (e: Event) => {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			formData.profilePhotoDataUrl = reader.result as string;
+		};
+		reader.readAsDataURL(file);
+	};
+
 	const handleSave = async () => {
 		isSaving = true;
-		// TODO: Send updated profile to backend
-		// For now, just toggle off edit mode
-		isEditing = false;
+		saveError = '';
+		const result = await authService.updateProfile({
+			fullName: formData.fullName,
+			phoneNumber: formData.phone,
+			faculty: formData.faculty,
+			department: formData.department,
+			academicRank: formData.academicRank,
+			highestQualification: formData.highestQualification,
+			areasOfExpertise: formData.areasOfExpertise.join(','),
+			skillsAndCompetences: formData.skillsAndCompetences.join(','),
+			languagesSpoken: formData.languagesSpoken.join(','),
+			consultancyExperience: formData.consultancyExperience,
+			notes: formData.notes,
+			profilePhotoDataUrl: formData.profilePhotoDataUrl
+		});
 		isSaving = false;
+		if (result.ok) {
+			isEditing = false;
+		} else {
+			saveError = result.message;
+		}
 	};
 
 	const handleLogout = async () => {
@@ -60,7 +89,8 @@
 		</div>
 		<div class="header-actions">
 			{#if isEditing}
-				<button class="btn btn-secondary" onclick={() => (isEditing = false)}>Cancel</button>
+				{#if saveError}<p class="save-error">{saveError}</p>{/if}
+				<button class="btn btn-secondary" onclick={() => { isEditing = false; saveError = ''; }}>Cancel</button>
 				<button class="btn btn-primary" onclick={handleSave} disabled={isSaving}>
 					{isSaving ? 'Saving...' : 'Save Changes'}
 				</button>
@@ -74,7 +104,13 @@
 	<article class="profile-card">
 		<div class="profile-top">
 			<div class="profile-avatar">
-				<img src={data.profile?.profilePhotoDataUrl || '/default-avatar.svg'} alt="Profile" />
+				<img src={formData.profilePhotoDataUrl || '/default-avatar.svg'} alt="Profile" />
+				{#if isEditing}
+					<label class="avatar-edit-btn" title="Change photo">
+						&#9998;
+						<input type="file" accept="image/*" onchange={onPhotoChange} hidden />
+					</label>
+				{/if}
 			</div>
 			<div class="profile-header-info">
 				<h2>{formData.fullName}</h2>
@@ -318,6 +354,8 @@
 
 	.profile-avatar {
 		flex-shrink: 0;
+		position: relative;
+		display: inline-block;
 	}
 
 	.profile-avatar img {
@@ -326,6 +364,37 @@
 		border-radius: 12px;
 		object-fit: cover;
 		border: 1px solid var(--line);
+		display: block;
+	}
+
+	.avatar-edit-btn {
+		position: absolute;
+		bottom: 6px;
+		right: 6px;
+		background: #0a3a8d;
+		color: #fff;
+		border-radius: 50%;
+		width: 30px;
+		height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.85rem;
+		cursor: pointer;
+		border: 2px solid #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+		transition: background 0.2s;
+	}
+
+	.avatar-edit-btn:hover {
+		background: #062552;
+	}
+
+	.save-error {
+		color: #d32f2f;
+		font-size: 0.85rem;
+		margin: 0;
+		align-self: center;
 	}
 
 	.profile-header-info {

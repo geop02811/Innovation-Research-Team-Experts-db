@@ -84,10 +84,24 @@
 			return;
 		}
 
+		// Resize + compress to JPEG ≤ 400×400, quality 0.8 — keeps data URL under ~100KB
 		const dataUrl = await new Promise<string>((resolve, reject) => {
 			const reader = new FileReader();
-			reader.onload = () => resolve(String(reader.result || ''));
 			reader.onerror = () => reject(new Error('Cannot read image file'));
+			reader.onload = () => {
+				const img = new Image();
+				img.onerror = () => reject(new Error('Cannot decode image'));
+				img.onload = () => {
+					const MAX = 400;
+					const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+					const canvas = document.createElement('canvas');
+					canvas.width = Math.round(img.width * scale);
+					canvas.height = Math.round(img.height * scale);
+					canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+					resolve(canvas.toDataURL('image/jpeg', 0.8));
+				};
+				img.src = String(reader.result);
+			};
 			reader.readAsDataURL(file);
 		});
 

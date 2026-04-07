@@ -114,6 +114,9 @@ public class User {
     @Column(name = "profile_photo_data_url", columnDefinition = "TEXT")
     private String profilePhotoDataUrl;
 
+    @Column(name = "token_version", columnDefinition = "INTEGER NOT NULL DEFAULT 0")
+    private int tokenVersion = 0;
+
     public User() {}
 
     public User(UUID id, String name, String surname, String email, String passwordHash, Role role, AccountStatus status) {

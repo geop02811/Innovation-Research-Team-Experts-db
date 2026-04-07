@@ -28,6 +28,7 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(Role.VIEWER);
         user.setStatus(AccountStatus.ACTIVE);
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
     }
 
@@ -36,6 +37,7 @@ public class AdminService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setStatus(AccountStatus.DISABLED);
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
     }
 
@@ -45,6 +47,7 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(Role.ADMIN);
         user.setStatus(AccountStatus.ACTIVE);
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
     }
 
@@ -68,6 +71,7 @@ public class AdminService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(Role.valueOf(role));
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
     }
 

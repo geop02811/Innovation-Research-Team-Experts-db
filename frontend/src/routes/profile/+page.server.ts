@@ -1,18 +1,35 @@
 import { redirect } from '@sveltejs/kit';
+import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ parent }) => {
-	// Get session from parent layout
+export const load: PageServerLoad = async ({ parent, cookies, fetch }) => {
 	const { session } = await parent();
 
-	// Check if user is authenticated
 	if (!session) {
 		redirect(302, '/login');
 	}
 
-	// Load user profile data from session or database
-	// For now, return the session data which should contain the profile
-	return {
-		profile: session.profile || {}
-	};
+	const token = cookies.get('uz_token');
+	if (!token) {
+		redirect(302, '/login');
+	}
+
+	try {
+		const res = await fetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`, {
+			headers: { Authorization: `Bearer ${token}` }
+		});
+
+		if (res.status === 401 || res.status === 403) {
+			redirect(302, '/login?message=Session expired. Please log in again.');
+		}
+
+		if (!res.ok) {
+			return { profile: null };
+		}
+
+		const profile = await res.json();
+		return { profile };
+	} catch {
+		return { profile: null };
+	}
 };

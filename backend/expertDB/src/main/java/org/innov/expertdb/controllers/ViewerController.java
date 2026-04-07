@@ -1,21 +1,142 @@
 package org.innov.expertdb.controllers;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.innov.expertdb.auth.dtos.user.UpdateProfileRequest;
+import org.innov.expertdb.auth.dtos.user.UserProfileResponse;
+import org.innov.expertdb.auth.dtos.viewer.ExpertSummaryResponse;
+import org.innov.expertdb.repos.UserRepository;
+import org.innov.expertdb.user.AccountStatus;
+import org.innov.expertdb.user.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("/api/v1/viewer")
+@RequestMapping("/api/viewer")
+@RequiredArgsConstructor
 public class ViewerController {
 
-    @GetMapping("/my-profile")
-    public ResponseEntity<String> viewProfile() {
-        return ResponseEntity.ok("My Profile");
+    private final UserRepository userRepository;
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> me(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(Map.of(
+                "role", user.getRole().name(),
+                "status", user.getStatus().name()
+        ));
     }
 
-    @GetMapping("/find-expert")
-    public ResponseEntity<String> findExpert() {
-        return ResponseEntity.ok("My Expert");
+    @GetMapping("/profile")
+    public ResponseEntity<UserProfileResponse> getMyProfile(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(toProfile(user));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserProfileResponse> updateMyProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody UpdateProfileRequest req) {
+        if (req.fullName() != null) user.setFullName(req.fullName());
+        if (req.titlePrefix() != null) user.setTitlePrefix(req.titlePrefix());
+        if (req.phoneNumber() != null) user.setPhoneNumber(req.phoneNumber());
+        if (req.faculty() != null) user.setFaculty(req.faculty());
+        if (req.department() != null) user.setDepartment(req.department());
+        if (req.academicRank() != null) user.setAcademicRank(req.academicRank());
+        if (req.highestQualification() != null) user.setHighestQualification(req.highestQualification());
+        if (req.professionalMemberships() != null) user.setProfessionalMemberships(req.professionalMemberships());
+        if (req.complianceAccreditation() != null) user.setComplianceAccreditation(req.complianceAccreditation());
+        if (req.yearsOfConsultancyExperience() != null) user.setYearsOfConsultancyExperience(req.yearsOfConsultancyExperience());
+        if (req.consultancyExperience() != null) user.setConsultancyExperience(req.consultancyExperience());
+        if (req.consultancyAvailability() != null) user.setConsultancyAvailability(req.consultancyAvailability());
+        if (req.geographicScope() != null) user.setGeographicScope(req.geographicScope());
+        if (req.preferredConsultancyTypes() != null) user.setPreferredConsultancyTypes(req.preferredConsultancyTypes());
+        if (req.areasOfExpertise() != null) user.setAreasOfExpertise(req.areasOfExpertise());
+        if (req.industrialAreasOfExpertise() != null) user.setIndustrialAreasOfExpertise(req.industrialAreasOfExpertise());
+        if (req.skillsAndCompetences() != null) user.setSkillsAndCompetences(req.skillsAndCompetences());
+        if (req.languagesSpoken() != null) user.setLanguagesSpoken(req.languagesSpoken());
+        if (req.notes() != null) user.setNotes(req.notes());
+        if (req.profilePhotoDataUrl() != null) user.setProfilePhotoDataUrl(req.profilePhotoDataUrl());
+        userRepository.save(user);
+        return ResponseEntity.ok(toProfile(user));
+    }
+
+    private UserProfileResponse toProfile(User u) {
+        return new UserProfileResponse(
+                u.getId(),
+                u.getEmail(),
+                u.getFullName(),
+                u.getTitlePrefix(),
+                u.getPhoneNumber(),
+                u.getUniversityEmail(),
+                u.getFaculty(),
+                u.getDepartment(),
+                u.getAcademicRank(),
+                u.getHighestQualification(),
+                u.getProfessionalMemberships(),
+                u.getComplianceAccreditation(),
+                u.getYearsOfConsultancyExperience(),
+                u.getConsultancyExperience(),
+                u.getConsultancyAvailability(),
+                u.getGeographicScope(),
+                splitCsv(u.getPreferredConsultancyTypes()),
+                splitCsv(u.getAreasOfExpertise()),
+                splitCsv(u.getIndustrialAreasOfExpertise()),
+                splitCsv(u.getSkillsAndCompetences()),
+                splitCsv(u.getLanguagesSpoken()),
+                u.getNotes(),
+                u.getProfilePhotoDataUrl()
+        );
+    }
+
+    private List<String> splitCsv(String val) {
+        if (val == null || val.isBlank()) return List.of();
+        return Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+    }
+
+    @GetMapping("/experts")
+    public ResponseEntity<List<ExpertSummaryResponse>> listExperts() {
+        List<ExpertSummaryResponse> experts = userRepository.findAll().stream()
+                .filter(u -> u.getStatus() == AccountStatus.ACTIVE && u.getFullName() != null)
+                .sorted((a, b) -> {
+                    String nameA = a.getFullName() != null ? a.getFullName() : "";
+                    String nameB = b.getFullName() != null ? b.getFullName() : "";
+                    return nameA.compareToIgnoreCase(nameB);
+                })
+                .map(this::toSummary)
+                .toList();
+        return ResponseEntity.ok(experts);
+    }
+
+    private ExpertSummaryResponse toSummary(User u) {
+        return new ExpertSummaryResponse(
+                u.getId(),
+                u.getFullName(),
+                u.getTitlePrefix(),
+                u.getAcademicRank(),
+                u.getHighestQualification(),
+                u.getFaculty(),
+                u.getDepartment(),
+                u.getUniversityEmail(),
+                u.getPhoneNumber(),
+                u.getConsultancyExperience(),
+                u.getConsultancyAvailability(),
+                u.getYearsOfConsultancyExperience(),
+                u.getGeographicScope(),
+                u.getPreferredConsultancyTypes(),
+                u.getAreasOfExpertise(),
+                u.getIndustrialAreasOfExpertise(),
+                u.getSkillsAndCompetences(),
+                u.getLanguagesSpoken(),
+                u.getNotes(),
+                u.getProfilePhotoDataUrl()
+        );
     }
 }

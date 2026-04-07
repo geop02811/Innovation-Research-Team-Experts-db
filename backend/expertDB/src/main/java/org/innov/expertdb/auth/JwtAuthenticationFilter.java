@@ -41,12 +41,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7);
-        final String email = jwtService.extractUsername(token);
+        final String email;
+        try {
+            email = jwtService.extractUsername(token);
+        } catch (Exception e) {
+            // Malformed or invalid token — treat as unauthenticated
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             User user = userRepository.findByEmail(email).orElse(null);
 
-            if (user != null && jwtService.isTokenValid(token, user)) {
+            Integer tokenVersion = jwtService.extractTokenVersion(token);
+            boolean versionValid = tokenVersion != null && user != null
+                    && tokenVersion == user.getTokenVersion();
+
+            if (user != null && versionValid && jwtService.isTokenValid(token, user)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 user,

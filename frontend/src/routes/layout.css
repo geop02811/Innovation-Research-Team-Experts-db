@@ -2,16 +2,28 @@
 @plugin '@tailwindcss/forms';
 
 :root {
-	--bg: #f5f2ec;
-	--paper: #fefcf7;
-	--ink: #102422;
-	--ink-soft: #415150;
-	--line: #d9d1c3;
-	--accent: #0d5c63;
-	--accent-deep: #07393c;
-	--hero: linear-gradient(130deg, #d9ece8 0%, #f8ede0 55%, #efe4ce 100%);
-	--radius: 20px;
-	--shadow: 0 20px 50px rgba(16, 36, 34, 0.08);
+	/* ── Official UZ brand colours ────────────────────── */
+	--uz-navy:        #1B2B4E;   /* primary nav / header */
+	--uz-navy-deep:   #111d36;   /* darker navy for footer / hover */
+	--uz-orange:      #F47920;   /* dominant accent (nav bar, buttons) */
+	--uz-orange-dark: #c9621a;   /* hover / pressed state */
+	--uz-orange-light:#fef0e4;   /* tinted backgrounds */
+	--uz-gold:        #F5C200;   /* crest gold (star, shield border) */
+	--uz-gold-light:  #fffbe6;
+	--uz-red:         #CE1126;   /* crest star colour — sparingly */
+
+	/* ── Semantic aliases ─────────────────────────────── */
+	--bg:             #f5f5f7;
+	--paper:          #ffffff;
+	--ink:            #1a1a2e;
+	--ink-soft:       #4a4f6a;
+	--line:           #d4d8e8;
+	--accent:         var(--uz-orange);
+	--accent-deep:    var(--uz-orange-dark);
+	--accent-gold:    var(--uz-gold);
+	--hero:           linear-gradient(135deg, #1B2B4E 0%, #243563 60%, #1a2544 100%);
+	--radius:         20px;
+	--shadow:         0 20px 50px rgba(27, 43, 78, 0.12);
 }
 
 * {
@@ -22,7 +34,7 @@ html,
 body {
 	margin: 0;
 	padding: 0;
-	background: radial-gradient(circle at 15% 10%, #fff 0, transparent 42%), var(--bg);
+	background: var(--bg);
 	color: var(--ink);
 	font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
 	min-height: 100%;
@@ -41,9 +53,49 @@ a {
 	position: sticky;
 	top: 0;
 	z-index: 30;
-	backdrop-filter: blur(8px);
-	background: color-mix(in oklab, var(--paper) 92%, transparent);
-	border-bottom: 1px solid var(--line);
+	background: var(--uz-navy);
+	border-bottom: 4px solid var(--uz-orange);
+}
+
+.site-header .brand {
+	color: #fff;
+}
+
+.site-header nav {
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.site-header nav a:hover {
+	color: var(--uz-orange);
+	text-decoration: none;
+}
+
+.site-header .admin-link {
+	border-color: var(--uz-orange);
+	color: var(--uz-orange);
+}
+
+.site-header .admin-link:hover {
+	background: var(--uz-orange);
+	color: #fff;
+}
+
+.site-header .logout-btn {
+	border-color: rgba(255,255,255,0.6);
+	color: #fff;
+}
+
+.site-header .logout-btn:hover {
+	background: rgba(255,255,255,0.15);
+}
+
+.site-header .profile-link {
+	border-color: rgba(255,255,255,0.6);
+	color: #fff;
+}
+
+.site-header .profile-link:hover {
+	background: rgba(255,255,255,0.15);
 }
 
 .site-header-inner {
@@ -57,9 +109,26 @@ a {
 }
 
 .brand {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	text-decoration: none;
+}
+
+.nav-logo {
+	height: 48px;
+	width: auto;
+	object-fit: contain;
+	flex-shrink: 0;
+}
+
+.brand-text {
 	font-family: 'Fraunces', serif;
-	font-size: 1.15rem;
+	font-size: 1.05rem;
+	font-weight: 700;
 	letter-spacing: 0.01em;
+	color: #fff;
+	line-height: 1.2;
 }
 
 nav {
@@ -69,7 +138,7 @@ nav {
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	color: #123f89;
+	color: var(--uz-navy);
 }
 
 nav a:hover {
@@ -77,22 +146,22 @@ nav a:hover {
 }
 
 .admin-link {
-	border: 1px solid #123f89;
+	border: 1px solid var(--uz-orange);
 	border-radius: 999px;
 	padding: 0.35rem 0.85rem;
 	text-decoration: none;
 }
 
 .admin-link:hover {
-	background: #123f89;
+	background: var(--uz-orange);
 	color: #fff;
 	text-decoration: none;
 }
 
 .logout-btn {
-	border: 1px solid #123f89;
+	border: 1px solid var(--uz-orange);
 	background: transparent;
-	color: #123f89;
+	color: var(--uz-orange);
 	border-radius: 999px;
 	padding: 0.35rem 0.85rem;
 	font-size: 0.83rem;
@@ -103,7 +172,7 @@ nav a:hover {
 }
 
 .logout-btn:hover {
-	background: #123f89;
+	background: var(--uz-orange);
 	color: #fff;
 }
 
@@ -113,14 +182,14 @@ nav a:hover {
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border: 1px solid #123f89;
+	border: 1px solid var(--uz-orange);
 	border-radius: 50%;
-	color: #123f89;
+	color: var(--uz-orange);
 	transition: all 0.2s ease;
 }
 
 .profile-link:hover {
-	background: #123f89;
+	background: var(--uz-orange);
 	color: #fff;
 }
 
@@ -136,7 +205,7 @@ nav a:hover {
 
 .hero-shell {
 	background: var(--hero);
-	border: 1px solid color-mix(in oklab, var(--line) 70%, #fff);
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	border-radius: calc(var(--radius) + 4px);
 	padding: 2.2rem 1.4rem;
 	box-shadow: var(--shadow);
@@ -149,7 +218,7 @@ nav a:hover {
 	font-weight: 700;
 	font-size: 0.72rem;
 	letter-spacing: 0.14em;
-	color: var(--accent);
+	color: var(--uz-orange);
 }
 
 .hero h1 {
@@ -157,12 +226,13 @@ nav a:hover {
 	font-size: clamp(1.85rem, 4.8vw, 2.8rem);
 	line-height: 1.1;
 	margin: 0.45rem 0;
+	color: #ffffff;
 }
 
 .hero p {
 	margin: 0;
 	max-width: 67ch;
-	color: var(--ink-soft);
+	color: rgba(255, 255, 255, 0.8);
 	font-size: 1.05rem;
 	line-height: 1.45;
 }
@@ -174,8 +244,8 @@ nav a:hover {
 .home-hero {
 	border-radius: 24px;
 	padding: 2rem;
-	background: linear-gradient(125deg, #eff4fb 10%, #fff9ef 100%);
-	border: 1px solid #d8deef;
+	background: linear-gradient(125deg, var(--uz-orange-light) 10%, var(--uz-gold-light) 100%);
+	border: 1px solid var(--line);
 	max-width: 760px;
 }
 
@@ -196,7 +266,7 @@ nav a:hover {
 .home-cta {
 	display: inline-flex;
 	margin-top: 1.2rem;
-	background: #0a3a8d;
+	background: var(--uz-navy);
 	color: #fff;
 	padding: 0.7rem 1.2rem;
 	border-radius: 999px;
@@ -229,7 +299,7 @@ nav a:hover {
 	border: 0;
 	padding: 0 2rem;
 	border-radius: 999px;
-	background: #0a3a8d;
+	background: var(--uz-navy);
 	color: #fff;
 	font-weight: 800;
 	letter-spacing: 0.05em;
@@ -628,5 +698,127 @@ nav a:hover {
 
 	.facts {
 		grid-template-columns: 1fr;
+	}
+}
+/* ═══════════════════════════════════════════ FOOTER ══ */
+.site-footer {
+	background: var(--uz-navy, #12253a);
+	color: #fff;
+}
+
+.site-footer-top {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 3rem 1.5rem 2.5rem;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr) 1.4fr;
+	gap: 2rem;
+}
+
+.footer-col h4 {
+	font-size: 0.78rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	color: var(--uz-gold);
+	margin: 0 0 0.9rem;
+}
+
+.footer-col ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+.footer-col ul li a {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.75);
+	transition: color 0.15s;
+}
+
+.footer-col ul li a:hover {
+	color: var(--uz-gold);
+}
+
+.footer-col-brand {
+	border-left: 1px solid rgba(255,255,255,0.12);
+	padding-left: 2rem;
+}
+
+.footer-brand-name {
+	font-family: 'Fraunces', serif;
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: #fff;
+	margin-bottom: 0.4rem;
+}
+
+.footer-brand-tagline {
+	font-size: 0.82rem;
+	color: var(--uz-gold);
+	font-style: italic;
+	margin: 0 0 0.9rem;
+}
+
+.footer-address {
+	font-size: 0.83rem;
+	color: rgba(255,255,255,0.6);
+	line-height: 1.6;
+	margin: 0;
+}
+
+.site-footer-bottom {
+	border-top: 1px solid rgba(255,255,255,0.1);
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 1rem 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	font-size: 0.8rem;
+	color: rgba(255,255,255,0.5);
+}
+
+.footer-legal {
+	display: flex;
+	gap: 1.5rem;
+	flex-wrap: wrap;
+}
+
+.footer-legal a {
+	color: rgba(255,255,255,0.5);
+	font-size: 0.8rem;
+	transition: color 0.15s;
+}
+
+.footer-legal a:hover {
+	color: var(--uz-gold);
+}
+
+@media (max-width: 900px) {
+	.site-footer-top {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.footer-col-brand {
+		border-left: none;
+		padding-left: 0;
+		border-top: 1px solid rgba(255,255,255,0.12);
+		padding-top: 1.5rem;
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 500px) {
+	.site-footer-top {
+		grid-template-columns: 1fr;
+	}
+	.site-footer-bottom {
+		flex-direction: column;
+		align-items: flex-start;
 	}
 }

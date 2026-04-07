@@ -5,6 +5,33 @@ import type { ExpertProfile, SessionUser } from '$lib/auth/types';
 
 const JWT_STORAGE_KEY = 'uz_token';
 
+const clearSession = () => {
+	if (!browser) return;
+	localStorage.removeItem(JWT_STORAGE_KEY);
+	document.cookie = `${SESSION_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
+	document.cookie = `uz_token=; Path=/; Max-Age=0; SameSite=Lax`;
+};
+
+/** Authenticated fetch — auto-logs out and redirects to /login on 401/403. */
+const authFetch = async (input: string, init: RequestInit = {}): Promise<Response> => {
+	const token = browser ? localStorage.getItem(JWT_STORAGE_KEY) : null;
+	const res = await fetch(input, {
+		...init,
+		headers: {
+			...(init.headers ?? {}),
+			Authorization: `Bearer ${token}`
+		}
+	});
+	if (res.status === 401) {
+		clearSession();
+		if (browser) window.location.href = '/login?message=Session expired. Please log in again.';
+	} else if (res.status === 403) {
+		clearSession();
+		if (browser) window.location.href = '/login?message=Access denied. Your account permissions may have changed.';
+	}
+	return res;
+};
+
 const setSessionCookie = (session: SessionUser | null) => {
 	if (!browser) return;
 
@@ -104,6 +131,8 @@ export const authService = {
 
 			if (browser) {
 				localStorage.setItem(JWT_STORAGE_KEY, data.token);
+				// Also store in a cookie so server-side layout loads can send it to the backend
+				document.cookie = `uz_token=${data.token}; Path=/; Max-Age=86400; SameSite=Lax`;
 			}
 
 			const session: SessionUser = {
@@ -122,50 +151,53 @@ export const authService = {
 	},
 
 	logout: () => {
-		setSessionCookie(null);
-		if (browser) {
-			localStorage.removeItem(JWT_STORAGE_KEY);
-		}
+		clearSession();
 	},
 
 	listUsers: async (): Promise<{ users: import('$lib/auth/types').AdminUser[]; error?: string }> => {
-		const token = browser ? localStorage.getItem(JWT_STORAGE_KEY) : null;
 		try {
-			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/admin/users`, {
-				headers: { Authorization: `Bearer ${token}` }
-			});
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users`);
 			if (!res.ok) {
 				const text = await res.text();
 				return { users: [], error: `Server error ${res.status}: ${text || res.statusText}` };
 			}
 			return { users: await res.json() };
-		} catch (e) {
+		} catch {
 			return { users: [], error: 'Could not reach the server. Is the backend running?' };
 		}
 	},
 
 	approveUser: async (id: string): Promise<void> => {
-		const token = browser ? localStorage.getItem(JWT_STORAGE_KEY) : null;
-		await fetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/approve`, {
-			method: 'PUT',
-			headers: { Authorization: `Bearer ${token}` }
-		});
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/approve`, { method: 'PUT' });
 	},
 
 	rejectUser: async (id: string): Promise<void> => {
-		const token = browser ? localStorage.getItem(JWT_STORAGE_KEY) : null;
-		await fetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/reject`, {
-			method: 'PUT',
-			headers: { Authorization: `Bearer ${token}` }
-		});
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/reject`, { method: 'PUT' });
 	},
 
 	updateRole: async (id: string, role: import('$lib/auth/types').UserRole): Promise<void> => {
-		const token = browser ? localStorage.getItem(JWT_STORAGE_KEY) : null;
-		await fetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/role`, {
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/role`, {
 			method: 'PUT',
-			headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ role })
 		});
+	},
+
+	updateProfile: async (payload: Record<string, unknown>): Promise<{ ok: boolean; message: string; profile?: unknown }> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			if (!res.ok) {
+				const text = await res.text();
+				return { ok: false, message: text || 'Failed to save profile.' };
+			}
+			const profile = await res.json();
+			return { ok: true, message: 'Profile saved.', profile };
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
 	}
 };
