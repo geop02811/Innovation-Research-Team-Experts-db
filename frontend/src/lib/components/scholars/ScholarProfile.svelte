@@ -107,14 +107,16 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		background: #fff;
+		overflow-x: hidden;
 	}
 
 	/* ── Breadcrumb ── */
 	.profile-breadcrumb {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.4rem;
-		padding: 0.75rem 2rem;
+		padding: 0.75rem 1rem;
 		font-size: 0.78rem;
 		font-weight: 700;
 		letter-spacing: 0.08em;
@@ -153,15 +155,17 @@
 	/* Text info in banner */
 	.banner-info {
 		flex: 1;
+		min-width: 0;
 		color: #fff;
 		padding-bottom: 1.8rem;
 	}
 	.banner-info h1 {
 		font-family: 'Fraunces', serif;
-		font-size: clamp(2rem, 4.5vw, 3.8rem);
-		line-height: 1;
+		font-size: clamp(1.6rem, 4.5vw, 3.8rem);
+		line-height: 1.1;
 		margin: 0 0 0.4rem;
 		color: #fff;
+		word-break: break-word;
 	}
 	.quals {
 		font-size: clamp(1rem, 1.8vw, 1.5rem);
@@ -231,6 +235,7 @@
 	}
 	.contact-grid {
 		flex: 1;
+		min-width: 0;
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 1.2rem 2rem;
@@ -248,6 +253,7 @@
 		margin: 0;
 		font-size: 0.95rem;
 		color: var(--ink, #1f2a44);
+		word-break: break-word;
 	}
 
 	/* ── Body ── */
@@ -283,12 +289,39 @@
 
 	/* ── Responsive ── */
 	@media (max-width: 768px) {
-		.profile-banner { flex-direction: column; align-items: flex-start; padding-bottom: 1.5rem; }
-		.banner-photo img { margin-bottom: 0; width: 140px; }
-		.profile-meta { flex-direction: column; padding-top: 1.5rem; }
+		.profile-banner {
+			flex-direction: column;
+			align-items: flex-start;
+			padding: 1.5rem 1rem 1.5rem;
+			gap: 1rem;
+		}
+		.banner-photo img {
+			margin-bottom: 0;
+			width: 120px;
+		}
+		.profile-meta {
+			flex-direction: column;
+			padding: 1.5rem 1rem;
+		}
 		.meta-links { width: auto; flex-direction: row; }
 		.contact-grid { grid-template-columns: 1fr 1fr; }
-		.profile-body { grid-template-columns: 1fr; }
-		.profile-aside { border-right: none; padding-right: 0; border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; }
+		.profile-body {
+			grid-template-columns: 1fr;
+			padding: 1rem;
+		}
+		.profile-aside {
+			border-right: none;
+			padding-right: 0;
+			border-bottom: 1px solid var(--line);
+			padding-bottom: 1.5rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.profile-breadcrumb { padding: 0.6rem 0.75rem; font-size: 0.72rem; }
+		.banner-info h1 { font-size: 1.5rem; }
+		.contact-grid { grid-template-columns: 1fr; }
+		.profile-meta { padding: 1rem 0.75rem; }
+		.profile-body { padding: 0.75rem; }
 	}
 </style>

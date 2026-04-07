@@ -9,9 +9,14 @@
 
 	const currentYear = new Date().getFullYear();
 
+	let menuOpen = $state(false);
+	const toggleMenu = () => (menuOpen = !menuOpen);
+	const closeMenu = () => (menuOpen = false);
+
 	const logout = async () => {
 		authService.logout();
 		await invalidateAll();
+		closeMenu();
 		await goto('/login');
 	};
 </script>
@@ -28,11 +33,12 @@
 <div class="app-shell">
 	<header class="site-header">
 		<div class="site-header-inner">
-			<a href="/" class="brand">
+			<a href="/" class="brand" onclick={closeMenu}>
 				<img src="/University_of_Zimbabwe_LOGO.png" alt="University of Zimbabwe" class="nav-logo" />
 				<span class="brand-text">University of Zimbabwe Experts</span>
 			</a>
-			<nav aria-label="Main navigation">
+			<!-- Desktop nav -->
+			<nav class="desktop-nav" aria-label="Main navigation">
 				<a href="/">Home</a>
 				<a href="/experts">Experts</a>
 				{#if data.session?.role === 'ADMIN'}
@@ -50,7 +56,32 @@
 					<a href="/signup">Sign Up</a>
 				{/if}
 			</nav>
+			<!-- Hamburger button (mobile only) -->
+			<button class="hamburger" aria-label="Toggle menu" aria-expanded={menuOpen} onclick={toggleMenu}>
+				<span class:open={menuOpen}></span>
+				<span class:open={menuOpen}></span>
+				<span class:open={menuOpen}></span>
+			</button>
 		</div>
+		<!-- Mobile drawer -->
+		{#if menuOpen}
+			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+			<div class="mobile-overlay" onclick={closeMenu}></div>
+			<nav class="mobile-nav" aria-label="Mobile navigation">
+				<a href="/" onclick={closeMenu}>Home</a>
+				<a href="/experts" onclick={closeMenu}>Experts</a>
+				{#if data.session?.role === 'ADMIN'}
+					<a class="admin-link" href="/admin" onclick={closeMenu}>Admin Dashboard</a>
+				{/if}
+				{#if data.session}
+					<a href="/profile" class="profile-link" onclick={closeMenu}>My Profile</a>
+					<button class="mobile-logout" onclick={logout}>Log Out</button>
+				{:else}
+					<a href="/login" onclick={closeMenu}>Login</a>
+					<a href="/signup" class="mobile-signup" onclick={closeMenu}>Sign Up</a>
+				{/if}
+			</nav>
+		{/if}
 	</header>
 
 	{@render children()}
