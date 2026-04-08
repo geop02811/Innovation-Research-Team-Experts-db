@@ -3,6 +3,7 @@ package org.innov.expertdb.services.signup;
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
 import org.innov.expertdb.repos.UserRepository;
+import org.innov.expertdb.services.NotificationService;
 import org.innov.expertdb.services.UserService;
 import org.innov.expertdb.user.AccountStatus;
 import org.innov.expertdb.user.User;
@@ -13,12 +14,16 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
+
+
 @Service
 @RequiredArgsConstructor
 public class SignUpService {
 
     private final UserRepository userRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
+
 
     @Transactional
     public RegisterResponse signUp(RegisterRequest request) {
@@ -51,7 +56,15 @@ public class SignUpService {
         // Step 3: Create new user with PENDING status
         // The userService.createUser method handles password hashing and saving
         RegisterResponse response = userService.createUser(request, AccountStatus.PENDING);
+
+           // Fetch the saved user to get the User entity
+        User savedUser = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User saved but not found"));
         
+        // Notify all admins about the pending approval
+        notificationService.notifyAdminsOfPendingUser(savedUser);
+
+
         // Step 4: Return response with PENDING status
         return response;
     }
