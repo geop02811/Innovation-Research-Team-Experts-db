@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
@@ -147,9 +146,9 @@
 		}
 	};
 
-	const handleLogout = async () => {
+	const handleLogout = () => {
 		authService.logout();
-		await goto('/login');
+		window.location.href = '/login';
 	};
 
 	const switchSection = (id: Section) => {

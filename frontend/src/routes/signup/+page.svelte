@@ -594,7 +594,7 @@
 		font-weight: 600;
 	}
 
-	input,
+	input:not([type='checkbox']),
 	select,
 	textarea {
 		border-radius: 12px;
@@ -603,6 +603,16 @@
 		font-size: 1rem;
 		background: #fff;
 		font-family: inherit;
+	}
+
+	input[type='checkbox'] {
+		appearance: auto;
+		-webkit-appearance: checkbox;
+		width: 1.1rem;
+		height: 1.1rem;
+		cursor: pointer;
+		accent-color: #c66b17;
+		flex-shrink: 0;
 	}
 
 	input:focus,

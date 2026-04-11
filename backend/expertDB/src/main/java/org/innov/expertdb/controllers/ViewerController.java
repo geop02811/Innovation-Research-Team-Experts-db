@@ -1,12 +1,17 @@
 package org.innov.expertdb.controllers;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.innov.expertdb.auth.dtos.user.UpdateProfileRequest;
 import org.innov.expertdb.auth.dtos.user.UserProfileResponse;
 import org.innov.expertdb.auth.dtos.viewer.ExpertSummaryResponse;
+import org.innov.expertdb.auth.dtos.viewer.ViewerNotificationsResponse;
+import org.innov.expertdb.auth.dtos.viewer.ViewerNotificationsResponse.NewExpertNotification;
 import org.innov.expertdb.repos.UserRepository;
 import org.innov.expertdb.user.AccountStatus;
 import org.innov.expertdb.user.User;
@@ -113,6 +118,45 @@ public class ViewerController {
                 .map(this::toSummary)
                 .toList();
         return ResponseEntity.ok(experts);
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<ViewerNotificationsResponse> getNotifications(@AuthenticationPrincipal User currentUser) {
+        Instant since = Instant.now().minus(Duration.ofDays(30));
+        List<User> newExperts = userRepository.findByStatusAndCreatedAtAfter(AccountStatus.ACTIVE, since)
+                .stream()
+                .filter(u -> !u.getId().equals(currentUser.getId()) && u.getFullName() != null)
+                .collect(Collectors.toList());
+
+        List<NewExpertNotification> items = newExperts.stream()
+                .map(u -> new NewExpertNotification(
+                        u.getId().toString(),
+                        expertDisplayName(u),
+                        u.getFullName() != null ? u.getFullName() : (u.getName() + " " + u.getSurname()).trim(),
+                        u.getFaculty(),
+                        u.getAcademicRank(),
+                        u.getAreasOfExpertise(),
+                        viewerTimeAgo(u.getCreatedAt())
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new ViewerNotificationsResponse(newExperts.size(), items));
+    }
+
+    private String expertDisplayName(User u) {
+        String prefix = u.getTitlePrefix() != null ? u.getTitlePrefix() + " " : "";
+        String full = u.getFullName() != null ? u.getFullName() : (u.getName() + " " + u.getSurname()).trim();
+        return (prefix + full).trim();
+    }
+
+    private String viewerTimeAgo(Instant createdAt) {
+        if (createdAt == null) return "recently";
+        Duration d = Duration.between(createdAt, Instant.now());
+        if (d.toMinutes() < 60) return d.toMinutes() + "m ago";
+        if (d.toHours() < 24) return d.toHours() + "h ago";
+        long days = d.toDays();
+        if (days < 7) return days + "d ago";
+        return (days / 7) + "w ago";
     }
 
     private ExpertSummaryResponse toSummary(User u) {

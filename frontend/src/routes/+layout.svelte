@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
 	import { authService } from '$lib/auth/auth.service';
+	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import type { LayoutData } from './$types';
@@ -13,11 +13,10 @@
 	const toggleMenu = () => (menuOpen = !menuOpen);
 	const closeMenu = () => (menuOpen = false);
 
-	const logout = async () => {
+	const logout = () => {
 		authService.logout();
-		await invalidateAll();
 		closeMenu();
-		await goto('/login');
+		window.location.href = '/login';
 	};
 </script>
 
@@ -45,6 +44,7 @@
 					<a class="admin-link" href="/admin">Admin Dashboard</a>
 				{/if}
 				{#if data.session}
+					<NotificationBell role={data.session.role} />
 					<a href="/profile" class="profile-link" title="My Profile">
 						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -74,6 +74,10 @@
 					<a class="admin-link" href="/admin" onclick={closeMenu}>Admin Dashboard</a>
 				{/if}
 				{#if data.session}
+					<div class="mobile-notif-row">
+						<NotificationBell role={data.session.role} />
+						<span class="mobile-notif-label">Notifications</span>
+					</div>
 					<a href="/profile" class="profile-link" onclick={closeMenu}>My Profile</a>
 					<button class="mobile-logout" onclick={logout}>Log Out</button>
 				{:else}

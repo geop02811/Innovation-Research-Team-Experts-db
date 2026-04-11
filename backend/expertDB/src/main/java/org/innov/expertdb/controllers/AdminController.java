@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.innov.expertdb.auth.dtos.admin.AdminNotificationsResponse;
 import org.innov.expertdb.auth.dtos.admin.AdminUserResponse;
 import org.innov.expertdb.services.AdminService;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,11 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final AdminService adminService;
+
+    @GetMapping("/notifications")
+    public ResponseEntity<AdminNotificationsResponse> getNotifications() {
+        return ResponseEntity.ok(adminService.getNotifications());
+    }
 
     @GetMapping("/users")
     public ResponseEntity<List<AdminUserResponse>> getAllUsers() {

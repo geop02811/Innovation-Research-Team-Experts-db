@@ -1,7 +1,9 @@
 package org.innov.expertdb.user;
 
+import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import jakarta.persistence.Column;
@@ -116,6 +118,10 @@ public class User {
 
     @Column(name = "token_version", columnDefinition = "INTEGER NOT NULL DEFAULT 0")
     private int tokenVersion = 0;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     public User() {}
 

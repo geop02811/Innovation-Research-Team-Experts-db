@@ -1,7 +1,12 @@
 import { browser } from '$app/environment';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import { SESSION_COOKIE_NAME, parseSession, serializeSession } from '$lib/auth/session';
-import type { ExpertProfile, SessionUser } from '$lib/auth/types';
+import type {
+	AdminNotificationsResponse,
+	ExpertProfile,
+	SessionUser,
+	ViewerNotificationsResponse
+} from '$lib/auth/types';
 
 const JWT_STORAGE_KEY = 'uz_token';
 
@@ -198,6 +203,26 @@ export const authService = {
 			return { ok: true, message: 'Profile saved.', profile };
 		} catch {
 			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
+	getAdminNotifications: async (): Promise<AdminNotificationsResponse> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/notifications`);
+			if (!res.ok) return { pendingCount: 0, pendingUsers: [] };
+			return res.json();
+		} catch {
+			return { pendingCount: 0, pendingUsers: [] };
+		}
+	},
+
+	getViewerNotifications: async (): Promise<ViewerNotificationsResponse> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/notifications`);
+			if (!res.ok) return { newExpertsCount: 0, newExperts: [] };
+			return res.json();
+		} catch {
+			return { newExpertsCount: 0, newExperts: [] };
 		}
 	}
 };

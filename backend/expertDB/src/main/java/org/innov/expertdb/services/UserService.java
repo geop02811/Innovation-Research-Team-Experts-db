@@ -29,7 +29,7 @@ public class UserService {
         User user = new User();
         user.setName(request.name());
         user.setSurname(request.surname());
-        user.setEmail(request.email());
+        user.setEmail(request.email().toLowerCase());
         user.setRole(role);
         user.setStatus(status);
 
@@ -78,7 +78,7 @@ public class UserService {
     }
 
     public RegisterResponse userLogIn(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(request.email().toLowerCase())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (passwordEncoder.matches(request.password(), user.getPasswordHash())) {

@@ -96,3 +96,31 @@ export interface AdminUser {
 	notes: string | null;
 	profilePhotoDataUrl: string | null;
 }
+export interface PendingUserNotification {
+	id: string;
+	displayName: string;
+	email: string;
+	faculty: string | null;
+	academicRank: string | null;
+	joinedAgo: string;
+}
+
+export interface AdminNotificationsResponse {
+	pendingCount: number;
+	pendingUsers: PendingUserNotification[];
+}
+
+export interface NewExpertNotification {
+	id: string;
+	displayName: string;
+	fullName: string;
+	faculty: string | null;
+	academicRank: string | null;
+	areasOfExpertise: string | null;
+	joinedAgo: string;
+}
+
+export interface ViewerNotificationsResponse {
+	newExpertsCount: number;
+	newExperts: NewExpertNotification[];
+}
