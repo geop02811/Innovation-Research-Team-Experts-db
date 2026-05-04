@@ -224,5 +224,127 @@ export const authService = {
 		} catch {
 			return { newExpertsCount: 0, newExperts: [] };
 		}
+	},
+
+	// ── Grants (public read) ──────────────────────────────────────
+	getGrants: async (): Promise<GrantItem[]> => {
+		try {
+			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/grants`);
+			if (!res.ok) return [];
+			return res.json();
+		} catch {
+			return [];
+		}
+	},
+
+	// ── Grants (admin write) ──────────────────────────────────────
+	createGrant: async (payload: GrantPayload): Promise<{ ok: boolean; data?: GrantItem; message?: string }> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			if (!res.ok) return { ok: false, message: await res.text() };
+			return { ok: true, data: await res.json() };
+		} catch {
+			return { ok: false, message: 'Could not reach the server.' };
+		}
+	},
+
+	updateGrant: async (id: string, payload: GrantPayload): Promise<{ ok: boolean; data?: GrantItem; message?: string }> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants/${id}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			if (!res.ok) return { ok: false, message: await res.text() };
+			return { ok: true, data: await res.json() };
+		} catch {
+			return { ok: false, message: 'Could not reach the server.' };
+		}
+	},
+
+	deleteGrant: async (id: string): Promise<void> => {
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants/${id}`, { method: 'DELETE' });
+	},
+
+	// ── Events ────────────────────────────────────────────────────
+	getEvents: async (): Promise<EventItem[]> => {
+		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/events`); return r.ok ? r.json() : []; } catch { return []; }
+	},
+	createEvent: async (p: EventPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	updateEvent: async (id: string, p: EventPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	deleteEvent: async (id: string): Promise<void> => {
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events/${id}`, { method: 'DELETE' });
+	},
+
+	// ── Competitions ──────────────────────────────────────────────
+	getCompetitions: async (): Promise<CompetitionItem[]> => {
+		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/competitions`); return r.ok ? r.json() : []; } catch { return []; }
+	},
+	createCompetition: async (p: CompetitionPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	updateCompetition: async (id: string, p: CompetitionPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	deleteCompetition: async (id: string): Promise<void> => {
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions/${id}`, { method: 'DELETE' });
+	},
+
+	// ── Alumni News ───────────────────────────────────────────────
+	getAlumniNews: async (): Promise<AlumniNewsItem[]> => {
+		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/alumni-news`); return r.ok ? r.json() : []; } catch { return []; }
+	},
+	createAlumniNews: async (p: AlumniNewsPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	updateAlumniNews: async (id: string, p: AlumniNewsPayload) => {
+		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+	},
+	deleteAlumniNews: async (id: string): Promise<void> => {
+		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'DELETE' });
 	}
 };
+
+// ── Shared types ──────────────────────────────────────────────────────────────
+export interface EventItem { id: string; title: string; description: string; eventDate: string; category: string; location: string; }
+export interface EventPayload { title: string; description: string; eventDate: string; category: string; location: string; }
+
+export interface CompetitionItem { id: string; title: string; description: string; deadline: string; status: string; prize: string; ctaLabel: string; ctaUrl: string; }
+export interface CompetitionPayload { title: string; description: string; deadline: string; status: string; prize: string; ctaLabel: string; ctaUrl: string; }
+
+export interface AlumniNewsItem { id: string; personName: string; headline: string; body: string; newsDate: string; }
+export interface AlumniNewsPayload { personName: string; headline: string; body: string; newsDate: string; }
+
+// ── Grant types (shared between admin UI and grants page) ──────────────
+export interface GrantItem {
+	id: string;
+	funder: string;
+	title: string;
+	description: string;
+	amount: string;
+	closingDate: string; // ISO date string "YYYY-MM-DD"
+	status: 'OPEN' | 'UPCOMING' | 'CLOSED';
+	category: string;
+	applyUrl: string;
+	featured: boolean;
+}
+
+export interface GrantPayload {
+	funder: string;
+	title: string;
+	description: string;
+	amount: string;
+	closingDate: string;
+	status: string;
+	category: string;
+	applyUrl: string;
+	featured: boolean;
+}

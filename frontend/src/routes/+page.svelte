@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { authService } from '$lib/auth/auth.service';
+	import type { EventItem, CompetitionItem, AlumniNewsItem, GrantItem } from '$lib/auth/auth.service';
 
 	const heroImages = [
 		'/sophia.jpeg',
@@ -7,14 +9,39 @@
 	];
 
 	let currentSlide = $state(0);
-	let activeTab = $state<'research' | 'alumni' | 'events' | 'competitions'>('research');
+	let activeTab = $state<'research' | 'alumni' | 'events' | 'competitions' | 'grants'>('research');
+
+	let events = $state<EventItem[]>([]);
+	let competitions = $state<CompetitionItem[]>([]);
+	let alumniNews = $state<AlumniNewsItem[]>([]);
+	let grants = $state<GrantItem[]>([]);
 
 	onMount(() => {
 		const id = setInterval(() => {
 			currentSlide = (currentSlide + 1) % heroImages.length;
 		}, 5000);
+		authService.getEvents().then(d => events = d);
+		authService.getCompetitions().then(d => competitions = d);
+		authService.getAlumniNews().then(d => alumniNews = d);
+		authService.getGrants().then(d => grants = d);
 		return () => clearInterval(id);
 	});
+
+	const goToGrants = () => {
+		const session = authService.getSessionFromCookie();
+		window.location.href = session ? '/grants' : '/login?message=Please log in to view all available grants.';
+	};
+
+	const monthName = (dateStr: string) => {
+		if (!dateStr) return '';
+		const d = new Date(dateStr);
+		return d.toLocaleString('default', { month: 'short' });
+	};
+	const dayNum = (dateStr: string) => {
+		if (!dateStr) return '';
+		return new Date(dateStr).getDate().toString();
+	};
+	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed' };
 </script>
 
 <svelte:head>
@@ -56,11 +83,11 @@
 <section class="hp-stats">
 	<div class="hp-stats-inner">
 		<div class="stat-item">
-			<span class="stat-number">500+</span>
+			<span class="stat-number">2000+</span>
 			<span class="stat-label">Academic Staff</span>
 		</div>
 		<div class="stat-item">
-			<span class="stat-number">12</span>
+			<span class="stat-number">11</span>
 			<span class="stat-label">Faculties</span>
 		</div>
 		<div class="stat-item">
@@ -80,6 +107,7 @@
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'alumni'} onclick={() => activeTab = 'alumni'}>Alumni</button>
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'events'} onclick={() => activeTab = 'events'}>Events</button>
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'competitions'} onclick={() => activeTab = 'competitions'}>Competitions</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'grants'} onclick={() => activeTab = 'grants'}>Grants</button>
 </nav>
 
 <!-- ══════════════════════════════════════ RESEARCH HIGHLIGHTS ═══ -->
@@ -88,69 +116,81 @@
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
 			<h2 class="hp-section-title">Research Highlights</h2>
-			<a class="hp-section-link" href="/experts">View All Experts →</a>
+			<a class="hp-section-link" href="/research">Explore All Research →</a>
 		</div>
 		<div class="hp-cards">
-			<article class="hp-card hp-card-featured" style="background-image: url('/bio_med.webp')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Biomedical Engineering</div>
-					<div class="hp-card-body">
-						<h3>Low-cost diagnostic devices for rural Zimbabwe</h3>
-						<p>Prof. Chinyama's team is developing solar-powered point-of-care diagnostic tools deployable across Zimbabwe's rural clinics, reducing reliance on centralised laboratories.</p>
-						<div class="hp-card-meta">Prof. T. Chinyama · Faculty of Engineering</div>
+			<a href="/research#biomedical" class="hp-card-wrap">
+				<article class="hp-card hp-card-featured" style="background-image: url('/bio_med.webp')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Biomedical Engineering</div>
+						<div class="hp-card-body">
+							<h3>Low-cost diagnostic devices for rural Zimbabwe</h3>
+							<p>Prof. Chinyama's team is developing solar-powered point-of-care diagnostic tools deployable across Zimbabwe's rural clinics, reducing reliance on centralised laboratories.</p>
+							<div class="hp-card-meta">Prof. T. Chinyama · Faculty of Engineering</div>
+						</div>
 					</div>
-				</div>
-			</article>
-			<article class="hp-card" style="background-image: url('/climate.jpg')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Climate Science</div>
-					<div class="hp-card-body">
-						<h3>Drought resilience &amp; agricultural adaptation</h3>
-						<p>Modelling rainfall variability and soil conditions to guide smallholder farming policy in Southern Africa.</p>
-						<div class="hp-card-meta">Dr. S. Moyo · Faculty of Agriculture</div>
+				</article>
+			</a>
+			<a href="/research#climate" class="hp-card-wrap">
+				<article class="hp-card" style="background-image: url('/climate.jpg')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Climate Science</div>
+						<div class="hp-card-body">
+							<h3>Drought resilience &amp; agricultural adaptation</h3>
+							<p>Modelling rainfall variability and soil conditions to guide smallholder farming policy in Southern Africa.</p>
+							<div class="hp-card-meta">Dr. S. Moyo · Faculty of Agriculture</div>
+						</div>
 					</div>
-				</div>
-			</article>
-			<article class="hp-card" style="background-image: url('/computer_science.webp')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Computer Science</div>
-					<div class="hp-card-body">
-						<h3>AI for local-language NLP in Shona &amp; Ndebele</h3>
-						<p>Building open training datasets and transformer models for Zimbabwe's indigenous languages to power chatbots and assistive technologies.</p>
-						<div class="hp-card-meta">Dr. R. Dube · Faculty of Science</div>
+				</article>
+			</a>
+			<a href="/research#ai-languages" class="hp-card-wrap">
+				<article class="hp-card" style="background-image: url('/computer_science.webp')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Computer Science</div>
+						<div class="hp-card-body">
+							<h3>AI for local-language NLP in Shona &amp; Ndebele</h3>
+							<p>Building open training datasets and transformer models for Zimbabwe's indigenous languages to power chatbots and assistive technologies.</p>
+							<div class="hp-card-meta">Dr. R. Dube · Faculty of Science</div>
+						</div>
 					</div>
-				</div>
-			</article>
-			<article class="hp-card" style="background-image: url('/public_health.webp')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Public Health</div>
-					<div class="hp-card-body">
-						<h3>Urban sanitation &amp; water quality monitoring</h3>
-						<p>Community-based IoT sensor networks to provide real-time water-quality data in Harare's peri-urban settlements.</p>
-						<div class="hp-card-meta">Prof. N. Zvobgo · Faculty of Medicine</div>
+				</article>
+			</a>
+			<a href="/research#public-health" class="hp-card-wrap">
+				<article class="hp-card" style="background-image: url('/public_health.webp')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Public Health</div>
+						<div class="hp-card-body">
+							<h3>Urban sanitation &amp; water quality monitoring</h3>
+							<p>Community-based IoT sensor networks to provide real-time water-quality data in Harare's peri-urban settlements.</p>
+							<div class="hp-card-meta">Prof. N. Zvobgo · Faculty of Medicine</div>
+						</div>
 					</div>
-				</div>
-			</article>
-			<article class="hp-card" style="background-image: url('/Arts.jpg')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Arts &amp; Humanities</div>
-					<div class="hp-card-body">
-						<h3>Preserving Zimbabwe's visual heritage through digital archiving</h3>
-						<p>Digitising and cataloguing pre-colonial and post-independence artworks to create an open-access national cultural repository.</p>
-						<div class="hp-card-meta">Dr. A. Mutasa · Faculty of Arts</div>
+				</article>
+			</a>
+			<a href="/research#arts" class="hp-card-wrap">
+				<article class="hp-card" style="background-image: url('/Arts.jpg')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Arts &amp; Humanities</div>
+						<div class="hp-card-body">
+							<h3>Preserving Zimbabwe's visual heritage through digital archiving</h3>
+							<p>Digitising and cataloguing pre-colonial and post-independence artworks to create an open-access national cultural repository.</p>
+							<div class="hp-card-meta">Dr. A. Mutasa · Faculty of Arts</div>
+						</div>
 					</div>
-				</div>
-			</article>
-			<article class="hp-card" style="background-image: url('/Music.jpg')">
-				<div class="hp-card-inner">
-					<div class="hp-card-tag">Music</div>
-					<div class="hp-card-body">
-						<h3>Ethnomusicology &amp; the living traditions of Mbira</h3>
-						<p>Documenting and analysing the Mbira dzavadzimu as a living cultural practice, exploring its role in contemporary Zimbabwean identity and spiritual life.</p>
-						<div class="hp-card-meta">Prof. C. Nhongo · Faculty of Arts</div>
+				</article>
+			</a>
+			<a href="/research#music" class="hp-card-wrap">
+				<article class="hp-card" style="background-image: url('/Music.jpg')">
+					<div class="hp-card-inner">
+						<div class="hp-card-tag">Music</div>
+						<div class="hp-card-body">
+							<h3>Ethnomusicology &amp; the living traditions of Mbira</h3>
+							<p>Documenting and analysing the Mbira dzavadzimu as a living cultural practice, exploring its role in contemporary Zimbabwean identity and spiritual life.</p>
+							<div class="hp-card-meta">Prof. C. Nhongo · Faculty of Arts</div>
+						</div>
 					</div>
-				</div>
-			</article>
+				</article>
+			</a>
 		</div>
 	</div>
 </section>
@@ -164,29 +204,21 @@
 			<h2 class="hp-section-title">Alumni Spotlight</h2>
 			<span class="hp-section-link">What Our Graduates Are Doing</span>
 		</div>
-		<div class="hp-news-list">
-			<article class="hp-news-item">
-				<div class="hp-news-date">March 2026</div>
-				<div class="hp-news-body">
-					<h3>Dr. Tatenda Mawere appointed WHO Regional Health Adviser</h3>
-					<p>UZ Medical graduate Dr. Mawere (Class of 2008) has been appointed as WHO's Regional Health Adviser for Eastern &amp; Southern Africa, overseeing public health policy for 14 nations.</p>
-				</div>
-			</article>
-			<article class="hp-news-item">
-				<div class="hp-news-date">February 2026</div>
-				<div class="hp-news-body">
-					<h3>Eng. Rudo Chikwanda leads cross-border renewable energy project</h3>
-					<p>UZ Engineering alumna Eng. Chikwanda (Class of 2012) is spearheading a $45M solar grid interconnect project linking Zimbabwe, Zambia, and Mozambique.</p>
-				</div>
-			</article>
-			<article class="hp-news-item">
-				<div class="hp-news-date">January 2026</div>
-				<div class="hp-news-body">
-					<h3>Prof. Blessing Murove elected Fellow of the Royal Society</h3>
-					<p>Professor Murove, a UZ Physics graduate and now Professor at UCT, has been elected Fellow of the Royal Society for contributions to quantum materials research.</p>
-				</div>
-			</article>
-		</div>
+		{#if alumniNews.length === 0}
+			<p class="hp-empty-tab">No alumni news yet. Check back soon.</p>
+		{:else}
+			<div class="hp-news-list">
+				{#each alumniNews as item (item.id)}
+					<article class="hp-news-item">
+						<div class="hp-news-date">{item.newsDate}</div>
+						<div class="hp-news-body">
+							<h3>{item.headline}</h3>
+							{#if item.body}<p>{item.body}</p>{/if}
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 {/if}
@@ -198,44 +230,26 @@
 		<div class="hp-section-header">
 			<h2 class="hp-section-title">Upcoming Events</h2>
 		</div>
-		<div class="hp-events">
-			<article class="hp-event">
-				<div class="hp-event-date">
-					<span class="ev-day">15</span>
-					<span class="ev-month">Apr</span>
-				</div>
-				<div class="hp-event-body">
-					<span class="hp-card-tag">Seminar</span>
-					<h3>Annual UZ Research Symposium 2026</h3>
-					<p>A two-day symposium showcasing cutting-edge research from all twelve faculties. Open to staff, students, and industry partners.</p>
-					<span class="hp-event-loc">📍 Senate Chamber, UZ Main Campus</span>
-				</div>
-			</article>
-			<article class="hp-event">
-				<div class="hp-event-date">
-					<span class="ev-day">22</span>
-					<span class="ev-month">Apr</span>
-				</div>
-				<div class="hp-event-body">
-					<span class="hp-card-tag">Workshop</span>
-					<h3>Postgraduate Research Methods Workshop</h3>
-					<p>Intensive training in quantitative and qualitative research methodologies for PhD and Masters students.</p>
-					<span class="hp-event-loc">📍 Faculty of Social Sciences, Room 204</span>
-				</div>
-			</article>
-			<article class="hp-event">
-				<div class="hp-event-date">
-					<span class="ev-day">30</span>
-					<span class="ev-month">Apr</span>
-				</div>
-				<div class="hp-event-body">
-					<span class="hp-card-tag">Public Lecture</span>
-					<h3>Innovation &amp; Entrepreneurship in Africa</h3>
-					<p>Distinguished lecture by Prof. Tsitsi Dangarembga on bridging the gap between academic innovation and commercial enterprise.</p>
-					<span class="hp-event-loc">📍 Great Hall, UZ Main Campus — Free Entry</span>
-				</div>
-			</article>
-		</div>
+		{#if events.length === 0}
+			<p class="hp-empty-tab">No events scheduled yet. Check back soon.</p>
+		{:else}
+			<div class="hp-events">
+				{#each events as ev (ev.id)}
+					<article class="hp-event">
+						<div class="hp-event-date">
+							<span class="ev-day">{dayNum(ev.eventDate)}</span>
+							<span class="ev-month">{monthName(ev.eventDate)}</span>
+						</div>
+						<div class="hp-event-body">
+							{#if ev.category}<span class="hp-card-tag">{ev.category}</span>{/if}
+							<h3>{ev.title}</h3>
+							{#if ev.description}<p>{ev.description}</p>{/if}
+							{#if ev.location}<span class="hp-event-loc">📍 {ev.location}</span>{/if}
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </section>
 {/if}
@@ -247,34 +261,73 @@
 		<div class="hp-section-header">
 			<h2 class="hp-section-title">Competitions &amp; Calls for Proposals</h2>
 		</div>
-		<div class="hp-comp-grid">
-			<article class="hp-comp-card">
-				<div class="hp-comp-badge hp-badge-open">Open</div>
-				<h3>UZ Innovation Grant 2026</h3>
-				<p>Funding up to USD 20,000 for applied research projects with demonstrable societal impact in Zimbabwe. Open to all academic staff.</p>
-				<div class="hp-comp-footer">
-					<span class="hp-comp-deadline">⏳ Deadline: 30 April 2026</span>
-					<a class="hp-comp-cta" href="/experts">Find Collaborators</a>
-				</div>
-			</article>
-			<article class="hp-comp-card">
-				<div class="hp-comp-badge hp-badge-open">Open</div>
-				<h3>SADC Research Excellence Awards</h3>
-				<p>Annual awards recognising outstanding research contributions by academics from SADC member states. Nominations open to all UZ faculties.</p>
-				<div class="hp-comp-footer">
-					<span class="hp-comp-deadline">⏳ Deadline: 15 May 2026</span>
-					<a class="hp-comp-cta" href="/experts">Find Collaborators</a>
-				</div>
-			</article>
-			<article class="hp-comp-card">
-				<div class="hp-comp-badge hp-badge-upcoming">Upcoming</div>
-				<h3>UZ Student Entrepreneurship Challenge</h3>
-				<p>Teams of final-year students pitch solutions to real Zimbabwean development challenges. Prizes include mentorship and seed funding.</p>
-				<div class="hp-comp-footer">
-					<span class="hp-comp-deadline">⏳ Opens: 1 June 2026</span>
-					<a class="hp-comp-cta" href="/experts">Find a Supervisor</a>
-				</div>
-			</article>
+		{#if competitions.length === 0}
+			<p class="hp-empty-tab">No competitions posted yet. Check back soon.</p>
+		{:else}
+			<div class="hp-comp-grid">
+				{#each competitions as comp (comp.id)}
+					<article class="hp-comp-card">
+						<div class="hp-comp-badge hp-badge-{comp.status.toLowerCase()}">{statusLabel[comp.status] ?? comp.status}</div>
+						<h3>{comp.title}</h3>
+						{#if comp.description}<p>{comp.description}</p>{/if}
+						<div class="hp-comp-footer">
+							{#if comp.deadline}<span class="hp-comp-deadline">⏳ Deadline: {comp.deadline}</span>{/if}
+							{#if comp.ctaUrl}<a class="hp-comp-cta" href={comp.ctaUrl} target="_blank" rel="noopener noreferrer">{comp.ctaLabel || 'Learn More'}</a>{/if}
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
+	</div>
+</section>
+{/if}
+
+<!-- ══════════════════════════════════════════ GRANTS ═══ -->
+{#if activeTab === 'grants'}
+<section class="hp-section" id="grants">
+	<div class="hp-section-inner">
+		<div class="hp-section-header">
+			<h2 class="hp-section-title">Available Grants</h2>
+			<button type="button" class="hp-section-link hp-section-link-btn" onclick={goToGrants}>View All Grants →</button>
+		</div>
+
+		{#if grants.length === 0}
+			<p class="hp-empty-tab">No grants posted yet. Check back soon.</p>
+		{:else}
+			<div class="hp-grant-list">
+				{#each grants.slice(0, 3) as grant (grant.id)}
+					<article class="hp-grant-item" class:hp-grant-featured={grant.featured}>
+						{#if grant.featured}<div class="hp-grant-ribbon" aria-label="Featured">Featured</div>{/if}
+						<div class="hp-grant-accent"></div>
+						<div class="hp-grant-left">
+							<p class="hp-grant-funder">{grant.funder}</p>
+							<h3 class="hp-grant-title">{grant.title}</h3>
+							{#if grant.description}<p class="hp-grant-desc">{grant.description}</p>{/if}
+						</div>
+						<div class="hp-grant-divider" aria-hidden="true"></div>
+						<div class="hp-grant-right">
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Amount</span>
+								<span class="hp-grant-meta-value">{grant.amount}</span>
+							</div>
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Closing date</span>
+								<span class="hp-grant-meta-value">{grant.closingDate ?? '—'}</span>
+							</div>
+						</div>
+					</article>
+				{/each}
+			</div>
+		{/if}
+
+		<div class="hp-grant-more">
+			<button type="button" class="hp-grant-more-btn" onclick={goToGrants}>
+				View All Available Grants
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="3" y1="8" x2="13" y2="8" />
+					<polyline points="9 4 13 8 9 12" />
+				</svg>
+			</button>
 		</div>
 	</div>
 </section>
@@ -520,8 +573,27 @@
 	letter-spacing: 0.06em;
 }
 .hp-section-link:hover { text-decoration: underline; }
+.hp-section-link-btn {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+/* ─── Empty tab state ───────────────────────────────── */
+.hp-empty-tab {
+	color: var(--ink-soft);
+	font-size: 0.95rem;
+	padding: 2rem 0;
+	margin: 0;
+}
 
 /* ─── Research cards ───────────────────────────────── */
+.hp-card-wrap {
+	display: block;
+	text-decoration: none;
+}
 .hp-cards {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -759,6 +831,154 @@
 	letter-spacing: 0.06em;
 }
 .hp-comp-cta:hover { text-decoration: underline; }
+
+/* ─── Grants ───────────────────────────────────────── */
+.hp-grant-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1.1rem;
+}
+.hp-grant-item {
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr auto 220px;
+	gap: 0;
+	align-items: stretch;
+	background: #faf9f6;
+	border: 1px solid #e8e4dc;
+	overflow: hidden;
+	box-shadow: 0 2px 6px rgba(27, 43, 78, 0.06);
+}
+.hp-grant-featured {
+	border-color: #c9621a;
+}
+/* Red/orange accent line top-left */
+.hp-grant-accent {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 38px;
+	height: 4px;
+	background: var(--uz-orange);
+}
+/* Featured diagonal ribbon */
+.hp-grant-ribbon {
+	position: absolute;
+	top: 14px;
+	right: -28px;
+	width: 110px;
+	text-align: center;
+	background: var(--uz-navy);
+	color: #fff;
+	font-size: 0.62rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	padding: 0.28rem 0;
+	transform: rotate(45deg);
+	z-index: 1;
+}
+.hp-grant-left {
+	padding: 1.6rem 1.6rem 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+.hp-grant-funder {
+	margin: 0;
+	font-size: 0.82rem;
+	color: var(--ink-soft);
+	font-weight: 400;
+}
+.hp-grant-desc {
+	margin: 0.35rem 0 0;
+	font-size: 0.86rem;
+	color: var(--ink-soft);
+	line-height: 1.55;
+}
+.hp-grant-title {
+	margin: 0;
+	font-family: 'Fraunces', serif;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: var(--uz-navy);
+	line-height: 1.35;
+}
+/* Vertical divider */
+.hp-grant-divider {
+	width: 1px;
+	background: #e0dbd2;
+	margin: 1.2rem 0;
+}
+.hp-grant-right {
+	padding: 1.6rem 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	justify-content: center;
+	min-width: 0;
+}
+.hp-grant-meta-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+.hp-grant-meta-label {
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--ink-soft);
+}
+.hp-grant-meta-value {
+	font-size: 0.92rem;
+	color: var(--ink);
+	font-weight: 500;
+}
+.hp-grant-more {
+	display: flex;
+	justify-content: center;
+	margin-top: 2rem;
+}
+.hp-grant-more-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1.8rem;
+	background: var(--uz-orange);
+	color: #fff;
+	border: none;
+	border-radius: 999px;
+	font-size: 0.9rem;
+	font-weight: 700;
+	font-family: inherit;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.hp-grant-more-btn:hover { background: var(--uz-orange-dark); }
+@media (max-width: 700px) {
+	.hp-grant-item {
+		grid-template-columns: 1fr;
+	}
+	.hp-grant-divider {
+		width: auto;
+		height: 1px;
+		margin: 0 1.5rem;
+	}
+	.hp-grant-right {
+		padding-top: 0.75rem;
+		padding-bottom: 1.4rem;
+		flex-direction: row;
+		gap: 1.5rem;
+	}
+	.hp-grant-ribbon {
+		top: 10px;
+		right: -26px;
+		width: 100px;
+	}
+}
 
 /* ─── CTA band ─────────────────────────────────────── */
 .hp-cta-band {

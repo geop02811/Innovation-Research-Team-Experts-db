@@ -10,8 +10,7 @@ export const facultyOptions = [
 	'Agriculture Environment And Food Systems',
 	'Arts and Humanities',
 	'Business Management Sciences And Economics',
-	'Computer Engineering',
-	'Informatics And Communications',
+	'Computer Engineering Informatics And Communications',
 	'Education',
 	'Engineering And The Built Environment',
 	'Law',
@@ -19,7 +18,7 @@ export const facultyOptions = [
 	'Science',
 	'Social And Behavioural Sciences',
 	'Veterinary Science',
-	'Institutes & Units'
+	'Institutes & Units '
 ] as const;
 
 const defaultDepartmentOptions = [
@@ -47,7 +46,7 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Business Management',
 		'Economics and Econometrics'
 	],
-	'Computer Engineering': [
+	'Computer Engineering Informatics And Communications': [
 		'Analytics and Informatics',
 		'Computer Engineering',
 		'Computer Science',
@@ -55,29 +54,37 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Centre for ICT Product Development Services and Training',
 		'Centre for Computer Technology Training and Development'
 	],
-	'Informatics And Communications': [
-		'Analytics and Informatics',
-		'Computer Engineering',
-		'Computer Science',
-		'Electronics and Telecommunications',
-		'Centre for ICT Product Development Services and Training',
-		'Centre for Computer Technology Training and Development'
-	],
-	Education: ['Teacher Education', 'Curriculum and Instruction', 'Educational Foundations'],
+	'Education' : ['Teacher Education', 'Curriculum and Instruction', 'Educational Foundations'],
 	'Engineering And The Built Environment': [
 		'Civil Engineering',
 		'Mechanical Engineering',
 		'Electrical Engineering',
 		'Architecture and Built Environment'
 	],
-	Law: ['Public Law', 'Private Law', 'Commercial Law'],
+	'Law': ['Public Law', 'Private Law', 'Commercial Law'],
 	'Medicine And Health Sciences': [
-		'Clinical Medicine',
-		'Public Health',
-		'Nursing and Midwifery',
-		'Allied Health Sciences'
+		'Department of Surgery',
+		'Department of Community Medicine',
+		'Department of Paediatrics and Child Health',
+		'Department of Obstetrics and Gynaecology',
+		'Department of Pharmacy',
+		'Department of Nursing Science',
+		'Department of Psychiatry',
+		'Institute of Continuing Health Education',
+		'Department of Rehabilitation',
+		'Department of Anaesthesia and Critical Care Medicine',
+		'Department of Haematology',
+		'Department of Histopathology',
+		'Department of Medical Laboratory Sciences',
+		'Clinical Pharmacology and Toxicology',
+		'Department of Medical Microbiology',
+		'Department of Radiology',
+		'Animal House Unit',
+		'Department of Physiology',
+		'Department of Medicine',
+		'Department of Dentistry'
 	],
-	Science: ['Biological Sciences', 'Chemical Sciences', 'Mathematical Sciences', 'Physical Sciences'],
+	'Science': ['Biological Sciences', 'Chemical Sciences', 'Mathematical Sciences', 'Physical Sciences'],
 	'Social And Behavioural Sciences': [
 		'Psychology',
 		'Sociology',

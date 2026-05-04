@@ -21,3 +21,18 @@
 		</div>
 	{/if}
 </section>
+
+<style>
+	.grid-shell {
+		min-height: 40vh;
+	}
+
+	.empty-state {
+		border: 1px dashed #d0d0da;
+		padding: 1.5rem;
+		border-radius: 8px;
+		background: #fff;
+		font-size: 0.95rem;
+		color: #666;
+	}
+</style>

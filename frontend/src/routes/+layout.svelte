@@ -33,7 +33,7 @@
 	<header class="site-header">
 		<div class="site-header-inner">
 			<a href="/" class="brand" onclick={closeMenu}>
-				<img src="/University_of_Zimbabwe_LOGO.png" alt="University of Zimbabwe" class="nav-logo" />
+				<img src="/Uz_logo2.png" alt="University of Zimbabwe" class="nav-logo" />
 				<span class="brand-text">University of Zimbabwe Experts</span>
 			</a>
 			<!-- Desktop nav -->
@@ -105,9 +105,9 @@
 				<h4>Research</h4>
 				<ul>
 					<li><a href="/experts">Research Highlights</a></li>
-					<li><a href="/experts">Institutes &amp; Centres</a></li>
-					<li><a href="/experts">Grants &amp; Funding</a></li>
-					<li><a href="/experts">Publications</a></li>
+					<li><a href="https://www.uz.ac.zw/index.php/admissions/university-programmes" target="_blank" rel="noopener noreferrer" >Institutes &amp; Centres</a></li>
+					<li><a href="/grants">Grants &amp; Funding</a></li>
+					<li><a href="https://www.researchgate.net/institution/University-of-Zimbabwe"  target="_blank" rel="noopener noreferrer">Publications</a></li>
 				</ul>
 			</div>
 			<div class="footer-col">

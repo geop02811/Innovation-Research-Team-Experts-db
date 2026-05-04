@@ -67,6 +67,10 @@ public class  SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/grants").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/competitions").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/alumni-news").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/viewer/**").hasAnyRole("VIEWER", "ADMIN")
                         .anyRequest().authenticated()
