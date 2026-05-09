@@ -34,7 +34,7 @@
 		<div class="site-header-inner">
 			<a href="/" class="brand" onclick={closeMenu}>
 				<img src="/Uz_logo2.png" alt="University of Zimbabwe" class="nav-logo" />
-				<span class="brand-text">University of Zimbabwe Experts</span>
+				<span class="brand-text">University of Zimbabwe<br /><span class="brand-sub">Projects Repository</span></span>
 			</a>
 			<!-- Desktop nav -->
 			<nav class="desktop-nav" aria-label="Main navigation">

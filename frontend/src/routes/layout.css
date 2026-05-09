@@ -291,6 +291,13 @@ a {
 	color: #fff;
 	line-height: 1.2;
 }
+.brand-sub {
+	display: block;
+	font-size: 0.78rem;
+	font-weight: 400;
+	letter-spacing: 0.04em;
+	opacity: 0.85;
+}
 
 nav {
 	display: flex;
