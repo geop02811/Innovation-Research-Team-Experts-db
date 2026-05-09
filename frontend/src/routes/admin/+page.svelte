@@ -98,7 +98,7 @@
 	const openEditEvent = (e: EventItem) => { editingEvent=e; eventForm={title:e.title, description:e.description??'', eventDate:e.eventDate??'', category:e.category??'', location:e.location??''}; eventSaveError=''; showEventForm=true; };
 	const cancelEventForm = () => { showEventForm=false; editingEvent=null; };
 	const saveEvent = async () => { eventSaving=true; eventSaveError=''; const r = editingEvent ? await authService.updateEvent(editingEvent.id, eventForm) : await authService.createEvent(eventForm); eventSaving=false; if(!r.ok){eventSaveError=r.message??'Save failed.'; return;} showEventForm=false; editingEvent=null; await loadEvents(); };
-	const deleteEvent = async (id: string) => { if(!confirm('Delete this event?')) return; await authService.deleteEvent(id); await loadEvents(); };
+	const deleteEvent = async (id: string) => { if(!confirm('Delete this running project?')) return; await authService.deleteEvent(id); await loadEvents(); };
 
 	// ── Competitions state ───────────────────────────────
 	let competitions = $state<CompetitionItem[]>([]);
@@ -111,7 +111,7 @@
 	const openEditComp = (c: CompetitionItem) => { editingComp=c; compForm={title:c.title, description:c.description??'', deadline:c.deadline??'', status:c.status, prize:c.prize??'', ctaLabel:c.ctaLabel??'', ctaUrl:c.ctaUrl??''}; compSaveError=''; showCompForm=true; };
 	const cancelCompForm = () => { showCompForm=false; editingComp=null; };
 	const saveComp = async () => { compSaving=true; compSaveError=''; const r = editingComp ? await authService.updateCompetition(editingComp.id, compForm) : await authService.createCompetition(compForm); compSaving=false; if(!r.ok){compSaveError=r.message??'Save failed.'; return;} showCompForm=false; editingComp=null; await loadCompetitions(); };
-	const deleteComp = async (id: string) => { if(!confirm('Delete this competition?')) return; await authService.deleteCompetition(id); await loadCompetitions(); };
+	const deleteComp = async (id: string) => { if(!confirm('Delete this internal grant?')) return; await authService.deleteCompetition(id); await loadCompetitions(); };
 
 	// ── Alumni News state ────────────────────────────────
 	let alumniNewsList = $state<AlumniNewsItem[]>([]);
@@ -167,8 +167,8 @@
 			<button class:active={activeTab === 'approved'} onclick={() => (activeTab = 'approved')}>Approved Users</button>
 			<button class:active={activeTab === 'all'} onclick={() => (activeTab = 'all')}>All Users & Permissions</button>
 			<button class:active={activeTab === 'grants'} onclick={() => (activeTab = 'grants')}>Grants</button>
-			<button class:active={activeTab === 'events'} onclick={() => (activeTab = 'events')}>Events</button>
-			<button class:active={activeTab === 'competitions'} onclick={() => (activeTab = 'competitions')}>Competitions</button>
+			<button class:active={activeTab === 'events'} onclick={() => (activeTab = 'events')}>Running Projects</button>
+			<button class:active={activeTab === 'competitions'} onclick={() => (activeTab = 'competitions')}>Internal Grants</button>
 			<button class:active={activeTab === 'alumni'} onclick={() => (activeTab = 'alumni')}>Alumni News</button>
 		</div>
 
@@ -340,16 +340,16 @@
 			</section>
 		{/if}
 
-		<!-- ── Events tab ── -->
+		<!-- ── Running Projects tab ── -->
 		{#if activeTab === 'events'}
 			<section class="panel">
 				<div class="grants-toolbar">
-					<h2 class="grants-heading">Events</h2>
-					<button type="button" class="btn-add-grant" onclick={openNewEvent}>+ Add Event</button>
+					<h2 class="grants-heading">Running Projects</h2>
+					<button type="button" class="btn-add-grant" onclick={openNewEvent}>+ Add Running Project</button>
 				</div>
 				{#if showEventForm}
 					<div class="grant-form-card">
-						<h3 class="grant-form-title">{editingEvent ? 'Edit Event' : 'New Event'}</h3>
+						<h3 class="grant-form-title">{editingEvent ? 'Edit Running Project' : 'New Running Project'}</h3>
 						<div class="grant-form-grid">
 							<label class="gf-label gf-full">Title *<input class="gf-input" type="text" bind:value={eventForm.title} placeholder="Event title" /></label>
 							<label class="gf-label">Date<input class="gf-input" type="date" bind:value={eventForm.eventDate} /></label>
@@ -359,12 +359,12 @@
 						</div>
 						{#if eventSaveError}<p class="error-msg" style="margin-top:.75rem">{eventSaveError}</p>{/if}
 						<div class="gf-actions">
-							<button type="button" class="btn-save" onclick={saveEvent} disabled={eventSaving}>{eventSaving ? 'Saving...' : editingEvent ? 'Save Changes' : 'Create Event'}</button>
+							<button type="button" class="btn-save" onclick={saveEvent} disabled={eventSaving}>{eventSaving ? 'Saving...' : editingEvent ? 'Save Changes' : 'Create Running Project'}</button>
 							<button type="button" class="btn-cancel" onclick={cancelEventForm}>Cancel</button>
 						</div>
 					</div>
 				{/if}
-				{#if events.length === 0 && !showEventForm}<p class="empty-msg">No events yet.</p>{/if}
+				{#if events.length === 0 && !showEventForm}<p class="empty-msg">No running projects yet.</p>{/if}
 				{#each events as ev (ev.id)}
 					<div class="grant-row">
 						<div class="grant-row-left">
@@ -382,16 +382,16 @@
 			</section>
 		{/if}
 
-		<!-- ── Competitions tab ── -->
+		<!-- ── Internal Grants tab ── -->
 		{#if activeTab === 'competitions'}
 			<section class="panel">
 				<div class="grants-toolbar">
-					<h2 class="grants-heading">Competitions</h2>
-					<button type="button" class="btn-add-grant" onclick={openNewComp}>+ Add Competition</button>
+					<h2 class="grants-heading">Internal Grants</h2>
+					<button type="button" class="btn-add-grant" onclick={openNewComp}>+ Add Internal Grant</button>
 				</div>
 				{#if showCompForm}
 					<div class="grant-form-card">
-						<h3 class="grant-form-title">{editingComp ? 'Edit Competition' : 'New Competition'}</h3>
+						<h3 class="grant-form-title">{editingComp ? 'Edit Internal Grant' : 'New Internal Grant'}</h3>
 						<div class="grant-form-grid">
 							<label class="gf-label gf-full">Title *<input class="gf-input" type="text" bind:value={compForm.title} /></label>
 							<label class="gf-label">Deadline<input class="gf-input" type="date" bind:value={compForm.deadline} /></label>
@@ -409,12 +409,12 @@
 						</div>
 						{#if compSaveError}<p class="error-msg" style="margin-top:.75rem">{compSaveError}</p>{/if}
 						<div class="gf-actions">
-							<button type="button" class="btn-save" onclick={saveComp} disabled={compSaving}>{compSaving ? 'Saving...' : editingComp ? 'Save Changes' : 'Create Competition'}</button>
+							<button type="button" class="btn-save" onclick={saveComp} disabled={compSaving}>{compSaving ? 'Saving...' : editingComp ? 'Save Changes' : 'Create Internal Grant'}</button>
 							<button type="button" class="btn-cancel" onclick={cancelCompForm}>Cancel</button>
 						</div>
 					</div>
 				{/if}
-				{#if competitions.length === 0 && !showCompForm}<p class="empty-msg">No competitions yet.</p>{/if}
+				{#if competitions.length === 0 && !showCompForm}<p class="empty-msg">No internal grants yet.</p>{/if}
 				{#each competitions as comp (comp.id)}
 					<div class="grant-row">
 						<div class="grant-row-left">
@@ -518,6 +518,8 @@
 									<option value="OPEN">Open</option>
 									<option value="UPCOMING">Upcoming</option>
 									<option value="CLOSED">Closed</option>
+									<option value="RUNNING">Running</option>
+									<option value="INTERNAL">Internal</option>
 								</select>
 							</label>
 							<label class="gf-label">

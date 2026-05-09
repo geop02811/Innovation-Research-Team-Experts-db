@@ -1,16 +1,51 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { PUBLIC_API_BASE_URL } from '$env/static/public';
 	import { authService } from '$lib/auth/auth.service';
 	import type { GrantItem } from '$lib/auth/auth.service';
 
 	let grants = $state<GrantItem[]>([]);
+	let allGrants = $state<GrantItem[]>([]); // unfiltered — used for counts and categories
 	let loadError = $state('');
+	let searchLoading = $state(false);
+
+	// Fetch grants from backend — supports ?q= full-text search and ?status= filter
+	const fetchGrants = async (q?: string, status?: string) => {
+		const params = new URLSearchParams();
+		if (q && q.trim()) params.set('q', q.trim());
+		if (status && status.trim()) params.set('status', status.trim());
+		const url = `${PUBLIC_API_BASE_URL}/api/grants${params.size ? '?' + params.toString() : ''}`;
+		try {
+			const res = await fetch(url);
+			if (!res.ok) return;
+			grants = await res.json();
+		} catch { /* silent */ }
+	};
+
+	// Fetch all grants without filters for accurate sidebar counts and category list
+	const fetchAllGrants = async () => {
+		try {
+			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/grants`);
+			if (!res.ok) return;
+			allGrants = await res.json();
+		} catch { /* silent */ }
+	};
 
 	onMount(async () => {
-		grants = await authService.getGrants();
+		// Always fetch all grants first for counts/categories
+		await fetchAllGrants();
+		// Auto-apply status filter from URL param (e.g. ?status=RUNNING)
+		const params = new URLSearchParams(window.location.search);
+		const statusParam = params.get('status');
+		if (statusParam && ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'].includes(statusParam)) {
+			selectedStatus = statusParam;
+			await fetchGrants(undefined, statusParam);
+		} else {
+			grants = allGrants; // no filter — reuse already-fetched data
+		}
 	});
 
-	const categories = $derived([...new Set(grants.map((g) => g.category).filter(Boolean))]);
+	const categories = $derived([...new Set(allGrants.map((g) => g.category).filter(Boolean))]);
 
 	let searchValue = $state('');
 	let appliedSearch = $state('');
@@ -23,29 +58,40 @@
 	let openSections = $state<Record<string, boolean>>({ status: true, category: true });
 	const toggleSection = (key: string) => { openSections[key] = !openSections[key]; };
 
-	const applySearch = () => {
-		appliedSearch = searchValue.trim().toLowerCase();
+	const applySearch = async () => {
+		appliedSearch = searchValue.trim();
 		currentPage = 1;
+		searchLoading = true;
+		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
+		searchLoading = false;
 	};
 
-	const clearFilters = () => {
+	// Re-fetch when status filter changes (sidebar radio click)
+	const onStatusChange = async (s: string) => {
+		selectedStatus = selectedStatus === s ? '' : s;
+		currentPage = 1;
+		searchLoading = true;
+		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
+		searchLoading = false;
+	};
+
+	const clearFilters = async () => {
 		searchValue = '';
 		appliedSearch = '';
 		selectedStatus = '';
 		selectedCategory = '';
 		currentPage = 1;
+		grants = allGrants; // reset display to full unfiltered list
 	};
 
 	const hasFilters = $derived(!!(appliedSearch || selectedStatus || selectedCategory));
 
-	// Full filtered+sorted list (no slice)
+	// Client-side: only category filter and sort remain (backend already handles search + status)
 	const allFilteredGrants = $derived(
 		grants
 			.filter((g) => {
-				const matchesSearch = !appliedSearch || g.title.toLowerCase().includes(appliedSearch) || g.funder.toLowerCase().includes(appliedSearch) || g.category.toLowerCase().includes(appliedSearch);
-				const matchesStatus = !selectedStatus || g.status === selectedStatus;
 				const matchesCategory = !selectedCategory || g.category === selectedCategory;
-				return matchesSearch && matchesStatus && matchesCategory;
+				return matchesCategory;
 			})
 			.sort((a, b) => {
 				if (sortBy === 'closing') return (a.closingDate ?? '').localeCompare(b.closingDate ?? '');
@@ -89,9 +135,9 @@
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
-	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed' };
-	const countByStatus = (s: string) => grants.filter((g) => g.status === s).length;
-	const countByCategory = (c: string) => grants.filter((g) => g.category === c).length;
+	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed', RUNNING: 'Running', INTERNAL: 'Internal' };
+	const countByStatus = (s: string) => allGrants.filter((g) => g.status === s).length;
+	const countByCategory = (c: string) => allGrants.filter((g) => g.category === c).length;
 </script>
 
 <svelte:head>
@@ -134,9 +180,9 @@
 			</button>
 			{#if openSections.status}
 				<div class="sb-body">
-					{#each ['OPEN', 'UPCOMING', 'CLOSED'] as s}
+					{#each ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'] as s}
 						<label class="sb-row">
-							<input type="radio" name="status" value={s} checked={selectedStatus === s} onchange={() => (selectedStatus = selectedStatus === s ? '' : s)} />
+							<input type="radio" name="status" value={s} checked={selectedStatus === s} onchange={() => onStatusChange(s)} />
 							<span class="sb-label">{statusLabel[s]}</span>
 							<span class="sb-count">({countByStatus(s)})</span>
 						</label>
@@ -185,7 +231,13 @@
 					<option value={25}>25 per page</option>
 				</select>
 			</div>
-			<p class="gp-count"><strong>{allFilteredGrants.length}</strong> result{allFilteredGrants.length === 1 ? '' : 's'} found</p>
+			<p class="gp-count">
+			{#if searchLoading}
+				Searching…
+			{:else}
+				<strong>{allFilteredGrants.length}</strong> result{allFilteredGrants.length === 1 ? '' : 's'} found
+			{/if}
+		</p>
 		</div>
 
 		<!-- Grant list -->
@@ -323,7 +375,7 @@
 	/* Body */
 	.gp-body {
 		display: grid;
-		grid-template-columns: 280px 1fr;
+		grid-template-columns: 280px minmax(0, 1fr);
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 2rem 2rem 4rem;
@@ -407,7 +459,7 @@
 	.sb-reset:hover { background: #fff5ee; }
 
 	/* Main */
-	.gp-main { min-height: 70vh; }
+	.gp-main { min-height: 70vh; min-width: 0; width: 100%; }
 	.gp-sort-bar {
 		display: flex;
 		align-items: center;
@@ -437,7 +489,7 @@
 	.gp-card {
 		position: relative;
 		display: grid;
-		grid-template-columns: 1fr auto 200px;
+		grid-template-columns: minmax(0, 1fr) auto 200px;
 		align-items: stretch;
 		background: #fff;
 		border: 1px solid #e0dcd4;
@@ -470,10 +522,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.35rem;
+		min-width: 0;
 	}
-	.gp-card-funder { margin: 0; font-size: 0.82rem; color: var(--ink-soft); }
-	.gp-card-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--uz-navy); line-height: 1.4; }
-	.gp-card-desc { margin: 0; font-size: 0.86rem; color: var(--ink-soft); line-height: 1.55; }
+	.gp-card-funder { margin: 0; font-size: 0.82rem; color: var(--ink-soft); overflow-wrap: break-word; }
+	.gp-card-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--uz-navy); line-height: 1.4; overflow-wrap: break-word; }
+	.gp-card-desc { margin: 0; font-size: 0.86rem; color: var(--ink-soft); line-height: 1.55; overflow-wrap: break-word; }
 	.gp-card-cat {
 		align-self: flex-start;
 		margin-top: 0.2rem;
@@ -493,6 +546,9 @@
 		flex-direction: column;
 		gap: 0.85rem;
 		justify-content: center;
+		min-width: 0;
+		width: 200px;
+		flex-shrink: 0;
 	}
 	.gp-badge {
 		display: inline-block;
@@ -507,6 +563,7 @@
 	.gp-badge-open     { background: #e0f0ff; color: #1a3a6b; }
 	.gp-badge-upcoming { background: #fff3dc; color: #8a5a00; }
 	.gp-badge-closed   { background: #f0f0f0; color: #666; }
+	.gp-badge-running  { background: #d4f0e0; color: #1a6b3a; }
 	.gp-meta { display: flex; flex-direction: column; gap: 0.1rem; }
 	.gp-meta-label { font-size: 0.73rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); }
 	.gp-meta-value { font-size: 0.9rem; color: var(--ink); font-weight: 500; }

@@ -67,6 +67,21 @@ export const scholarsService = {
 		}
 	},
 
+	search: async (q: string, fetchFn: typeof fetch = fetch): Promise<Scholar[]> => {
+		try {
+			const token = getToken();
+			const headers: Record<string, string> = {};
+			if (token) headers['Authorization'] = `Bearer ${token}`;
+			const url = `${PUBLIC_API_BASE_URL}/api/viewer/experts?q=${encodeURIComponent(q)}`;
+			const res = await fetchFn(url, { headers });
+			if (!res.ok) return [];
+			const data: Record<string, string>[] = await res.json();
+			return data.map(mapToScholar);
+		} catch {
+			return [];
+		}
+	},
+
 	getBySlug: async (slug: string, fetchFn: typeof fetch = fetch): Promise<Scholar | null> => {
 		const all = await scholarsService.list(fetchFn);
 		return all.find((s) => s.slug === slug) ?? null;

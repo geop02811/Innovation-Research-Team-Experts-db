@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authService } from '$lib/auth/auth.service';
-	import type { EventItem, CompetitionItem, AlumniNewsItem, GrantItem } from '$lib/auth/auth.service';
+	import type { EventItem, AlumniNewsItem, GrantItem } from '$lib/auth/auth.service';
 
 	const heroImages = [
 		'/sophia.jpeg',
@@ -9,27 +9,37 @@
 	];
 
 	let currentSlide = $state(0);
-	let activeTab = $state<'research' | 'alumni' | 'events' | 'competitions' | 'grants'>('research');
+	let activeTab = $state<'research' | 'alumni' | 'events' | 'internal-grants' | 'grants'>('research');
 
 	let events = $state<EventItem[]>([]);
-	let competitions = $state<CompetitionItem[]>([]);
 	let alumniNews = $state<AlumniNewsItem[]>([]);
 	let grants = $state<GrantItem[]>([]);
+
+	// Running projects = grants with status RUNNING pulled from the grants management system
+	const runningProjects = $derived(grants.filter((g) => g.status === 'RUNNING'));
+	// Internal grants = grants with status INTERNAL
+	const internalGrants = $derived(grants.filter((g) => g.status === 'INTERNAL'));
 
 	onMount(() => {
 		const id = setInterval(() => {
 			currentSlide = (currentSlide + 1) % heroImages.length;
 		}, 5000);
 		authService.getEvents().then(d => events = d);
-		authService.getCompetitions().then(d => competitions = d);
 		authService.getAlumniNews().then(d => alumniNews = d);
 		authService.getGrants().then(d => grants = d);
 		return () => clearInterval(id);
 	});
 
 	const goToGrants = () => {
-		const session = authService.getSessionFromCookie();
-		window.location.href = session ? '/grants' : '/login?message=Please log in to view all available grants.';
+		window.location.href = '/grants';
+	};
+
+	const goToRunningProjects = () => {
+		window.location.href = '/grants?status=RUNNING';
+	};
+
+	const goToInternalGrants = () => {
+		window.location.href = '/grants?status=INTERNAL';
 	};
 
 	const monthName = (dateStr: string) => {
@@ -41,7 +51,6 @@
 		if (!dateStr) return '';
 		return new Date(dateStr).getDate().toString();
 	};
-	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed' };
 </script>
 
 <svelte:head>
@@ -105,9 +114,9 @@
 <nav class="hp-tabs" aria-label="Page sections">
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'research'} onclick={() => activeTab = 'research'}>Research</button>
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'alumni'} onclick={() => activeTab = 'alumni'}>Alumni</button>
-	<button class="hp-tab" class:hp-tab-active={activeTab === 'events'} onclick={() => activeTab = 'events'}>Events</button>
-	<button class="hp-tab" class:hp-tab-active={activeTab === 'competitions'} onclick={() => activeTab = 'competitions'}>Competitions</button>
-	<button class="hp-tab" class:hp-tab-active={activeTab === 'grants'} onclick={() => activeTab = 'grants'}>Grants</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'events'} onclick={() => activeTab = 'events'}>Running Projects</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'internal-grants'} onclick={() => activeTab = 'internal-grants'}>Internal Grants</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'grants'} onclick={() => activeTab = 'grants'}>Grant Opportunities</button>
 </nav>
 
 <!-- ══════════════════════════════════════ RESEARCH HIGHLIGHTS ═══ -->
@@ -223,61 +232,108 @@
 </section>
 {/if}
 
-<!-- ═══════════════════════════════════════════ EVENTS ═══ -->
+<!-- ═══════════════════════════════════════ RUNNING PROJECTS ═══ -->
 {#if activeTab === 'events'}
 <section class="hp-section" id="events">
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
-			<h2 class="hp-section-title">Upcoming Events</h2>
+			<h2 class="hp-section-title">Running Projects</h2>
 		</div>
-		{#if events.length === 0}
-			<p class="hp-empty-tab">No events scheduled yet. Check back soon.</p>
+		{#if runningProjects.length === 0}
+			<p class="hp-empty-tab">No running projects at the moment. Check back soon.</p>
 		{:else}
-			<div class="hp-events">
-				{#each events as ev (ev.id)}
-					<article class="hp-event">
-						<div class="hp-event-date">
-							<span class="ev-day">{dayNum(ev.eventDate)}</span>
-							<span class="ev-month">{monthName(ev.eventDate)}</span>
+			<div class="hp-grant-list">
+				{#each runningProjects.slice(0, 3) as project (project.id)}
+					<article class="hp-grant-item" class:hp-grant-featured={project.featured}>
+						{#if project.featured}<div class="hp-grant-ribbon" aria-label="Featured">Featured</div>{/if}
+						<div class="hp-grant-accent"></div>
+						<div class="hp-grant-left">
+							<p class="hp-grant-funder">{project.funder}</p>
+							<h3 class="hp-grant-title">{project.title}</h3>
+							{#if project.description}<p class="hp-grant-desc">{project.description}</p>{/if}
+							<div class="hp-rp-pills">
+								<span class="hp-rp-pill hp-rp-pill-uni">UZ</span>
+								{#if project.category}<span class="hp-rp-pill hp-rp-pill-faculty">{project.category}</span>{/if}
+							</div>
 						</div>
-						<div class="hp-event-body">
-							{#if ev.category}<span class="hp-card-tag">{ev.category}</span>{/if}
-							<h3>{ev.title}</h3>
-							{#if ev.description}<p>{ev.description}</p>{/if}
-							{#if ev.location}<span class="hp-event-loc">📍 {ev.location}</span>{/if}
+						<div class="hp-grant-divider" aria-hidden="true"></div>
+						<div class="hp-grant-right">
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Budget</span>
+								<span class="hp-grant-meta-value">{project.amount}</span>
+							</div>
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Status</span>
+								<span class="hp-rp-status-badge">Running</span>
+							</div>
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">End date</span>
+								<span class="hp-grant-meta-value">{project.closingDate ?? '—'}</span>
+							</div>
 						</div>
 					</article>
 				{/each}
 			</div>
 		{/if}
+
+		<div class="hp-grant-more">
+			<button type="button" class="hp-grant-more-btn" onclick={goToRunningProjects}>
+				See All Running Projects
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="3" y1="8" x2="13" y2="8" />
+					<polyline points="9 4 13 8 9 12" />
+				</svg>
+			</button>
+		</div>
 	</div>
 </section>
 {/if}
 
-<!-- ══════════════════════════════════ COMPETITIONS ═══ -->
-{#if activeTab === 'competitions'}
-<section class="hp-section hp-section-alt" id="competitions">
+<!-- ══════════════════════════════════ INTERNAL GRANTS ═══ -->
+{#if activeTab === 'internal-grants'}
+<section class="hp-section hp-section-alt" id="internal-grants">
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
-			<h2 class="hp-section-title">Competitions &amp; Calls for Proposals</h2>
+			<h2 class="hp-section-title">Internal Grants</h2>
 		</div>
-		{#if competitions.length === 0}
-			<p class="hp-empty-tab">No competitions posted yet. Check back soon.</p>
+		{#if internalGrants.length === 0}
+			<p class="hp-empty-tab">No internal grants posted yet. Check back soon.</p>
 		{:else}
-			<div class="hp-comp-grid">
-				{#each competitions as comp (comp.id)}
-					<article class="hp-comp-card">
-						<div class="hp-comp-badge hp-badge-{comp.status.toLowerCase()}">{statusLabel[comp.status] ?? comp.status}</div>
-						<h3>{comp.title}</h3>
-						{#if comp.description}<p>{comp.description}</p>{/if}
-						<div class="hp-comp-footer">
-							{#if comp.deadline}<span class="hp-comp-deadline">⏳ Deadline: {comp.deadline}</span>{/if}
-							{#if comp.ctaUrl}<a class="hp-comp-cta" href={comp.ctaUrl} target="_blank" rel="noopener noreferrer">{comp.ctaLabel || 'Learn More'}</a>{/if}
+			<div class="hp-grant-list">
+				{#each internalGrants.slice(0, 3) as grant (grant.id)}
+					<article class="hp-grant-item" class:hp-grant-featured={grant.featured}>
+						{#if grant.featured}<div class="hp-grant-ribbon" aria-label="Featured">Featured</div>{/if}
+						<div class="hp-grant-accent"></div>
+						<div class="hp-grant-left">
+							<p class="hp-grant-funder">{grant.funder}</p>
+							<h3 class="hp-grant-title">{grant.title}</h3>
+							{#if grant.description}<p class="hp-grant-desc">{grant.description}</p>{/if}
+						</div>
+						<div class="hp-grant-divider" aria-hidden="true"></div>
+						<div class="hp-grant-right">
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Amount</span>
+								<span class="hp-grant-meta-value">{grant.amount}</span>
+							</div>
+							<div class="hp-grant-meta-item">
+								<span class="hp-grant-meta-label">Closing date</span>
+								<span class="hp-grant-meta-value">{grant.closingDate ?? '—'}</span>
+							</div>
 						</div>
 					</article>
 				{/each}
 			</div>
 		{/if}
+
+		<div class="hp-grant-more">
+			<button type="button" class="hp-grant-more-btn" onclick={goToInternalGrants}>
+				View More Internal Grants
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<line x1="3" y1="8" x2="13" y2="8" />
+					<polyline points="9 4 13 8 9 12" />
+				</svg>
+			</button>
+		</div>
 	</div>
 </section>
 {/if}
@@ -287,7 +343,7 @@
 <section class="hp-section" id="grants">
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
-			<h2 class="hp-section-title">Available Grants</h2>
+			<h2 class="hp-section-title">Grant Opportunities</h2>
 			<button type="button" class="hp-section-link hp-section-link-btn" onclick={goToGrants}>View All Grants →</button>
 		</div>
 
@@ -841,7 +897,7 @@
 .hp-grant-item {
 	position: relative;
 	display: grid;
-	grid-template-columns: 1fr auto 220px;
+	grid-template-columns: minmax(0, 1fr) auto 220px;
 	gap: 0;
 	align-items: stretch;
 	background: #faf9f6;
@@ -883,18 +939,21 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
+	min-width: 0;
 }
 .hp-grant-funder {
 	margin: 0;
 	font-size: 0.82rem;
 	color: var(--ink-soft);
 	font-weight: 400;
+	overflow-wrap: break-word;
 }
 .hp-grant-desc {
 	margin: 0.35rem 0 0;
 	font-size: 0.86rem;
 	color: var(--ink-soft);
 	line-height: 1.55;
+	overflow-wrap: break-word;
 }
 .hp-grant-title {
 	margin: 0;
@@ -903,6 +962,7 @@
 	font-weight: 700;
 	color: var(--uz-navy);
 	line-height: 1.35;
+	overflow-wrap: break-word;
 }
 /* Vertical divider */
 .hp-grant-divider {
@@ -917,6 +977,8 @@
 	gap: 1rem;
 	justify-content: center;
 	min-width: 0;
+	width: 220px;
+	flex-shrink: 0;
 }
 .hp-grant-meta-item {
 	display: flex;
@@ -958,6 +1020,47 @@
 	transition: background 0.15s;
 }
 .hp-grant-more-btn:hover { background: var(--uz-orange-dark); }
+.hp-rp-status-badge {
+	display: inline-block;
+	background: #d4f0e0;
+	color: #1a6b3a;
+	font-size: 0.72rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	padding: 0.2rem 0.6rem;
+	border-radius: 100px;
+}
+.hp-rp-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	margin-top: 0.9rem;
+}
+.hp-rp-pill {
+	display: inline-block;
+	font-size: 0.72rem;
+	font-weight: 700;
+	padding: 0.22rem 0.7rem;
+	border-radius: 100px;
+	white-space: nowrap;
+}
+.hp-rp-pill-uni {
+	background: var(--uz-navy);
+	color: #fff;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+.hp-rp-pill-faculty {
+	background: #eef2fb;
+	color: var(--uz-navy);
+	border: 1px solid #c8d3ef;
+}
+.hp-rp-pill-manager {
+	background: #fff6e8;
+	color: #7a4800;
+	border: 1px solid #f0d8a8;
+}
 @media (max-width: 700px) {
 	.hp-grant-item {
 		grid-template-columns: 1fr;

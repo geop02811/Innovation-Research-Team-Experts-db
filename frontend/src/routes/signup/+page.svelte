@@ -22,12 +22,13 @@
 
 	// ── Step state ──────────────────────────────────────────────────────────────
 	let currentStep = $state(1);
-	const totalSteps = 5;
+	const totalSteps = 6;
 	const stepLabels = [
 		'Personal Details',
 		'Academic Profile',
 		'Consultancy',
 		'Expertise & Skills',
+		'Supporting Docs',
 		'Account Setup'
 	];
 
@@ -47,7 +48,11 @@
 	let consultancyExperience = $state('');
 	let consultancyAvailability = $state('');
 	let preferredConsultancyTypes = $state<string[]>([]);
-	let geographicScope = $state('');
+	let geographicScope = $state<string[]>([]);
+	let cvDataUrl = $state('');
+	let cvFileName = $state('');
+	let universityIdDataUrl = $state('');
+	let universityIdFileName = $state('');
 	let skillsAndCompetences = $state<string[]>([]);
 	let languagesSpoken = $state<string[]>([]);
 	let areasOfExpertise = $state<string[]>([]);
@@ -70,11 +75,19 @@
 		}
 	};
 
+	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+
 	const onPhotoChange = async (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) {
 			profilePhotoDataUrl = '';
+			return;
+		}
+
+		if (file.size > MAX_FILE_BYTES) {
+			error = 'Profile picture must be 5 MB or smaller.';
+			input.value = '';
 			return;
 		}
 
@@ -109,14 +122,40 @@
 		profilePhotoDataUrl = dataUrl;
 	};
 
+	const onCvChange = (event: Event) => {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) { cvDataUrl = ''; cvFileName = ''; return; }
+		if (file.size > MAX_FILE_BYTES) {
+			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
+			input.value = ''; return;
+		}
+		const reader = new FileReader();
+		reader.onload = () => { cvDataUrl = String(reader.result); cvFileName = file.name; error = ''; };
+		reader.readAsDataURL(file);
+	};
+
+	const onUniversityIdChange = (event: Event) => {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) { universityIdDataUrl = ''; universityIdFileName = ''; return; }
+		if (file.size > MAX_FILE_BYTES) {
+			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
+			input.value = ''; return;
+		}
+		const reader = new FileReader();
+		reader.onload = () => { universityIdDataUrl = String(reader.result); universityIdFileName = file.name; error = ''; };
+		reader.readAsDataURL(file);
+	};
+
 	// ── Per-step validation ─────────────────────────────────────────────────────
 	const validateStep = (step: number): string | null => {
 		switch (step) {
 			case 1:
 				if (!titlePrefix || !fullName || !universityEmail || !phoneNumber || !contactDetails)
 					return 'Please complete all fields to continue.';
-				if (!universityEmail.toLowerCase().endsWith('uz.ac.zw'))
-					return 'Please use your University of Zimbabwe email address.';
+			if (!['uz.ac.zw', 'students.uz.co.zw'].some(d => universityEmail.toLowerCase().endsWith(d)))
+				return 'Please use your University of Zimbabwe email address (@uz.ac.zw or @students.uz.co.zw).';
 				break;
 			case 2:
 				if (
@@ -179,7 +218,7 @@
 	};
 
 	const submit = async () => {
-		const stepError = validateStep(5);
+		const stepError = validateStep(6);
 		if (stepError) { error = stepError; return; }
 
 		submitting = true;
@@ -200,7 +239,9 @@
 			consultancyExperience,
 			consultancyAvailability: consultancyAvailability as ExpertProfile['consultancyAvailability'],
 			preferredConsultancyTypes,
-			geographicScope: geographicScope as ExpertProfile['geographicScope'],
+			geographicScope: geographicScope.join(',') as unknown as ExpertProfile['geographicScope'],
+			cvDataUrl,
+			universityIdDataUrl,
 			skillsAndCompetences,
 			languagesSpoken,
 			areasOfExpertise,
@@ -266,7 +307,7 @@
 				<div class="grid two">
 					<label>
 						University Email
-						<input type="email" bind:value={universityEmail} placeholder="name@uz.ac.zw" />
+						<input type="email" bind:value={universityEmail} placeholder="name@uz.ac.zw or name@students.uz.co.zw" />
 					</label>
 					<label>
 						Phone Number
@@ -369,15 +410,12 @@
 						options={[...preferredConsultancyTypeOptions]}
 						onchange={(value) => (preferredConsultancyTypes = value)}
 					/>
-					<label>
-						Geographic Scope
-						<select bind:value={geographicScope}>
-							<option value="">Select scope</option>
-							{#each geographicScopeOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
+				<MultiSelectFilter
+					label="Geographic Scope"
+					selected={geographicScope}
+					options={[...geographicScopeOptions]}
+					onchange={(value) => (geographicScope = value)}
+				/>
 				</div>
 
 				<label>
@@ -421,8 +459,38 @@
 			</div>
 		{/if}
 
-		<!-- ── Step 5: Account Setup ─────────────────────────────────────── -->
+		<!-- ── Step 5: Supporting Documents ────────────────────────────── -->
 		{#if currentStep === 5}
+			<div class="step-body">
+				<p class="step-intro">Please upload your CV and University ID for verification. Files are stored securely and only visible to administrators.</p>
+
+				<label>
+					CV / Résumé <span class="required">*</span>
+					<input
+						type="file"
+						accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+					onchange={onCvChange}
+					/>
+					{#if cvFileName}<span class="file-chosen">{cvFileName}</span>{/if}
+				</label>
+
+				<label>
+					University ID <span class="required">*</span>
+					<input
+						type="file"
+						accept="image/*,.pdf"
+					onchange={onUniversityIdChange}
+					/>
+					{#if universityIdFileName}<span class="file-chosen">{universityIdFileName}</span>{/if}
+					{#if universityIdDataUrl && universityIdDataUrl.startsWith('data:image')}
+						<img src={universityIdDataUrl} alt="University ID preview" class="photo-preview" />
+					{/if}
+				</label>
+			</div>
+		{/if}
+
+		<!-- ── Step 6: Account Setup ─────────────────────────────────────── -->
+		{#if currentStep === 6}
 			<div class="step-body">
 				<label>
 					Professional Profile Picture
@@ -638,6 +706,23 @@
 		border-radius: 50%;
 		object-fit: cover;
 		border: 2px solid #cfd4de;
+	}
+	.step-intro {
+		font-size: 0.92rem;
+		color: var(--ink-soft);
+		margin: 0 0 1rem;
+		line-height: 1.55;
+	}
+	.required {
+		color: var(--uz-orange);
+		font-weight: 700;
+	}
+	.file-chosen {
+		display: block;
+		margin-top: 0.3rem;
+		font-size: 0.82rem;
+		color: var(--ink-soft);
+		font-style: italic;
 	}
 
 	/* ── Error ── */

@@ -20,5 +20,7 @@ public record UpdateProfileRequest(
         String skillsAndCompetences,
         String languagesSpoken,
         String notes,
-        String profilePhotoDataUrl
+        String profilePhotoDataUrl,
+        String cvDataUrl,
+        String universityIdDataUrl
 ) {}

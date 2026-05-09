@@ -59,6 +59,8 @@ public class UserService {
         user.setIndustrialAreasOfExpertise(request.industrialAreasOfExpertise());
         user.setNotes(request.notes());
         user.setProfilePhotoDataUrl(request.profilePhotoDataUrl());
+        user.setCvDataUrl(request.cvDataUrl());
+        user.setUniversityIdDataUrl(request.universityIdDataUrl());
 
         User savedUser = userRepository.save(user);
         return mapToResponse(savedUser);

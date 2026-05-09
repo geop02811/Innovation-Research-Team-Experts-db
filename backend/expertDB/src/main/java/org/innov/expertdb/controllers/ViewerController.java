@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,8 @@ public class ViewerController {
         if (req.languagesSpoken() != null) user.setLanguagesSpoken(req.languagesSpoken());
         if (req.notes() != null) user.setNotes(req.notes());
         if (req.profilePhotoDataUrl() != null) user.setProfilePhotoDataUrl(req.profilePhotoDataUrl());
+        if (req.cvDataUrl() != null) user.setCvDataUrl(req.cvDataUrl());
+        if (req.universityIdDataUrl() != null) user.setUniversityIdDataUrl(req.universityIdDataUrl());
         userRepository.save(user);
         return ResponseEntity.ok(toProfile(user));
     }
@@ -107,16 +110,22 @@ public class ViewerController {
     }
 
     @GetMapping("/experts")
-    public ResponseEntity<List<ExpertSummaryResponse>> listExperts() {
-        List<ExpertSummaryResponse> experts = userRepository.findAll().stream()
-                .filter(u -> u.getStatus() == AccountStatus.ACTIVE && u.getFullName() != null)
-                .sorted((a, b) -> {
-                    String nameA = a.getFullName() != null ? a.getFullName() : "";
-                    String nameB = b.getFullName() != null ? b.getFullName() : "";
-                    return nameA.compareToIgnoreCase(nameB);
-                })
-                .map(this::toSummary)
-                .toList();
+    public ResponseEntity<List<ExpertSummaryResponse>> listExperts(
+            @RequestParam(required = false) String q) {
+        List<User> users;
+        if (q != null && !q.isBlank()) {
+            users = userRepository.searchActive(AccountStatus.ACTIVE, q.trim());
+        } else {
+            users = userRepository.findAll().stream()
+                    .filter(u -> u.getStatus() == AccountStatus.ACTIVE && u.getFullName() != null)
+                    .sorted((a, b) -> {
+                        String nameA = a.getFullName() != null ? a.getFullName() : "";
+                        String nameB = b.getFullName() != null ? b.getFullName() : "";
+                        return nameA.compareToIgnoreCase(nameB);
+                    })
+                    .toList();
+        }
+        List<ExpertSummaryResponse> experts = users.stream().map(this::toSummary).toList();
         return ResponseEntity.ok(experts);
     }
 

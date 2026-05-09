@@ -45,6 +45,8 @@ public record RegisterRequest(
         /** Comma-separated */
         String industrialAreasOfExpertise,
         String notes,
-        String profilePhotoDataUrl) { }
+        String profilePhotoDataUrl,
+        String cvDataUrl,
+        String universityIdDataUrl) { }
 
 

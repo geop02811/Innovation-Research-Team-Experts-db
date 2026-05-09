@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,14 @@ public class GrantController {
 
     private final GrantService grantService;
 
-    /** Public — anyone can browse grants */
+    /** Public — anyone can browse grants. Supports ?q= full-text search and ?status= filter. */
     @GetMapping("/api/grants")
-    public ResponseEntity<List<GrantResponse>> getAll() {
+    public ResponseEntity<List<GrantResponse>> getAll(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String status) {
+        if ((q != null && !q.isBlank()) || (status != null && !status.isBlank())) {
+            return ResponseEntity.ok(grantService.search(q, status));
+        }
         return ResponseEntity.ok(grantService.getAll());
     }
 

@@ -67,7 +67,8 @@
 		consultancyAvailability:      data.profile?.consultancyAvailability      || '',
 		consultancyExperience:        data.profile?.consultancyExperience        || '',
 		preferredConsultancyTypes:    (data.profile?.preferredConsultancyTypes   || []) as string[],
-		geographicScope:              data.profile?.geographicScope              || '',
+		geographicScope:              (data.profile?.geographicScope ? data.profile.geographicScope.split(',').map((s: string) => s.trim()).filter(Boolean) : []) as string[],
+
 		areasOfExpertise:             (data.profile?.areasOfExpertise            || []) as string[],
 		industrialAreasOfExpertise:   (data.profile?.industrialAreasOfExpertise  || []) as string[],
 		skillsAndCompetences:         (data.profile?.skillsAndCompetences        || []) as string[],
@@ -130,7 +131,7 @@
 			consultancyAvailability:      formData.consultancyAvailability,
 			consultancyExperience:        formData.consultancyExperience,
 			preferredConsultancyTypes:    formData.preferredConsultancyTypes.join(','),
-			geographicScope:              formData.geographicScope,
+			geographicScope:              formData.geographicScope.join(','),
 			areasOfExpertise:             formData.areasOfExpertise.join(','),
 			industrialAreasOfExpertise:   formData.industrialAreasOfExpertise.join(','),
 			skillsAndCompetences:         formData.skillsAndCompetences.join(','),
@@ -418,12 +419,30 @@
 					<div class="field">
 						<span class="field-label">Geographic Scope</span>
 						{#if isEditing}
-							<select bind:value={formData.geographicScope}>
-								<option value="">Select scope</option>
-								{#each geographicScopeOptions as opt}<option value={opt}>{opt}</option>{/each}
-							</select>
+							<div class="checkbox-group">
+								{#each geographicScopeOptions as opt}
+									<label class="checkbox-option">
+										<input
+											type="checkbox"
+											checked={formData.geographicScope.includes(opt)}
+											onchange={() => {
+												formData.geographicScope = formData.geographicScope.includes(opt)
+													? formData.geographicScope.filter(s => s !== opt)
+													: [...formData.geographicScope, opt];
+											}}
+										/>
+										<span>{opt}</span>
+									</label>
+								{/each}
+							</div>
 						{:else}
-							<span class="field-value">{formData.geographicScope || '—'}</span>
+							<div class="tags-display">
+								{#each formData.geographicScope as scope}
+									<span class="tag">{scope}</span>
+								{:else}
+									<span class="field-value">—</span>
+								{/each}
+							</div>
 						{/if}
 					</div>
 				</div>
@@ -723,6 +742,31 @@ textarea { resize: vertical; min-height: 80px; }
 	font-weight: 600;
 	padding: 0.25rem 0.65rem;
 	border-radius: 100px;
+}
+.tags-display {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+.checkbox-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 1.2rem;
+	padding: 0.25rem 0;
+}
+.checkbox-option {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.9rem;
+	color: var(--ink);
+	cursor: pointer;
+}
+.checkbox-option input[type="checkbox"] {
+	width: 1rem;
+	height: 1rem;
+	accent-color: var(--uz-orange);
+	cursor: pointer;
 }
 .expertise-view-grid {
 	display: grid;

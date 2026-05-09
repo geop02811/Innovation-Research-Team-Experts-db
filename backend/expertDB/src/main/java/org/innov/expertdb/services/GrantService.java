@@ -25,6 +25,17 @@ public class GrantService {
                 .toList();
     }
 
+    public List<GrantResponse> search(String q, String status) {
+        List<Grant> results = (q != null && !q.isBlank())
+                ? grantRepository.searchAll(q.trim())
+                : grantRepository.findAllByOrderByCreatedAtDesc();
+        if (status != null && !status.isBlank()) {
+            String s = status.trim().toUpperCase();
+            results = results.stream().filter(g -> s.equals(g.getStatus())).toList();
+        }
+        return results.stream().map(GrantResponse::from).toList();
+    }
+
     @Transactional
     public GrantResponse create(GrantRequest req) {
         Grant g = new Grant();

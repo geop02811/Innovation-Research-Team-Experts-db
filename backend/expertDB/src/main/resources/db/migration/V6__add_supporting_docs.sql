@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cv_data_url TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS university_id_data_url TEXT;

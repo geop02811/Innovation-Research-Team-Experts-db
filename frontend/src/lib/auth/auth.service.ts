@@ -101,7 +101,9 @@ export const authService = {
 					areasOfExpertise: p.areasOfExpertise.join(','),
 					industrialAreasOfExpertise: p.industrialAreasOfExpertise.join(','),
 					notes: p.notes,
-					profilePhotoDataUrl: p.profilePhotoDataUrl
+					profilePhotoDataUrl: p.profilePhotoDataUrl,
+					cvDataUrl: p.cvDataUrl ?? '',
+					universityIdDataUrl: p.universityIdDataUrl ?? ''
 				})
 			});
 
@@ -331,7 +333,7 @@ export interface GrantItem {
 	description: string;
 	amount: string;
 	closingDate: string; // ISO date string "YYYY-MM-DD"
-	status: 'OPEN' | 'UPCOMING' | 'CLOSED';
+	status: 'OPEN' | 'UPCOMING' | 'CLOSED' | 'RUNNING';
 	category: string;
 	applyUrl: string;
 	featured: boolean;

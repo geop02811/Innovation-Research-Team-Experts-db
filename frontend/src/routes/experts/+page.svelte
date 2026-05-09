@@ -3,12 +3,20 @@
 	import ScholarsHero from '$lib/components/scholars/ScholarsHero.svelte';
 	import FilterPanel from '$lib/components/scholars/FilterPanel.svelte';
 	import { getDepartmentOptionsByFaculty } from '$lib/auth/form-options';
+	import { scholarsService } from '$lib/data/scholars.service';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 	let searchValue = $state('');
 	let appliedSearch = $state('');
 	let mobileFiltersOpen = $state(false);
+
+	// Backend search results — populated when a query is applied
+	let searchResults = $state<typeof data.scholars | null>(null);
+	let searchLoading = $state(false);
+
+	// The active scholar list: search results when a query is active, otherwise full list
+	const activeScholars = $derived(searchResults !== null ? searchResults : data.scholars);
 
 	let highestQualification = $state('');
 	let faculty = $state('');
@@ -29,9 +37,9 @@
 	};
 
 	const filteredScholars = $derived(
-		data.scholars.filter((scholar) => {
-			const searchTarget = `${scholar.fullName} ${scholar.faculty || ''}`.toLowerCase();
-			const searchMatches = appliedSearch === '' || searchTarget.includes(appliedSearch);
+		activeScholars.filter((scholar) => {
+			// When a backend search is active, text matching is already done server-side
+			const searchMatches = appliedSearch === '' || searchResults !== null;
 
 			const qualificationMatches =
 				highestQualification === '' ||
@@ -96,13 +104,22 @@
 		})
 	);
 
-	const applyFilters = () => {
-		appliedSearch = searchValue.trim().toLowerCase();
+	const applyFilters = async () => {
+		const q = searchValue.trim();
+		appliedSearch = q.toLowerCase();
+		if (q) {
+			searchLoading = true;
+			searchResults = await scholarsService.search(q);
+			searchLoading = false;
+		} else {
+			searchResults = null;
+		}
 	};
 
 	const clearFilters = () => {
 		searchValue = '';
 		appliedSearch = '';
+		searchResults = null;
 		highestQualification = '';
 		faculty = '';
 		department = '';
@@ -229,11 +246,16 @@
 
 			<!-- Result count -->
 			<p class="results-count">
-				<strong>{filteredScholars.length}</strong>
-				{filteredScholars.length === 1 ? 'expert' : 'experts'} found
+				{#if searchLoading}
+					Searching…
+				{:else}
+					<strong>{filteredScholars.length}</strong>
+					{filteredScholars.length === 1 ? 'expert' : 'experts'} found
+					{#if appliedSearch}<span class="results-query">for "{appliedSearch}"</span>{/if}
+				{/if}
 			</p>
 
-			<ScholarGrid scholars={filteredScholars} onTagClick={onExpertiseTagClick} />
+			<ScholarGrid scholars={searchLoading ? [] : filteredScholars} onTagClick={onExpertiseTagClick} />
 		</div>
 	</div>
 </main>
@@ -355,6 +377,11 @@
 
 	.results-count strong {
 		color: var(--ink);
+	}
+
+	.results-query {
+		color: var(--ink-soft);
+		font-style: italic;
 	}
 
 	/* ── Responsive ── */

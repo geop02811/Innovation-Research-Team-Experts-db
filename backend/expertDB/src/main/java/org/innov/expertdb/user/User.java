@@ -116,6 +116,12 @@ public class User {
     @Column(name = "profile_photo_data_url", columnDefinition = "TEXT")
     private String profilePhotoDataUrl;
 
+    @Column(name = "cv_data_url", columnDefinition = "TEXT")
+    private String cvDataUrl;
+
+    @Column(name = "university_id_data_url", columnDefinition = "TEXT")
+    private String universityIdDataUrl;
+
     @Column(name = "token_version", columnDefinition = "INTEGER NOT NULL DEFAULT 0")
     private int tokenVersion = 0;
 

@@ -36,6 +36,8 @@ export interface ExpertProfile {
 	industrialAreasOfExpertise: string[];
 	notes: string;
 	profilePhotoDataUrl: string;
+	cvDataUrl?: string;
+	universityIdDataUrl?: string;
 }
 
 export interface UserAccount {
