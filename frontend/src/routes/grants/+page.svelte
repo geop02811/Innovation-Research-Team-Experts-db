@@ -5,7 +5,6 @@
 	import type { GrantItem } from '$lib/auth/auth.service';
 
 	let grants = $state<GrantItem[]>([]);
-	let allGrants = $state<GrantItem[]>([]); // unfiltered — used for counts and categories
 	let loadError = $state('');
 	let searchLoading = $state(false);
 
@@ -22,40 +21,23 @@
 		} catch { /* silent */ }
 	};
 
-	// Fetch all grants without filters for accurate sidebar counts and category list
-	const fetchAllGrants = async () => {
-		try {
-			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/grants`);
-			if (!res.ok) return;
-			allGrants = await res.json();
-		} catch { /* silent */ }
-	};
-
 	onMount(async () => {
-		// Always fetch all grants first for counts/categories
-		await fetchAllGrants();
-		// Auto-apply status filter from URL param (e.g. ?status=RUNNING or ?status=OPEN,INTERNAL)
+		// Auto-apply status filter from URL param (e.g. ?status=RUNNING)
 		const params = new URLSearchParams(window.location.search);
 		const statusParam = params.get('status');
-		const allowed = ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'];
-		if (statusParam) {
-			const parsed = statusParam.split(',').map(s => s.trim().toUpperCase()).filter(s => allowed.includes(s));
-			if (parsed.length > 0) {
-				selectedStatuses = parsed;
-				await fetchGrants(undefined, parsed.join(','));
-			} else {
-				grants = allGrants;
-			}
+		if (statusParam && ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'].includes(statusParam)) {
+			selectedStatus = statusParam;
+			await fetchGrants(undefined, statusParam);
 		} else {
-			grants = allGrants; // no filter — reuse already-fetched data
+			await fetchGrants();
 		}
 	});
 
-	const categories = $derived([...new Set(allGrants.map((g) => g.category).filter(Boolean))]);
+	const categories = $derived([...new Set(grants.map((g) => g.category).filter(Boolean))]);
 
 	let searchValue = $state('');
 	let appliedSearch = $state('');
-	let selectedStatuses = $state<string[]>([]); // multi-select status filter
+	let selectedStatus = $state('');
 	let selectedCategory = $state('');
 	let sortBy = $state('closing');
 	let itemsPerPage = $state(5);
@@ -68,31 +50,29 @@
 		appliedSearch = searchValue.trim();
 		currentPage = 1;
 		searchLoading = true;
-		await fetchGrants(appliedSearch || undefined, selectedStatuses.length ? selectedStatuses.join(',') : undefined);
+		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
 		searchLoading = false;
 	};
 
-	// Re-fetch when status filter checkbox changes
+	// Re-fetch when status filter changes (sidebar radio click)
 	const onStatusChange = async (s: string) => {
-		selectedStatuses = selectedStatuses.includes(s)
-			? selectedStatuses.filter(x => x !== s)
-			: [...selectedStatuses, s];
+		selectedStatus = selectedStatus === s ? '' : s;
 		currentPage = 1;
 		searchLoading = true;
-		await fetchGrants(appliedSearch || undefined, selectedStatuses.length ? selectedStatuses.join(',') : undefined);
+		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
 		searchLoading = false;
 	};
 
 	const clearFilters = async () => {
 		searchValue = '';
 		appliedSearch = '';
-		selectedStatuses = [];
+		selectedStatus = '';
 		selectedCategory = '';
 		currentPage = 1;
-		grants = allGrants; // reset display to full unfiltered list
+		await fetchGrants();
 	};
 
-	const hasFilters = $derived(!!(appliedSearch || selectedStatuses.length || selectedCategory));
+	const hasFilters = $derived(!!(appliedSearch || selectedStatus || selectedCategory));
 
 	// Client-side: only category filter and sort remain (backend already handles search + status)
 	const allFilteredGrants = $derived(
@@ -144,9 +124,8 @@
 	};
 
 	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed', RUNNING: 'Running', INTERNAL: 'Internal' };
-	// Count grants that include this status (handles comma-separated)
-	const countByStatus = (s: string) => allGrants.filter((g) => g.status?.split(',').map(x => x.trim()).includes(s)).length;
-	const countByCategory = (c: string) => allGrants.filter((g) => g.category === c).length;
+	const countByStatus = (s: string) => grants.filter((g) => g.status === s).length;
+	const countByCategory = (c: string) => grants.filter((g) => g.category === c).length;
 </script>
 
 <svelte:head>
@@ -191,7 +170,7 @@
 				<div class="sb-body">
 					{#each ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'] as s}
 						<label class="sb-row">
-						<input type="checkbox" checked={selectedStatuses.includes(s)} onchange={() => onStatusChange(s)} />
+							<input type="radio" name="status" value={s} checked={selectedStatus === s} onchange={() => onStatusChange(s)} />
 							<span class="sb-label">{statusLabel[s]}</span>
 							<span class="sb-count">({countByStatus(s)})</span>
 						</label>

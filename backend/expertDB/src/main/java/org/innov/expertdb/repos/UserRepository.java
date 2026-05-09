@@ -37,6 +37,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             LOWER(u.skillsAndCompetences)        LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.languagesSpoken)             LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.consultancyExperience)       LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.consultancyAvailability)     LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.preferredConsultancyTypes)   LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.geographicScope)             LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.yearsOfConsultancyExperience) LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.titlePrefix)                 LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.complianceAccreditation)     LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.professionalMemberships)     LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.notes)                       LIKE LOWER(CONCAT('%', :q, '%'))
           )
