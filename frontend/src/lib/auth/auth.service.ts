@@ -333,7 +333,7 @@ export interface GrantItem {
 	description: string;
 	amount: string;
 	closingDate: string; // ISO date string "YYYY-MM-DD"
-	status: 'OPEN' | 'UPCOMING' | 'CLOSED' | 'RUNNING';
+	status: string; // comma-separated, e.g. "OPEN,INTERNAL"
 	category: string;
 	applyUrl: string;
 	featured: boolean;

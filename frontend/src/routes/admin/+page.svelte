@@ -19,8 +19,16 @@
 		closingDate: '', status: 'OPEN', category: '', applyUrl: '', featured: false
 	});
 	let grantForm = $state<GrantPayload>(emptyForm());
+	let grantStatusArr = $state<string[]>(['OPEN']); // mirrors grantForm.status as array
 	let grantSaving = $state(false);
 	let grantSaveError = $state('');
+
+	const toggleGrantStatus = (s: string) => {
+		grantStatusArr = grantStatusArr.includes(s)
+			? grantStatusArr.filter(x => x !== s)
+			: [...grantStatusArr, s];
+		grantForm.status = grantStatusArr.join(',') || 'OPEN';
+	};
 
 	const loadGrants = async () => {
 		grantsLoading = true;
@@ -32,12 +40,14 @@
 	const openNewGrant = () => {
 		editingGrant = null;
 		grantForm = emptyForm();
+		grantStatusArr = ['OPEN'];
 		grantSaveError = '';
 		showGrantForm = true;
 	};
 
 	const openEditGrant = (g: GrantItem) => {
 		editingGrant = g;
+		grantStatusArr = g.status ? g.status.split(',').map(s => s.trim()) : ['OPEN'];
 		grantForm = {
 			funder: g.funder, title: g.title, description: g.description ?? '',
 			amount: g.amount ?? '', closingDate: g.closingDate ?? '',
@@ -512,16 +522,17 @@
 								Closing Date
 								<input class="gf-input" type="date" bind:value={grantForm.closingDate} />
 							</label>
-							<label class="gf-label">
-								Status
-								<select class="gf-input" bind:value={grantForm.status}>
-									<option value="OPEN">Open</option>
-									<option value="UPCOMING">Upcoming</option>
-									<option value="CLOSED">Closed</option>
-									<option value="RUNNING">Running</option>
-									<option value="INTERNAL">Internal</option>
-								</select>
-							</label>
+							<div class="gf-label">
+								Status <span class="gf-hint">(select all that apply)</span>
+								<div class="gf-checkbox-group">
+									{#each ['OPEN','UPCOMING','CLOSED','RUNNING','INTERNAL'] as s}
+										<label class="gf-check-inline">
+											<input type="checkbox" checked={grantStatusArr.includes(s)} onchange={() => toggleGrantStatus(s)} />
+											{s.charAt(0) + s.slice(1).toLowerCase()}
+										</label>
+									{/each}
+								</div>
+							</div>
 							<label class="gf-label">
 								Category
 								<input class="gf-input" type="text" bind:value={grantForm.category} placeholder="e.g. Health & Medicine" />
@@ -947,6 +958,16 @@
 	}
 	.gf-input:focus { outline: none; border-color: var(--uz-navy); }
 	.gf-textarea { min-height: 80px; resize: vertical; }
+	.gf-hint { font-size: 0.75rem; font-weight: 400; color: #888; margin-left: 0.3rem; }
+	.gf-checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-top: 0.4rem; }
+	.gf-check-inline {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+	}
 	.gf-check {
 		display: flex;
 		align-items: center;

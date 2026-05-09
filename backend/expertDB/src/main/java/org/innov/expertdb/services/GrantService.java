@@ -30,8 +30,16 @@ public class GrantService {
                 ? grantRepository.searchAll(q.trim())
                 : grantRepository.findAllByOrderByCreatedAtDesc();
         if (status != null && !status.isBlank()) {
-            String s = status.trim().toUpperCase();
-            results = results.stream().filter(g -> s.equals(g.getStatus())).toList();
+            // status may be comma-separated (e.g. "OPEN,INTERNAL"); match if grant has ANY of them
+            java.util.Set<String> requested = java.util.Arrays.stream(status.trim().toUpperCase().split(","))
+                    .map(String::trim)
+                    .collect(java.util.stream.Collectors.toSet());
+            results = results.stream().filter(g -> {
+                java.util.Set<String> grantStatuses = java.util.Arrays.stream(g.getStatus().split(","))
+                        .map(String::trim)
+                        .collect(java.util.stream.Collectors.toSet());
+                return requested.stream().allMatch(grantStatuses::contains);
+            }).toList();
         }
         return results.stream().map(GrantResponse::from).toList();
     }

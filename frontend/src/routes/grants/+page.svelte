@@ -34,12 +34,18 @@
 	onMount(async () => {
 		// Always fetch all grants first for counts/categories
 		await fetchAllGrants();
-		// Auto-apply status filter from URL param (e.g. ?status=RUNNING)
+		// Auto-apply status filter from URL param (e.g. ?status=RUNNING or ?status=OPEN,INTERNAL)
 		const params = new URLSearchParams(window.location.search);
 		const statusParam = params.get('status');
-		if (statusParam && ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'].includes(statusParam)) {
-			selectedStatus = statusParam;
-			await fetchGrants(undefined, statusParam);
+		const allowed = ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'];
+		if (statusParam) {
+			const parsed = statusParam.split(',').map(s => s.trim().toUpperCase()).filter(s => allowed.includes(s));
+			if (parsed.length > 0) {
+				selectedStatuses = parsed;
+				await fetchGrants(undefined, parsed.join(','));
+			} else {
+				grants = allGrants;
+			}
 		} else {
 			grants = allGrants; // no filter — reuse already-fetched data
 		}
@@ -49,7 +55,7 @@
 
 	let searchValue = $state('');
 	let appliedSearch = $state('');
-	let selectedStatus = $state('');
+	let selectedStatuses = $state<string[]>([]); // multi-select status filter
 	let selectedCategory = $state('');
 	let sortBy = $state('closing');
 	let itemsPerPage = $state(5);
@@ -62,29 +68,31 @@
 		appliedSearch = searchValue.trim();
 		currentPage = 1;
 		searchLoading = true;
-		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
+		await fetchGrants(appliedSearch || undefined, selectedStatuses.length ? selectedStatuses.join(',') : undefined);
 		searchLoading = false;
 	};
 
-	// Re-fetch when status filter changes (sidebar radio click)
+	// Re-fetch when status filter checkbox changes
 	const onStatusChange = async (s: string) => {
-		selectedStatus = selectedStatus === s ? '' : s;
+		selectedStatuses = selectedStatuses.includes(s)
+			? selectedStatuses.filter(x => x !== s)
+			: [...selectedStatuses, s];
 		currentPage = 1;
 		searchLoading = true;
-		await fetchGrants(appliedSearch || undefined, selectedStatus || undefined);
+		await fetchGrants(appliedSearch || undefined, selectedStatuses.length ? selectedStatuses.join(',') : undefined);
 		searchLoading = false;
 	};
 
 	const clearFilters = async () => {
 		searchValue = '';
 		appliedSearch = '';
-		selectedStatus = '';
+		selectedStatuses = [];
 		selectedCategory = '';
 		currentPage = 1;
 		grants = allGrants; // reset display to full unfiltered list
 	};
 
-	const hasFilters = $derived(!!(appliedSearch || selectedStatus || selectedCategory));
+	const hasFilters = $derived(!!(appliedSearch || selectedStatuses.length || selectedCategory));
 
 	// Client-side: only category filter and sort remain (backend already handles search + status)
 	const allFilteredGrants = $derived(
@@ -136,7 +144,8 @@
 	};
 
 	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed', RUNNING: 'Running', INTERNAL: 'Internal' };
-	const countByStatus = (s: string) => allGrants.filter((g) => g.status === s).length;
+	// Count grants that include this status (handles comma-separated)
+	const countByStatus = (s: string) => allGrants.filter((g) => g.status?.split(',').map(x => x.trim()).includes(s)).length;
 	const countByCategory = (c: string) => allGrants.filter((g) => g.category === c).length;
 </script>
 
@@ -182,7 +191,7 @@
 				<div class="sb-body">
 					{#each ['OPEN', 'UPCOMING', 'CLOSED', 'RUNNING', 'INTERNAL'] as s}
 						<label class="sb-row">
-							<input type="radio" name="status" value={s} checked={selectedStatus === s} onchange={() => onStatusChange(s)} />
+						<input type="checkbox" checked={selectedStatuses.includes(s)} onchange={() => onStatusChange(s)} />
 							<span class="sb-label">{statusLabel[s]}</span>
 							<span class="sb-count">({countByStatus(s)})</span>
 						</label>

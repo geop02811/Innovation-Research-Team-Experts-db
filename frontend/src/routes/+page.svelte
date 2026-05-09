@@ -15,10 +15,10 @@
 	let alumniNews = $state<AlumniNewsItem[]>([]);
 	let grants = $state<GrantItem[]>([]);
 
-	// Running projects = grants with status RUNNING pulled from the grants management system
-	const runningProjects = $derived(grants.filter((g) => g.status === 'RUNNING'));
-	// Internal grants = grants with status INTERNAL
-	const internalGrants = $derived(grants.filter((g) => g.status === 'INTERNAL'));
+	// Running projects = grants that include RUNNING status (handles comma-separated)
+	const runningProjects = $derived(grants.filter((g) => g.status?.split(',').map(s => s.trim()).includes('RUNNING')));
+	// Internal grants = grants that include INTERNAL status (handles comma-separated)
+	const internalGrants = $derived(grants.filter((g) => g.status?.split(',').map(s => s.trim()).includes('INTERNAL')));
 
 	onMount(() => {
 		const id = setInterval(() => {
