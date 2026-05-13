@@ -174,7 +174,7 @@
 			<div class="avatar-wrap">
 				<img
 					src={formData.profilePhotoDataUrl || '/default-avatar.svg'}
-					alt="Profile photo"
+					alt={formData.fullName || 'User avatar'}
 					class="avatar-img"
 				/>
 				{#if isEditing}
