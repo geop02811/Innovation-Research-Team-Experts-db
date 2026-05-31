@@ -189,6 +189,10 @@
 					return 'Please select at least one option in each expertise field.';
 				break;
 			case 5:
+				if (!cvDataUrl || !universityIdDataUrl)
+					return 'Please upload both your CV and University ID to continue.';
+				break;
+			case 6:
 				if (
 					!profilePhotoDataUrl ||
 					!professionalPhotoConfirmed ||

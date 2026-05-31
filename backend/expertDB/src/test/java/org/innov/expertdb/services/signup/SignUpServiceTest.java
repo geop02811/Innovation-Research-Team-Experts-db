@@ -46,8 +46,8 @@ class SignUpServiceTest {
                 "Doe",
                 "john.doe@university.edu",
                 "password123",
-                null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null
         );
 

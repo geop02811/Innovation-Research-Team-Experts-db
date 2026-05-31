@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: expertdb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: expert_db
+      POSTGRES_USER: olivermazorodze
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - expertdb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U olivermazorodze -d expert_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  expertdb_data:
