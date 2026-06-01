@@ -35,5 +35,7 @@ public record AdminUserResponse(
         String areasOfExpertise,
         String industrialAreasOfExpertise,
         String notes,
-        String profilePhotoDataUrl
+        String profilePhotoDataUrl,
+        String cvDataUrl,
+        String universityIdDataUrl
 ) {}

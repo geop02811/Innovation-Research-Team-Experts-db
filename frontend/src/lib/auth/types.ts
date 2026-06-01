@@ -97,6 +97,8 @@ export interface AdminUser {
 	industrialAreasOfExpertise: string | null;
 	notes: string | null;
 	profilePhotoDataUrl: string | null;
+	cvDataUrl: string | null;
+	universityIdDataUrl: string | null;
 }
 export interface PendingUserNotification {
 	id: string;

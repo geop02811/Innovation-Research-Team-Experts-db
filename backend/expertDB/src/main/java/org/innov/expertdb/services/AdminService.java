@@ -121,7 +121,8 @@ public class AdminService {
                 u.getPreferredConsultancyTypes(), u.getGeographicScope(),
                 u.getSkillsAndCompetences(), u.getLanguagesSpoken(),
                 u.getAreasOfExpertise(), u.getIndustrialAreasOfExpertise(),
-                u.getNotes(), u.getProfilePhotoDataUrl()
+                u.getNotes(), u.getProfilePhotoDataUrl(),
+                u.getCvDataUrl(), u.getUniversityIdDataUrl()
         );
     }
 }

@@ -252,6 +252,32 @@
 												<p>{user.notes}</p>
 											</div>
 										{/if}
+										{#if user.cvDataUrl || user.universityIdDataUrl}
+											<div class="detail-section docs-section">
+												<p class="section-label">Supporting Documents</p>
+												<div class="docs-list">
+													{#if user.cvDataUrl}
+														<a class="doc-link" href={user.cvDataUrl} target="_blank" rel="noopener" download={`${displayName(user) || 'user'}-CV`}>
+															<span class="doc-icon">📄</span>
+															<span>View CV / Résumé</span>
+														</a>
+													{:else}
+														<span class="doc-missing">No CV uploaded</span>
+													{/if}
+													{#if user.universityIdDataUrl}
+														<a class="doc-link" href={user.universityIdDataUrl} target="_blank" rel="noopener" download={`${displayName(user) || 'user'}-UniversityID`}>
+															<span class="doc-icon">🪪</span>
+															<span>View University ID</span>
+														</a>
+														{#if user.universityIdDataUrl.startsWith('data:image')}
+															<img src={user.universityIdDataUrl} alt="University ID" class="doc-preview" />
+														{/if}
+													{:else}
+														<span class="doc-missing">No University ID uploaded</span>
+													{/if}
+												</div>
+											</div>
+										{/if}
 									</div>
 
 									<div class="actions">
@@ -752,6 +778,56 @@
 	.experience-text {
 		color: #555 !important;
 		line-height: 1.5;
+	}
+
+	/* ── Supporting documents ── */
+	.docs-section {
+		grid-column: 1 / -1;
+	}
+
+	.docs-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		align-items: center;
+	}
+
+	.doc-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.4rem 0.8rem;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		background: #f6f8fb;
+		color: #0a3a8d;
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.doc-link:hover {
+		background: #eaf0f8;
+	}
+
+	.doc-icon {
+		font-size: 1rem;
+	}
+
+	.doc-missing {
+		font-size: 0.82rem;
+		color: var(--ink-soft);
+		font-style: italic;
+	}
+
+	.doc-preview {
+		display: block;
+		max-width: 240px;
+		max-height: 160px;
+		border-radius: 8px;
+		border: 1px solid var(--line);
+		margin-top: 0.3rem;
+		flex-basis: 100%;
 	}
 
 	/* ── Actions ── */
