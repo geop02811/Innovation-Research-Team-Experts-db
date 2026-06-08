@@ -129,8 +129,8 @@
 			</div>
 			<div class="footer-col footer-col-brand">
 				<div class="footer-brand-name">University of Zimbabwe</div>
-				<p class="footer-brand-tagline">Nurturing Minds, Inspiring Innovation</p>
-				<p class="footer-address">Mount Pleasant, Harare, Zimbabwe<br />P.O. Box MP 167</p>
+				<p class="footer-brand-tagline">Educating to Change Lives</p>
+				<p class="footer-address">P.O. Box MP 167<br />Mount Pleasant, Harare, Zimbabwe</p>
 			</div>
 		</div>
 		<div class="site-footer-bottom">

@@ -3,7 +3,8 @@ export const academicRankOptions = [
 	'Lecturer',
 	'Senior Lecturer',
 	'Associate Professor',
-	'Professor'
+	'Professor',
+	'Innovation Lead'
 ] as const;
 export const highestQualificationOptions = ['BSc', 'Masters', 'PhD'] as const;
 export const facultyOptions = [
