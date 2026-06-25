@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
@@ -65,6 +67,35 @@
 	let professionalPhotoConfirmed = $state(false);
 	let error = $state('');
 	let submitting = $state(false);
+	let draftReady = $state(false);
+
+	const SIGNUP_DRAFT_STORAGE_KEY = 'uz_signup_draft_v1';
+
+	type SignupDraft = {
+		currentStep: number;
+		titlePrefix: string;
+		fullName: string;
+		contactDetails: string;
+		academicRank: string;
+		universityEmail: string;
+		phoneNumber: string;
+		highestQualification: string;
+		professionalMemberships: string;
+		complianceAccreditation: string;
+		faculty: string;
+		department: string;
+		yearsOfConsultancyExperience: string;
+		consultancyExperience: string;
+		consultancyAvailability: string;
+		preferredConsultancyTypes: string[];
+		geographicScope: string[];
+		skillsAndCompetences: string[];
+		languagesSpoken: string[];
+		areasOfExpertise: string[];
+		industrialAreasOfExpertise: string[];
+		notes: string;
+		email: string;
+	};
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
 
@@ -76,6 +107,83 @@
 	};
 
 	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
+	const asStringArray = (value: unknown) =>
+		Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+	const clampStep = (value: unknown) => {
+		const step = Number(value);
+		return Number.isInteger(step) ? Math.min(Math.max(step, 1), totalSteps) : 1;
+	};
+
+	const getSignupDraft = (): SignupDraft => ({
+		currentStep,
+		titlePrefix,
+		fullName,
+		contactDetails,
+		academicRank,
+		universityEmail,
+		phoneNumber,
+		highestQualification,
+		professionalMemberships,
+		complianceAccreditation,
+		faculty,
+		department,
+		yearsOfConsultancyExperience,
+		consultancyExperience,
+		consultancyAvailability,
+		preferredConsultancyTypes,
+		geographicScope,
+		skillsAndCompetences,
+		languagesSpoken,
+		areasOfExpertise,
+		industrialAreasOfExpertise,
+		notes,
+		email
+	});
+
+	const restoreSignupDraft = (draft: Partial<SignupDraft>) => {
+		currentStep = Math.min(clampStep(draft.currentStep), 5);
+		titlePrefix = asString(draft.titlePrefix);
+		fullName = asString(draft.fullName);
+		contactDetails = asString(draft.contactDetails);
+		academicRank = asString(draft.academicRank);
+		universityEmail = asString(draft.universityEmail);
+		phoneNumber = asString(draft.phoneNumber);
+		highestQualification = asString(draft.highestQualification);
+		professionalMemberships = asString(draft.professionalMemberships);
+		complianceAccreditation = asString(draft.complianceAccreditation);
+		faculty = asString(draft.faculty);
+		department = asString(draft.department);
+		yearsOfConsultancyExperience = asString(draft.yearsOfConsultancyExperience);
+		consultancyExperience = asString(draft.consultancyExperience);
+		consultancyAvailability = asString(draft.consultancyAvailability);
+		preferredConsultancyTypes = asStringArray(draft.preferredConsultancyTypes);
+		geographicScope = asStringArray(draft.geographicScope);
+		skillsAndCompetences = asStringArray(draft.skillsAndCompetences);
+		languagesSpoken = asStringArray(draft.languagesSpoken);
+		areasOfExpertise = asStringArray(draft.areasOfExpertise);
+		industrialAreasOfExpertise = asStringArray(draft.industrialAreasOfExpertise);
+		notes = asString(draft.notes);
+		email = asString(draft.email);
+	};
+
+	onMount(() => {
+		const savedDraft = localStorage.getItem(SIGNUP_DRAFT_STORAGE_KEY);
+		if (savedDraft) {
+			try {
+				restoreSignupDraft(JSON.parse(savedDraft));
+			} catch {
+				localStorage.removeItem(SIGNUP_DRAFT_STORAGE_KEY);
+			}
+		}
+		draftReady = true;
+	});
+
+	$effect(() => {
+		if (!browser || !draftReady) return;
+		localStorage.setItem(SIGNUP_DRAFT_STORAGE_KEY, JSON.stringify(getSignupDraft()));
+	});
 
 	const onPhotoChange = async (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
@@ -125,26 +233,44 @@
 	const onCvChange = (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
-		if (!file) { cvDataUrl = ''; cvFileName = ''; return; }
+		if (!file) {
+			cvDataUrl = '';
+			cvFileName = '';
+			return;
+		}
 		if (file.size > MAX_FILE_BYTES) {
 			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
-			input.value = ''; return;
+			input.value = '';
+			return;
 		}
 		const reader = new FileReader();
-		reader.onload = () => { cvDataUrl = String(reader.result); cvFileName = file.name; error = ''; };
+		reader.onload = () => {
+			cvDataUrl = String(reader.result);
+			cvFileName = file.name;
+			error = '';
+		};
 		reader.readAsDataURL(file);
 	};
 
 	const onUniversityIdChange = (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
-		if (!file) { universityIdDataUrl = ''; universityIdFileName = ''; return; }
+		if (!file) {
+			universityIdDataUrl = '';
+			universityIdFileName = '';
+			return;
+		}
 		if (file.size > MAX_FILE_BYTES) {
 			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
-			input.value = ''; return;
+			input.value = '';
+			return;
 		}
 		const reader = new FileReader();
-		reader.onload = () => { universityIdDataUrl = String(reader.result); universityIdFileName = file.name; error = ''; };
+		reader.onload = () => {
+			universityIdDataUrl = String(reader.result);
+			universityIdFileName = file.name;
+			error = '';
+		};
 		reader.readAsDataURL(file);
 	};
 
@@ -154,8 +280,10 @@
 			case 1:
 				if (!titlePrefix || !fullName || !universityEmail || !phoneNumber || !contactDetails)
 					return 'Please complete all fields to continue.';
-			if (!['uz.ac.zw', 'students.uz.co.zw'].some(d => universityEmail.toLowerCase().endsWith(d)))
-				return 'Please use your University of Zimbabwe email address (@uz.ac.zw or @students.uz.co.zw).';
+				if (
+					!['uz.ac.zw', 'students.uz.co.zw'].some((d) => universityEmail.toLowerCase().endsWith(d))
+				)
+					return 'Please use your University of Zimbabwe email address (@uz.ac.zw or @students.uz.co.zw).';
 				break;
 			case 2:
 				if (
@@ -173,7 +301,7 @@
 					!yearsOfConsultancyExperience ||
 					!consultancyAvailability ||
 					!consultancyExperience ||
-					!geographicScope
+					geographicScope.length === 0
 				)
 					return 'Please complete all fields to continue.';
 				if (preferredConsultancyTypes.length === 0)
@@ -209,9 +337,23 @@
 		return null;
 	};
 
+	const validateSignup = (): string | null => {
+		for (let step = 1; step <= totalSteps; step += 1) {
+			const stepError = validateStep(step);
+			if (stepError) {
+				currentStep = step;
+				return stepError;
+			}
+		}
+		return null;
+	};
+
 	const nextStep = () => {
 		const stepError = validateStep(currentStep);
-		if (stepError) { error = stepError; return; }
+		if (stepError) {
+			error = stepError;
+			return;
+		}
 		error = '';
 		currentStep = Math.min(currentStep + 1, totalSteps);
 	};
@@ -222,8 +364,11 @@
 	};
 
 	const submit = async () => {
-		const stepError = validateStep(6);
-		if (stepError) { error = stepError; return; }
+		const stepError = validateSignup();
+		if (stepError) {
+			error = stepError;
+			return;
+		}
 
 		submitting = true;
 		const profile: ExpertProfile = {
@@ -256,7 +401,12 @@
 
 		const result = await authService.signup({ email, password, profile });
 		submitting = false;
-		if (!result.ok) { error = result.message; return; }
+		if (!result.ok) {
+			error = result.message;
+			return;
+		}
+		draftReady = false;
+		if (browser) localStorage.removeItem(SIGNUP_DRAFT_STORAGE_KEY);
 
 		await goto('/login?message=Account created. Await admin approval before login.');
 	};
@@ -270,7 +420,9 @@
 	<section class="signup-card">
 		<p class="kicker">Expert Registration</p>
 		<h1>Create your expert profile</h1>
-		<p class="helper">All fields are mandatory. New accounts are placed in PENDING status for admin review.</p>
+		<p class="helper">
+			All fields are mandatory. New accounts are placed in PENDING status for admin review.
+		</p>
 
 		<!-- Step indicator -->
 		<nav class="stepper" aria-label="Registration steps">
@@ -292,7 +444,7 @@
 		<!-- ── Step 1: Personal Details ─────────────────────────────────── -->
 		{#if currentStep === 1}
 			<div class="step-body">
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						Full Name Prefix
 						<select bind:value={titlePrefix}>
@@ -308,10 +460,14 @@
 					</label>
 				</div>
 
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						University Email
-						<input type="email" bind:value={universityEmail} placeholder="name@uz.ac.zw or name@students.uz.co.zw" />
+						<input
+							type="email"
+							bind:value={universityEmail}
+							placeholder="name@uz.ac.zw or name@students.uz.co.zw"
+						/>
 					</label>
 					<label>
 						Phone Number
@@ -321,7 +477,11 @@
 
 				<label>
 					Contact Details
-					<textarea bind:value={contactDetails} rows="3" placeholder="Office address, preferred contact method, etc."></textarea>
+					<textarea
+						bind:value={contactDetails}
+						rows="3"
+						placeholder="Office address, preferred contact method, etc."
+					></textarea>
 				</label>
 			</div>
 		{/if}
@@ -329,7 +489,7 @@
 		<!-- ── Step 2: Academic Profile ─────────────────────────────────── -->
 		{#if currentStep === 2}
 			<div class="step-body">
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						Academic Title / Rank
 						<select bind:value={academicRank}>
@@ -350,7 +510,7 @@
 					</label>
 				</div>
 
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						Faculty
 						<select value={faculty} onchange={(e) => onFacultyChange(e.currentTarget.value)}>
@@ -373,12 +533,17 @@
 
 				<label>
 					Professional Memberships
-					<textarea bind:value={professionalMemberships} rows="2" placeholder="e.g. IEEE, ZIE, ACCA"></textarea>
+					<textarea bind:value={professionalMemberships} rows="2" placeholder="e.g. IEEE, ZIE, ACCA"
+					></textarea>
 				</label>
 
 				<label>
 					Compliance / Accreditation
-					<textarea bind:value={complianceAccreditation} rows="2" placeholder="List any licenses, certifications, or compliance standards"></textarea>
+					<textarea
+						bind:value={complianceAccreditation}
+						rows="2"
+						placeholder="List any licenses, certifications, or compliance standards"
+					></textarea>
 				</label>
 			</div>
 		{/if}
@@ -386,7 +551,7 @@
 		<!-- ── Step 3: Consultancy ───────────────────────────────────────── -->
 		{#if currentStep === 3}
 			<div class="step-body">
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						Years of Consultancy Experience
 						<select bind:value={yearsOfConsultancyExperience}>
@@ -407,24 +572,28 @@
 					</label>
 				</div>
 
-				<div class="grid two">
+				<div class="two grid">
 					<MultiSelectFilter
 						label="Preferred Consultancy Types"
 						selected={preferredConsultancyTypes}
 						options={[...preferredConsultancyTypeOptions]}
 						onchange={(value) => (preferredConsultancyTypes = value)}
 					/>
-				<MultiSelectFilter
-					label="Geographic Scope"
-					selected={geographicScope}
-					options={[...geographicScopeOptions]}
-					onchange={(value) => (geographicScope = value)}
-				/>
+					<MultiSelectFilter
+						label="Geographic Scope"
+						selected={geographicScope}
+						options={[...geographicScopeOptions]}
+						onchange={(value) => (geographicScope = value)}
+					/>
 				</div>
 
 				<label>
 					Consultancy Experience
-					<textarea bind:value={consultancyExperience} rows="4" placeholder="Summarize past consultancy projects, clients, and outcomes"></textarea>
+					<textarea
+						bind:value={consultancyExperience}
+						rows="4"
+						placeholder="Summarize past consultancy projects, clients, and outcomes"
+					></textarea>
 				</label>
 			</div>
 		{/if}
@@ -446,7 +615,7 @@
 					onchange={(value) => (industrialAreasOfExpertise = value)}
 				/>
 
-				<div class="grid two">
+				<div class="two grid">
 					<MultiSelectFilter
 						label="Skills and Competences"
 						selected={skillsAndCompetences}
@@ -466,25 +635,24 @@
 		<!-- ── Step 5: Supporting Documents ────────────────────────────── -->
 		{#if currentStep === 5}
 			<div class="step-body">
-				<p class="step-intro">Please upload your CV and University ID for verification. Files are stored securely and only visible to administrators.</p>
+				<p class="step-intro">
+					Please upload your CV and University ID for verification. Files are stored securely and
+					only visible to administrators.
+				</p>
 
 				<label>
 					CV / Résumé <span class="required">*</span>
 					<input
 						type="file"
 						accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
-					onchange={onCvChange}
+						onchange={onCvChange}
 					/>
 					{#if cvFileName}<span class="file-chosen">{cvFileName}</span>{/if}
 				</label>
 
 				<label>
 					University ID <span class="required">*</span>
-					<input
-						type="file"
-						accept="image/*,.pdf"
-					onchange={onUniversityIdChange}
-					/>
+					<input type="file" accept="image/*,.pdf" onchange={onUniversityIdChange} />
 					{#if universityIdFileName}<span class="file-chosen">{universityIdFileName}</span>{/if}
 					{#if universityIdDataUrl && universityIdDataUrl.startsWith('data:image')}
 						<img src={universityIdDataUrl} alt="University ID preview" class="photo-preview" />
@@ -512,10 +680,14 @@
 
 				<label>
 					Notes
-					<textarea bind:value={notes} rows="3" placeholder="Add any additional information or preferences"></textarea>
+					<textarea
+						bind:value={notes}
+						rows="3"
+						placeholder="Add any additional information or preferences"
+					></textarea>
 				</label>
 
-				<div class="grid two">
+				<div class="two grid">
 					<label>
 						Login Email
 						<input type="email" bind:value={email} />
@@ -605,7 +777,10 @@
 		font-weight: 700;
 		color: #8a93a8;
 		background: #fff;
-		transition: border-color 0.2s, background 0.2s, color 0.2s;
+		transition:
+			border-color 0.2s,
+			background 0.2s,
+			color 0.2s;
 	}
 
 	.step.active .step-circle {
