@@ -2,11 +2,14 @@ export const titlePrefixOptions = ['Eng', 'Dr', 'Prof', 'Mr', 'Mrs', 'Ms'] as co
 export const academicRankOptions = [
 	'Lecturer',
 	'Senior Lecturer',
+	'Junior Lecturer',
+	'Teaching/Research Assistant',
 	'Associate Professor',
 	'Professor',
-	'Innovation Lead'
+	'Innovation Lead',
+	'Grants Manager'
 ] as const;
-export const highestQualificationOptions = ['BSc', 'Masters', 'PhD'] as const;
+export const highestQualificationOptions = ['BSc Hons','BAcc Hons','BLaws Hons','MBChB','BDS','BSc Nursing','BPharm','BVSc','BTech', 'MSc','MA','MPhil', 'DPhil'] as const;
 export const facultyOptions = [
 	'Agriculture Environment And Food Systems',
 	'Arts and Humanities',
@@ -19,33 +22,27 @@ export const facultyOptions = [
 	'Science',
 	'Social And Behavioural Sciences',
 	'Veterinary Science',
-	'Institutes & Units '
+	'Institutes & Units'
 ] as const;
 
 const defaultDepartmentOptions = [
-	'Business',
-	'Engineering',
-	'ICT',
-	'Education',
-	'Health Sciences',
-	'Agriculture',
-	'Social Sciences'
+		'Computer Science',
+		'Department of Accountancy',
+		'Department of Biomedical Informatics and Biomedical Engineering',
+		'Biochemistry',
+		'Marketing and Communications'
 ] as const;
 
 type FacultyName = (typeof facultyOptions)[number];
 
 export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
-	'Agriculture Environment And Food Systems': [
-		'Agricultural Economics and Development',
-		'Animal Science',
-		'Crop Science',
-		'Soil Science and Agricultural Engineering'
-	],
-	'Arts and Humanities': ['Arts', 'Humanities', 'Languages and Culture'],
+	'Agriculture Environment And Food Systems': [' ',],  // didnt find any
+	'Arts and Humanities': ['Department of Philosophy Religion and Ethics', 'Department of Creative Media and Communication', 'Department of Languages Literature and Culture', 'Department of History Heritage and Knowledge Systems','Department of Peace Security and Society'],
 	'Business Management Sciences And Economics': [
-		'Accounting and Finance',
-		'Business Management',
-		'Economics and Econometrics'
+		'Department of Accountancy',
+		'Department of Business Studies',
+		'Department of Tourism, Leisure and Hospitality Studies',
+		'Department of Graduate School of Management'
 	],
 	'Computer Engineering Informatics And Communications': [
 		'Analytics and Informatics',
@@ -55,45 +52,40 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Centre for ICT Product Development Services and Training',
 		'Centre for Computer Technology Training and Development'
 	],
-	'Education' : ['Teacher Education', 'Curriculum and Instruction', 'Educational Foundations'],
-	'Engineering And The Built Environment': [
-		'Civil Engineering',
-		'Mechanical Engineering',
-		'Electrical Engineering',
-		'Architecture and Built Environment'
-	],
-	'Law': ['Public Law', 'Private Law', 'Commercial Law'],
+	'Education' : [''], //didnt find any
+	'Engineering And The Built Environment': [' '],//didnt find any
+	'Law': [' '], //didnt find any
 	'Medicine And Health Sciences': [
-		'Department of Surgery',
-		'Department of Community Medicine',
-		'Department of Paediatrics and Child Health',
-		'Department of Obstetrics and Gynaecology',
-		'Department of Pharmacy',
-		'Department of Nursing Science',
-		'Department of Psychiatry',
-		'Institute of Continuing Health Education',
-		'Department of Rehabilitation',
-		'Department of Anaesthesia and Critical Care Medicine',
-		'Department of Haematology',
-		'Department of Histopathology',
-		'Department of Medical Laboratory Sciences',
-		'Clinical Pharmacology and Toxicology',
-		'Department of Medical Microbiology',
-		'Department of Radiology',
-		'Animal House Unit',
-		'Department of Physiology',
-		'Department of Medicine',
-		'Department of Dentistry'
+		'Department of Biomedical Informatics and Biomedical Engineering',
+		'Department of Biomedical Sciences',
+		'Department of Child, Adolescent and Women’s Health',
+		'Department of Clinical Pharmacology and Anaesthesia and Critical Care Medicine',
+		'Department of Global, Public Health and Family Medicine',
+		'Department of Health Professions and Student Support',
+		'Department of Internal Medicine',
+		'Institute of Laboratory Diagnostic and Investigative Sciences',
+		'Department of Mental Health',
+		'Department of Nursing Sciences',
+		'Department of Oncology, Medical Physics and Imaging Sciences',
+		'Department of Oral Health',
+		'Department of Pharmacy and Pharmaceutical Sciences',
+		'Department of Rehabilitation Sciences',
+		'Department of Surgical Sciences',
+		'Department of Multi-Media Resources Centre',
+		'Department of Multi Teaching Laboratories',
+		'Department of Central African Journal of Medicine ',
+		'Department of Services Unit'
 	],
-	'Science': ['Biological Sciences', 'Chemical Sciences', 'Mathematical Sciences', 'Physical Sciences'],
+	'Science': ['Biochemistry',], //didnt find any more
 	'Social And Behavioural Sciences': [
-		'Psychology',
-		'Sociology',
-		'Social Work',
-		'Political and Administrative Studies'
+		'Applied Psychology',
+		'Community and Social Development',
+		'Demography Settlement and Development',
+		'Governance and Public Management',
+		'Social Work'
 	],
-	'Veterinary Science': ['Veterinary Clinical Studies', 'Veterinary Pathobiology', 'Veterinary Public Health'],
-	'Institutes & Units': ['Research Institutes', 'Centers of Excellence', 'University Units']
+	'Veterinary Science': ['Animal Disease Intelligence', 'Zoonotic Diseases and Food Safety', 'Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Aquatic Health and Apiculture','Animal Reproductive Technologies and Nutrition'],
+	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
 };
 
 export const allDepartmentOptions = Array.from(
