@@ -2,6 +2,7 @@ package org.innov.expertdb.auth.dtos.register;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record RegisterRequest(
 
@@ -23,6 +24,11 @@ public record RegisterRequest(
         String fullName,
         String contactDetails,
         String academicRank,
+        @NotBlank(message = "University email is required")
+        @Pattern(
+                regexp = "(?i)^(?:[a-z]+(?:-[a-z]+)*\\.[a-z]+(?:-[a-z]+)*@students\\.uz\\.ac\\.zw|[a-z][a-z]+@admin\\.uz\\.ac\\.zw|[a-z][a-z0-9._-]*@(?!admin\\.|students\\.)[a-z][a-z0-9-]*\\.uz\\.ac\\.zw)$",
+                message = "University email must be a valid UZ student, admin, or academic staff address"
+        )
         String universityEmail,
         String phoneNumber,
         String highestQualification,

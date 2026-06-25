@@ -4,21 +4,59 @@
 		selected: string[];
 		options: string[];
 		onchange: (selected: string[]) => void;
+		allowCustom?: boolean;
+		customTrigger?: string;
+		customPlaceholder?: string;
 	}
 
-	let { label, selected, options, onchange }: Props = $props();
+	let {
+		label,
+		selected,
+		options,
+		onchange,
+		allowCustom = false,
+		customTrigger = 'Other',
+		customPlaceholder
+	}: Props = $props();
 	let isOpen = $state(false);
+	let customEntryOpen = $state(false);
+	let customValue = $state('');
+
+	const normalizeValue = (value: string) => value.trim().replace(/\s+/g, ' ');
+	const valueKey = (value: string) => normalizeValue(value).toLowerCase();
+	const isCustomTrigger = (option: string) => valueKey(option) === valueKey(customTrigger);
+	const isSelected = (option: string) =>
+		selected.some((item) => valueKey(item) === valueKey(option));
+	const normalizedCustomValue = $derived(normalizeValue(customValue));
+	const customInputPlaceholder = $derived(customPlaceholder ?? `Add custom ${label.toLowerCase()}`);
 
 	const toggleOption = (option: string) => {
-		const newSelected = selected.includes(option)
-			? selected.filter((item) => item !== option)
+		if (allowCustom && isCustomTrigger(option)) {
+			customEntryOpen = !customEntryOpen;
+			isOpen = false;
+			return;
+		}
+
+		const selectedKey = valueKey(option);
+		const newSelected = isSelected(option)
+			? selected.filter((item) => valueKey(item) !== selectedKey)
 			: [...selected, option];
 		onchange(newSelected);
 	};
 
 	const removeItem = (item: string) => {
-		const newSelected = selected.filter((s) => s !== item);
+		const selectedKey = valueKey(item);
+		const newSelected = selected.filter((selectedItem) => valueKey(selectedItem) !== selectedKey);
 		onchange(newSelected);
+	};
+
+	const addCustomValue = () => {
+		if (!normalizedCustomValue || isCustomTrigger(normalizedCustomValue)) return;
+		if (!isSelected(normalizedCustomValue)) {
+			onchange([...selected, normalizedCustomValue]);
+		}
+		customValue = '';
+		customEntryOpen = false;
 	};
 
 	const closeDropdown = () => {
@@ -28,7 +66,7 @@
 
 <div class="multi-select-filter">
 	<div class="label-container"><span class="label-text">{label}</span></div>
-	<div class="dropdown-wrapper" onmouseleave={closeDropdown}>
+	<div class="dropdown-wrapper" role="presentation" onmouseleave={closeDropdown}>
 		<button
 			type="button"
 			class="dropdown-button"
@@ -48,7 +86,9 @@
 					<label class="checkbox-item">
 						<input
 							type="checkbox"
-							checked={selected.includes(option)}
+							checked={allowCustom && isCustomTrigger(option)
+								? customEntryOpen
+								: isSelected(option)}
 							onchange={() => toggleOption(option)}
 						/>
 						<span>{option}</span>
@@ -57,6 +97,31 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if allowCustom && customEntryOpen}
+		<div class="custom-entry">
+			<input
+				class="custom-input"
+				bind:value={customValue}
+				placeholder={customInputPlaceholder}
+				aria-label={customInputPlaceholder}
+				onkeydown={(event) => {
+					if (event.key === 'Enter') {
+						event.preventDefault();
+						addCustomValue();
+					}
+				}}
+			/>
+			<button
+				type="button"
+				class="custom-add"
+				disabled={!normalizedCustomValue}
+				onclick={addCustomValue}
+			>
+				Add
+			</button>
+		</div>
+	{/if}
 
 	{#if selected.length > 0}
 		<div class="selected-items">
@@ -89,6 +154,7 @@
 
 	.dropdown-wrapper {
 		position: relative;
+		min-width: 0;
 	}
 
 	.dropdown-button {
@@ -162,21 +228,72 @@
 		cursor: pointer;
 	}
 
+	.custom-entry {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.5rem;
+		align-items: center;
+		min-width: 0;
+	}
+
+	.custom-input {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		border: 1px dashed #cfd4de;
+		border-radius: 999px;
+		background: #fff;
+		padding: 0.55rem 1rem;
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--ink);
+	}
+
+	.custom-input:focus {
+		outline: none;
+		border-color: #0a3a8d;
+		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.12);
+	}
+
+	.custom-add {
+		border: 0;
+		border-radius: 999px;
+		background: #0a3a8d;
+		color: #fff;
+		cursor: pointer;
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 700;
+		padding: 0.58rem 1rem;
+		white-space: nowrap;
+	}
+
+	.custom-add:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
 	.selected-items {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
+		min-width: 0;
 	}
 
 	.badge {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
+		max-width: 100%;
+		min-width: 0;
 		padding: 0.4rem 0.75rem;
 		background-color: #f0f0f0;
 		border: 1px solid #ddd;
 		border-radius: 16px;
 		font-size: 0.8rem;
+		white-space: normal;
+		overflow-wrap: anywhere;
 	}
 
 	.remove {
@@ -193,5 +310,15 @@
 
 	.remove:hover {
 		color: #000;
+	}
+
+	@media (max-width: 420px) {
+		.custom-entry {
+			grid-template-columns: 1fr;
+		}
+
+		.custom-add {
+			width: 100%;
+		}
 	}
 </style>

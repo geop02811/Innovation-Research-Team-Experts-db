@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import SelectField from '$lib/components/SelectField.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
@@ -31,7 +32,7 @@
 		'Consultancy',
 		'Expertise & Skills',
 		'Supporting Docs',
-		'Account Setup'
+		'Account Security'
 	];
 
 	// ── Form fields ─────────────────────────────────────────────────────────────
@@ -59,12 +60,9 @@
 	let languagesSpoken = $state<string[]>([]);
 	let areasOfExpertise = $state<string[]>([]);
 	let industrialAreasOfExpertise = $state<string[]>([]);
-	let notes = $state('');
-	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let profilePhotoDataUrl = $state('');
-	let professionalPhotoConfirmed = $state(false);
 	let error = $state('');
 	let submitting = $state(false);
 	let draftReady = $state(false);
@@ -93,8 +91,6 @@
 		languagesSpoken: string[];
 		areasOfExpertise: string[];
 		industrialAreasOfExpertise: string[];
-		notes: string;
-		email: string;
 	};
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
@@ -111,6 +107,19 @@
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
 		Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+	const isValidUzEmail = (value: string) => {
+		const email = value.trim().toLowerCase();
+		const studentEmailPattern = /^[a-z]+(?:-[a-z]+)*\.[a-z]+(?:-[a-z]+)*@students\.uz\.ac\.zw$/;
+		const adminEmailPattern = /^[a-z][a-z]+@admin\.uz\.ac\.zw$/;
+		const academicEmailPattern =
+			/^[a-z][a-z0-9._-]*@(?!admin\.|students\.)[a-z][a-z0-9-]*\.uz\.ac\.zw$/;
+
+		return (
+			studentEmailPattern.test(email) ||
+			adminEmailPattern.test(email) ||
+			academicEmailPattern.test(email)
+		);
+	};
 	const clampStep = (value: unknown) => {
 		const step = Number(value);
 		return Number.isInteger(step) ? Math.min(Math.max(step, 1), totalSteps) : 1;
@@ -137,9 +146,7 @@
 		skillsAndCompetences,
 		languagesSpoken,
 		areasOfExpertise,
-		industrialAreasOfExpertise,
-		notes,
-		email
+		industrialAreasOfExpertise
 	});
 
 	const restoreSignupDraft = (draft: Partial<SignupDraft>) => {
@@ -164,8 +171,6 @@
 		languagesSpoken = asStringArray(draft.languagesSpoken);
 		areasOfExpertise = asStringArray(draft.areasOfExpertise);
 		industrialAreasOfExpertise = asStringArray(draft.industrialAreasOfExpertise);
-		notes = asString(draft.notes);
-		email = asString(draft.email);
 	};
 
 	onMount(() => {
@@ -280,10 +285,8 @@
 			case 1:
 				if (!titlePrefix || !fullName || !universityEmail || !phoneNumber || !contactDetails)
 					return 'Please complete all fields to continue.';
-				if (
-					!['uz.ac.zw', 'students.uz.co.zw'].some((d) => universityEmail.toLowerCase().endsWith(d))
-				)
-					return 'Please use your University of Zimbabwe email address (@uz.ac.zw or @students.uz.co.zw).';
+				if (!isValidUzEmail(universityEmail))
+					return 'Please enter a valid UZ student, admin, or departmental email address.';
 				break;
 			case 2:
 				if (
@@ -321,14 +324,7 @@
 					return 'Please upload both your CV and University ID to continue.';
 				break;
 			case 6:
-				if (
-					!profilePhotoDataUrl ||
-					!professionalPhotoConfirmed ||
-					!notes ||
-					!email ||
-					!password ||
-					!confirmPassword
-				)
+				if (!profilePhotoDataUrl || !password || !confirmPassword)
 					return 'Please complete all fields to continue.';
 				if (password !== confirmPassword) return 'Passwords do not match.';
 				if (password.length < 6) return 'Password must be at least 6 characters long.';
@@ -348,19 +344,17 @@
 		return null;
 	};
 
-	const nextStep = () => {
-		const stepError = validateStep(currentStep);
-		if (stepError) {
-			error = stepError;
-			return;
-		}
+	const goToStep = (step: number) => {
 		error = '';
-		currentStep = Math.min(currentStep + 1, totalSteps);
+		currentStep = Math.min(Math.max(step, 1), totalSteps);
+	};
+
+	const nextStep = () => {
+		goToStep(currentStep + 1);
 	};
 
 	const prevStep = () => {
-		error = '';
-		currentStep = Math.max(currentStep - 1, 1);
+		goToStep(currentStep - 1);
 	};
 
 	const submit = async () => {
@@ -395,11 +389,15 @@
 			languagesSpoken,
 			areasOfExpertise,
 			industrialAreasOfExpertise,
-			notes,
+			notes: '',
 			profilePhotoDataUrl
 		};
 
-		const result = await authService.signup({ email, password, profile });
+		const result = await authService.signup({
+			email: universityEmail.trim().toLowerCase(),
+			password,
+			profile
+		});
 		submitting = false;
 		if (!result.ok) {
 			error = result.message;
@@ -421,16 +419,23 @@
 		<p class="kicker">Expert Registration</p>
 		<h1>Create your expert profile</h1>
 		<p class="helper">
-			All fields are mandatory. New accounts are placed in PENDING status for admin review.
+			All fields are mandatory. Once your profile is approved, you will be able to log in.
 		</p>
 
 		<!-- Step indicator -->
 		<nav class="stepper" aria-label="Registration steps">
 			{#each stepLabels as label, i}
-				<div class="step" class:active={currentStep === i + 1} class:done={currentStep > i + 1}>
-					<span class="step-circle">{currentStep > i + 1 ? '✓' : i + 1}</span>
+				<button
+					type="button"
+					class="step"
+					class:active={currentStep === i + 1}
+					class:done={currentStep > i + 1}
+					onclick={() => goToStep(i + 1)}
+					aria-current={currentStep === i + 1 ? 'step' : undefined}
+				>
+					<span class="step-circle">{i + 1}</span>
 					<span class="step-label">{label}</span>
-				</div>
+				</button>
 				{#if i < stepLabels.length - 1}
 					<div class="step-line" class:filled={currentStep > i + 1}></div>
 				{/if}
@@ -445,15 +450,13 @@
 		{#if currentStep === 1}
 			<div class="step-body">
 				<div class="two grid">
-					<label>
-						Full Name Prefix
-						<select bind:value={titlePrefix}>
-							<option value="">Select title</option>
-							{#each titlePrefixOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
+					<SelectField
+						label="Full Name Prefix"
+						value={titlePrefix}
+						placeholder="Select title"
+						options={titlePrefixOptions}
+						onchange={(value) => (titlePrefix = value)}
+					/>
 					<label>
 						Full Name
 						<input bind:value={fullName} placeholder="e.g. John Moyo" />
@@ -466,7 +469,7 @@
 						<input
 							type="email"
 							bind:value={universityEmail}
-							placeholder="name@uz.ac.zw or name@students.uz.co.zw"
+							placeholder="firstname.surname@students.uz.ac.zw"
 						/>
 					</label>
 					<label>
@@ -490,45 +493,37 @@
 		{#if currentStep === 2}
 			<div class="step-body">
 				<div class="two grid">
-					<label>
-						Academic Title / Rank
-						<select bind:value={academicRank}>
-							<option value="">Select rank</option>
-							{#each academicRankOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
-					<label>
-						Highest Qualification
-						<select bind:value={highestQualification}>
-							<option value="">Select qualification</option>
-							{#each highestQualificationOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
+					<SelectField
+						label="Academic Title / Rank"
+						value={academicRank}
+						placeholder="Select rank"
+						options={academicRankOptions}
+						onchange={(value) => (academicRank = value)}
+					/>
+					<SelectField
+						label="Highest Qualification"
+						value={highestQualification}
+						placeholder="Select qualification"
+						options={highestQualificationOptions}
+						onchange={(value) => (highestQualification = value)}
+					/>
 				</div>
 
 				<div class="two grid">
-					<label>
-						Faculty
-						<select value={faculty} onchange={(e) => onFacultyChange(e.currentTarget.value)}>
-							<option value="">Select faculty</option>
-							{#each facultyOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
-					<label>
-						Department
-						<select bind:value={department}>
-							<option value="">Select department</option>
-							{#each availableDepartmentOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
+					<SelectField
+						label="Faculty"
+						value={faculty}
+						placeholder="Select faculty"
+						options={facultyOptions}
+						onchange={onFacultyChange}
+					/>
+					<SelectField
+						label="Department"
+						value={department}
+						placeholder="Select department"
+						options={availableDepartmentOptions}
+						onchange={(value) => (department = value)}
+					/>
 				</div>
 
 				<label>
@@ -552,24 +547,20 @@
 		{#if currentStep === 3}
 			<div class="step-body">
 				<div class="two grid">
-					<label>
-						Years of Consultancy Experience
-						<select bind:value={yearsOfConsultancyExperience}>
-							<option value="">Select years</option>
-							{#each yearsOfConsultancyOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
-					<label>
-						Consultancy Availability
-						<select bind:value={consultancyAvailability}>
-							<option value="">Select availability</option>
-							{#each consultancyAvailabilityOptions as item}
-								<option value={item}>{item}</option>
-							{/each}
-						</select>
-					</label>
+					<SelectField
+						label="Years of Consultancy Experience"
+						value={yearsOfConsultancyExperience}
+						placeholder="Select years"
+						options={yearsOfConsultancyOptions}
+						onchange={(value) => (yearsOfConsultancyExperience = value)}
+					/>
+					<SelectField
+						label="Consultancy Availability"
+						value={consultancyAvailability}
+						placeholder="Select availability"
+						options={consultancyAvailabilityOptions}
+						onchange={(value) => (consultancyAvailability = value)}
+					/>
 				</div>
 
 				<div class="two grid">
@@ -620,12 +611,16 @@
 						label="Skills and Competences"
 						selected={skillsAndCompetences}
 						options={[...skillsOptions]}
+						allowCustom
+						customPlaceholder="Add custom skill or competence"
 						onchange={(value) => (skillsAndCompetences = value)}
 					/>
 					<MultiSelectFilter
 						label="Languages Spoken"
 						selected={languagesSpoken}
 						options={[...languageOptions]}
+						allowCustom
+						customPlaceholder="Add custom language"
 						onchange={(value) => (languagesSpoken = value)}
 					/>
 				</div>
@@ -661,7 +656,7 @@
 			</div>
 		{/if}
 
-		<!-- ── Step 6: Account Setup ─────────────────────────────────────── -->
+		<!-- ── Step 6: Account Security ───────────────────────────────────── -->
 		{#if currentStep === 6}
 			<div class="step-body">
 				<label>
@@ -673,35 +668,16 @@
 					<img src={profilePhotoDataUrl} alt="Profile preview" class="photo-preview" />
 				{/if}
 
-				<label class="check-row">
-					<input type="checkbox" bind:checked={professionalPhotoConfirmed} />
-					I confirm that the uploaded picture is professional.
-				</label>
-
-				<label>
-					Notes
-					<textarea
-						bind:value={notes}
-						rows="3"
-						placeholder="Add any additional information or preferences"
-					></textarea>
-				</label>
-
 				<div class="two grid">
-					<label>
-						Login Email
-						<input type="email" bind:value={email} />
-					</label>
 					<label>
 						Password
 						<input type="password" bind:value={password} minlength="6" />
 					</label>
+					<label>
+						Confirm Password
+						<input type="password" bind:value={confirmPassword} minlength="6" />
+					</label>
 				</div>
-
-				<label>
-					Confirm Password
-					<input type="password" bind:value={confirmPassword} minlength="6" />
-				</label>
 			</div>
 		{/if}
 
@@ -723,11 +699,13 @@
 
 <style>
 	.signup-shell {
+		width: 100%;
 		padding-top: 1.5rem;
 		padding-bottom: 3rem;
 	}
 
 	.signup-card {
+		width: 100%;
 		background: #fff;
 		border: 1px solid var(--line);
 		border-radius: 18px;
@@ -735,6 +713,7 @@
 		box-shadow: var(--shadow);
 		display: grid;
 		gap: 1.4rem;
+		align-content: start;
 	}
 
 	h1 {
@@ -757,12 +736,23 @@
 	}
 
 	.step {
+		border: 0;
+		background: transparent;
+		padding: 0;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 0.3rem;
 		flex-shrink: 0;
 		min-width: 72px;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.step:focus-visible {
+		outline: 3px solid rgba(10, 58, 141, 0.18);
+		outline-offset: 0.35rem;
+		border-radius: 12px;
 	}
 
 	.step-circle {
@@ -825,6 +815,8 @@
 	.step-body {
 		display: grid;
 		gap: 1rem;
+		min-height: 28rem;
+		align-content: start;
 	}
 
 	label {
@@ -832,18 +824,15 @@
 		gap: 0.45rem;
 		font-weight: 600;
 		font-size: 0.95rem;
-	}
-
-	.check-row {
-		display: flex;
-		align-items: center;
-		gap: 0.55rem;
-		font-weight: 600;
+		min-width: 0;
 	}
 
 	input:not([type='checkbox']),
-	select,
 	textarea {
+		box-sizing: border-box;
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
 		border-radius: 12px;
 		border: 1px solid #cfd4de;
 		padding: 0.66rem 0.8rem;
@@ -852,18 +841,7 @@
 		font-family: inherit;
 	}
 
-	input[type='checkbox'] {
-		appearance: auto;
-		-webkit-appearance: checkbox;
-		width: 1.1rem;
-		height: 1.1rem;
-		cursor: pointer;
-		accent-color: #c66b17;
-		flex-shrink: 0;
-	}
-
 	input:focus,
-	select:focus,
 	textarea:focus {
 		outline: none;
 		border-color: #0a3a8d;
@@ -873,6 +851,7 @@
 	.grid {
 		display: grid;
 		gap: 1rem;
+		min-width: 0;
 	}
 
 	.grid.two {
@@ -938,7 +917,7 @@
 	}
 
 	.btn-next {
-		border: 0;
+		border: 1px solid transparent;
 		background: #0a3a8d;
 		color: #fff;
 		padding: 0.7rem 1.6rem;
@@ -958,16 +937,71 @@
 	}
 
 	@media (max-width: 700px) {
+		.signup-card {
+			border-radius: 16px;
+			gap: 1.25rem;
+			padding: clamp(1rem, 5vw, 1.35rem);
+		}
+
+		h1 {
+			font-size: 1.35rem;
+			line-height: 1.2;
+		}
+
+		.helper {
+			font-size: 1rem;
+			line-height: 1.45;
+		}
+
+		.stepper {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.75rem 0.5rem;
+			justify-content: stretch;
+			overflow: visible;
+			padding-bottom: 0;
+		}
+
+		.step {
+			min-width: 0;
+			width: 100%;
+			gap: 0.25rem;
+		}
+
+		.step-line {
+			display: none;
+		}
+
+		.step-circle {
+			margin: 0 auto;
+		}
+
+		.step-label {
+			display: block;
+			font-size: 0.64rem;
+			line-height: 1.15;
+			white-space: normal;
+			overflow-wrap: anywhere;
+		}
+
+		.step-body {
+			min-height: 0;
+		}
+
 		.grid.two {
 			grid-template-columns: 1fr;
 		}
 
-		.step-label {
-			display: none;
+		.form-actions {
+			justify-content: stretch;
+			flex-wrap: wrap;
 		}
 
-		.stepper {
-			justify-content: center;
+		.btn-back,
+		.btn-next {
+			flex: 1 1 8rem;
+			min-width: 0;
+			padding-inline: 1rem;
 		}
 	}
 </style>
