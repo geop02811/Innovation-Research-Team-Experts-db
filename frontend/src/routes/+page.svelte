@@ -573,10 +573,12 @@
 	display: flex;
 	justify-content: center;
 	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 	gap: 0;
 	position: sticky;
-	top: 81px;
-	z-index: 20;
+	top: var(--site-header-height);
+	z-index: 25;
+	box-shadow: 0 10px 22px rgba(27, 43, 78, 0.08);
 }
 .hp-tab {
 	padding: 1rem 1.5rem;
@@ -602,7 +604,7 @@
 }
 
 /* ─── Generic section ──────────────────────────────── */
-.hp-section { padding: 3.5rem 1.5rem; scroll-margin-top: 140px; }
+.hp-section { padding: 3.5rem 1.5rem; scroll-margin-top: calc(var(--site-header-height) + 64px); }
 .hp-section-alt { background: var(--uz-orange-light); }
 .hp-section-inner { max-width: 1100px; margin: 0 auto; }
 .hp-section-header {
@@ -1062,6 +1064,18 @@
 	border: 1px solid #f0d8a8;
 }
 @media (max-width: 700px) {
+	.hp-tabs {
+		justify-content: flex-start;
+		scrollbar-width: none;
+	}
+	.hp-tabs::-webkit-scrollbar {
+		display: none;
+	}
+	.hp-tab {
+		padding: 0.9rem 1.05rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.05em;
+	}
 	.hp-grant-item {
 		grid-template-columns: 1fr;
 	}

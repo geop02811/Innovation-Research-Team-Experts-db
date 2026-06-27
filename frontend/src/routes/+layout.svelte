@@ -33,6 +33,9 @@
 	<header class="site-header">
 		<div class="site-header-inner">
 			<a href="/" class="brand" onclick={closeMenu}>
+				<span class="brand-shape brand-shape-faded" aria-hidden="true"></span>
+				<span class="brand-shape brand-shape-orange" aria-hidden="true"></span>
+				<span class="brand-shape brand-shape-white" aria-hidden="true"></span>
 				<img src="/Uz_logo2.png" alt="University of Zimbabwe" class="nav-logo" />
 				<span class="brand-text">University of Zimbabwe<br /><span class="brand-sub">Projects Repository</span></span>
 			</a>
