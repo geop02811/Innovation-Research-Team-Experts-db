@@ -45,16 +45,16 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Graduate School of Management'
 	],
 	'Computer Engineering Informatics And Communications': [
-		'Analytics and Informatics',
-		'Computer Engineering',
-		'Computer Science',
-		'Electronics and Telecommunications',
+		'Department of Analytics and Informatics',
+		'Department of Computer Engineering',
+		'Department of Computer Science',
+		'Department of Electronics and Telecommunications',
 		'Centre for ICT Product Development Services and Training',
 		'Centre for Computer Technology Training and Development'
 	],
 	'Education' : [''], //didnt find any
 	'Engineering And The Built Environment': [' '],//didnt find any
-	'Law': [' '], //didnt find any here
+	'Law': ['Department of Legal Undergraduate', 'Department of Legal Research', 'Department of Post Graduate'],
 	'Medicine And Health Sciences': [
 		'Department of Biomedical Informatics and Biomedical Engineering',
 		'Department of Biomedical Sciences',
@@ -76,16 +76,16 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Central African Journal of Medicine ',
 		'Department of Services Unit'
 	],
-	'Science': ['Biochemistry',], //didnt find any more
+	'Science': ['Department of Biochemistry','Department of Chemistry and Earth Sciences','Department of Space Science and Applied Physics','Department of Mathematics and Computational Statistics'], 
 	'Social And Behavioural Sciences': [
-		'Applied Psychology',
-		'Community and Social Development',
-		'Demography Settlement and Development',
-		'Governance and Public Management',
-		'Social Work'
+		'Department of Applied Psychology',
+		'Department of Community and Social Development',
+		'Department of Demography Settlement and Development',
+		'Department of Governance and Public Management',
+		'Department of Social Work'
 	],
-	'Veterinary Science': ['Animal Disease Intelligence', 'Zoonotic Diseases and Food Safety', 'Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Aquatic Health and Apiculture','Animal Reproductive Technologies and Nutrition'],
-	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
+	'Veterinary Science': ['Department of Animal Disease Intelligence', 'Department of Zoonotic Diseases and Food Safety', 'Department of Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Department of Aquatic Health and Apiculture','Department of Animal Reproductive Technologies and Nutrition'],
+	'Institutes & Units': ['Department of Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
 };
 
 export const allDepartmentOptions = Array.from(
