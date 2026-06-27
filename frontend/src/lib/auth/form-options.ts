@@ -54,7 +54,7 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 	],
 	'Education' : [''], //didnt find any
 	'Engineering And The Built Environment': [' '],//didnt find any
-	'Law': [' '], //didnt find any
+	'Law': [' '], //didnt find any here
 	'Medicine And Health Sciences': [
 		'Department of Biomedical Informatics and Biomedical Engineering',
 		'Department of Biomedical Sciences',
