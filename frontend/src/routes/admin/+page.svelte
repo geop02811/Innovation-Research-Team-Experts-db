@@ -5,9 +5,9 @@
 	import type { AdminUser, UserRole } from '$lib/auth/types';
 
 	let users = $state<AdminUser[]>([]);
-	let activeTab = $state<'pending' | 'approved' | 'all' | 'grants' | 'events' | 'competitions' | 'alumni'>('pending');
+	let activeTab = $state<'pending' | 'approved' | 'all' | 'funding-opportunities' | 'events' | 'competitions' | 'alumni'>('pending');
 
-	// ── Grants state ──────────────────────────────────────
+	// ── funding-opportunities state ──────────────────────────────────────
 	let grants = $state<GrantItem[]>([]);
 	let grantsLoading = $state(false);
 	let grantsError = $state('');
@@ -161,7 +161,7 @@
 </script>
 
 <svelte:head>
-	<title>Admin Dashboard | University of Zimbabwe Experts</title>
+	<title>Admin Dashboard | University of Zimbabwe Researchers</title>
 </svelte:head>
 
 <main class="page-shell">
@@ -176,9 +176,9 @@
 			<button class:active={activeTab === 'pending'} onclick={() => (activeTab = 'pending')}>Pending Users</button>
 			<button class:active={activeTab === 'approved'} onclick={() => (activeTab = 'approved')}>Approved Users</button>
 			<button class:active={activeTab === 'all'} onclick={() => (activeTab = 'all')}>All Users & Permissions</button>
-			<button class:active={activeTab === 'grants'} onclick={() => (activeTab = 'grants')}>Grants</button>
+			<button class:active={activeTab === 'funding-opportunities'} onclick={() => (activeTab = 'funding-opportunities')}>Funding Opportunities</button>
 			<button class:active={activeTab === 'events'} onclick={() => (activeTab = 'events')}>Running Projects</button>
-			<button class:active={activeTab === 'competitions'} onclick={() => (activeTab = 'competitions')}>Internal Grants</button>
+			<button class:active={activeTab === 'competitions'} onclick={() => (activeTab = 'competitions')}>Internal Funding Opportunities</button>
 			<button class:active={activeTab === 'alumni'} onclick={() => (activeTab = 'alumni')}>Alumni News</button>
 		</div>
 
@@ -230,7 +230,7 @@
 											{#if user.professionalMemberships}<p>{user.professionalMemberships}</p>{/if}
 										</div>
 										<div class="detail-section">
-											<p class="section-label">Consultancy</p>
+											<p class="section-label">Experience</p>
 											<p>{user.yearsOfConsultancyExperience ?? '—'} • {user.consultancyAvailability ?? '—'}</p>
 											<p>{user.geographicScope ?? '—'}</p>
 											{#if user.consultancyExperience}<p class="experience-text">{user.consultancyExperience}</p>{/if}
@@ -322,7 +322,7 @@
 											<p>{user.faculty ?? '—'} — {user.department ?? '—'}</p>
 										</div>
 										<div class="detail-section">
-											<p class="section-label">Consultancy</p>
+											<p class="section-label">Experience</p>
 											<p>{user.consultancyAvailability ?? '—'} • {user.geographicScope ?? '—'}</p>
 										</div>
 									</div>
@@ -418,11 +418,11 @@
 			</section>
 		{/if}
 
-		<!-- ── Internal Grants tab ── -->
+		<!-- ── Internal funding-opportunities tab ── -->
 		{#if activeTab === 'competitions'}
 			<section class="panel">
 				<div class="grants-toolbar">
-					<h2 class="grants-heading">Internal Grants</h2>
+					<h2 class="grants-heading">Internal Funding Opportunities</h2>
 					<button type="button" class="btn-add-grant" onclick={openNewComp}>+ Add Internal Grant</button>
 				</div>
 				{#if showCompForm}
@@ -450,7 +450,7 @@
 						</div>
 					</div>
 				{/if}
-				{#if competitions.length === 0 && !showCompForm}<p class="empty-msg">No internal grants yet.</p>{/if}
+				{#if competitions.length === 0 && !showCompForm}<p class="empty-msg">No internal funding opportunities yet.</p>{/if}
 				{#each competitions as comp (comp.id)}
 					<div class="grant-row">
 						<div class="grant-row-left">
@@ -507,16 +507,16 @@
 			</section>
 		{/if}
 
-		<!-- ── Grants tab ── -->
-		{#if activeTab === 'grants'}
+		<!-- ── funding-opportunities tab ── -->
+		{#if activeTab === 'funding-opportunities'}
 			<section class="panel">
 				<div class="grants-toolbar">
-					<h2 class="grants-heading">Grants &amp; Funding</h2>
+					<h2 class="grants-heading">Funding Opportunities</h2>
 					<button type="button" class="btn-add-grant" onclick={openNewGrant}>+ Add Grant</button>
 				</div>
 
 				{#if grantsLoading}
-					<p class="status-msg">Loading grants...</p>
+					<p class="status-msg">Loading funding opportunities...</p>
 				{/if}
 
 				{#if grantsError}
@@ -586,9 +586,9 @@
 					</div>
 				{/if}
 
-				<!-- Grants list -->
+				<!-- funding-opportunities list -->
 				{#if !grantsLoading && grants.length === 0 && !showGrantForm}
-					<p class="empty-msg">No grants yet. Click "+ Add Grant" to create one.</p>
+					<p class="empty-msg">No funding opportunities yet. Click "+ Add funding opportunities" to create one.</p>
 				{/if}
 
 				{#each grants as grant (grant.id)}
@@ -980,7 +980,7 @@
 		}
 	}
 
-	/* ── Grants admin ── */
+	/* ── funding-opportunities admin ── */
 	.grants-toolbar {
 		display: flex;
 		align-items: center;

@@ -7,9 +7,12 @@ export const academicRankOptions = [
 	'Associate Professor',
 	'Professor',
 	'Innovation Lead',
-	'Grants Manager'
+	'Grants Administrator',
+	'Academic Technician',
+	'PhD Student',
+	'Post Doctorate',
 ] as const;
-export const highestQualificationOptions = ['BSc Hons','BAcc Hons','BLaws Hons','MBChB','BDS','BSc Nursing','BPharm','BVSc','BTech', 'MSc','MA','MPhil', 'DPhil'] as const;
+export const highestQualificationOptions = ['BSc','BSc Hons','MSc / MPhil / MBA','DBL','DEng','DPhil / PhD'] as const;
 export const facultyOptions = [
 	'Agriculture Environment And Food Systems',
 	'Arts and Humanities',
@@ -36,7 +39,7 @@ const defaultDepartmentOptions = [
 type FacultyName = (typeof facultyOptions)[number];
 
 export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
-	'Agriculture Environment And Food Systems': [' ',],  // didnt find any
+	'Agriculture Environment And Food Systems': ['Department of Plant Production Science and Technology', 'Department of Agricultural Business Development and Economics', 'Department of Agricultural and Biosystems Engineering', 'Department of Soil Science and Environment','Department of Livestock Sciences'], 
 	'Arts and Humanities': ['Department of Philosophy Religion and Ethics', 'Department of Creative Media and Communication', 'Department of Languages Literature and Culture', 'Department of History Heritage and Knowledge Systems','Department of Peace Security and Society'],
 	'Business Management Sciences And Economics': [
 		'Department of Accountancy',
@@ -76,7 +79,14 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Central African Journal of Medicine ',
 		'Department of Services Unit'
 	],
-	'Science': ['Department of Biochemistry','Department of Chemistry and Earth Sciences','Department of Space Science and Applied Physics','Department of Mathematics and Computational Statistics'], 
+	'Science': ['Biological Sciences and Ecology',
+		'Department of Chemistry and Earth Sciences',
+		'Department of Space Science and Applied Physics',
+		'Department of Mathematics and Computational Statistics',
+		'Department of Biotechnology and Biochemistry',
+	    'Department of Geography Geospatial Science',
+		'Department of Nutrition Dietetics and Food Sciences'],
+		
 	'Social And Behavioural Sciences': [
 		'Department of Applied Psychology',
 		'Department of Community and Social Development',
@@ -85,8 +95,8 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Social Work'
 	],
 	'Veterinary Science': ['Department of Animal Disease Intelligence', 'Department of Zoonotic Diseases and Food Safety', 'Department of Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Department of Aquatic Health and Apiculture','Department of Animal Reproductive Technologies and Nutrition'],
-	'Institutes & Units': ['Department of Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
-};
+	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
+}; 
 
 export const allDepartmentOptions = Array.from(
 	new Set([...defaultDepartmentOptions, ...Object.values(facultyDepartmentMap).flat()])
@@ -135,9 +145,6 @@ export const languageOptions = [
 	'English',
 	'Ndebele',
 	'Shona',
-	'French',
-	'Portuguese',
-	'Swahili',
 	'Other'
 ] as const;
 export const areasOfExpertiseOptions = [
@@ -155,4 +162,4 @@ export const areasOfExpertiseOptions = [
 	'Agriculture',
 	'Legal'
 ] as const;
-export const industrialAreasOptions = ['Health', 'Solar Energy', 'Mining', 'Education', 'Agriculture'] as const;
+export const industrialAreasOptions = ['Health', 'Solar Energy', 'Mining', 'Education', 'Agriculture','Environment','GeoSpatial','Law','Survey','Archaelogy'] as const;

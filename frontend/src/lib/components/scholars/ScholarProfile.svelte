@@ -69,7 +69,7 @@
 	<div class="profile-body">
 		<aside class="profile-aside">
 			{#if scholar.researchAreas?.length}
-				<h3 class="aside-heading">Research Areas</h3>
+				<h3 class="aside-heading">Areas of Research</h3>
 				<ul>
 					{#each scholar.researchAreas as area}<li>{area}</li>{/each}
 				</ul>

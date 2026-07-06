@@ -1,6 +1,6 @@
 <script lang="ts">
 	let {
-		title = 'UZ Experts',
+		title = 'UZ Researchers',
 		description = 'A living record of scholars, research themes, and institutional impact across generations.'
 	} = $props();
 </script>

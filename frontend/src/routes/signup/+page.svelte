@@ -29,8 +29,8 @@
 	const stepLabels = [
 		'Personal Details',
 		'Academic Profile',
-		'Consultancy',
-		'Expertise & Skills',
+		'Experience',
+		'Skills & Competence',
 		'Supporting Docs',
 		'Account Security'
 	];
@@ -308,7 +308,7 @@
 				)
 					return 'Please complete all fields to continue.';
 				if (preferredConsultancyTypes.length === 0)
-					return 'Please select at least one preferred consultancy type.';
+					return 'Please select at least one preferred experience type.';
 				break;
 			case 4:
 				if (
@@ -411,7 +411,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign Up | University of Zimbabwe Experts</title>
+	<title>Sign Up | University of Zimbabwe Researchers</title>
 </svelte:head>
 
 <main class="page-shell signup-shell">
@@ -459,7 +459,7 @@
 					/>
 					<label>
 						Full Name
-						<input bind:value={fullName} placeholder="e.g. John Moyo" />
+						<input bind:value={fullName} placeholder="e.g. George Penyaitu" />
 					</label>
 				</div>
 
@@ -469,7 +469,7 @@
 						<input
 							type="email"
 							bind:value={universityEmail}
-							placeholder="firstname.surname@students.uz.ac.zw"
+							placeholder="e.g. firstname.surname@innovhub.uz.ac.zw"
 						/>
 					</label>
 					<label>
@@ -511,9 +511,9 @@
 
 				<div class="two grid">
 					<SelectField
-						label="Faculty"
+						label="Faculty / Institute and Units"
 						value={faculty}
-						placeholder="Select faculty"
+						placeholder="Select faculty, institute or unit"
 						options={facultyOptions}
 						onchange={onFacultyChange}
 					/>
@@ -543,12 +543,12 @@
 			</div>
 		{/if}
 
-		<!-- ── Step 3: Consultancy ───────────────────────────────────────── -->
+		<!-- ── Step 3: Experience ───────────────────────────────────────── -->
 		{#if currentStep === 3}
 			<div class="step-body">
 				<div class="two grid">
 					<SelectField
-						label="Years of Consultancy Experience"
+						label="Years of Experience"
 						value={yearsOfConsultancyExperience}
 						placeholder="Select years"
 						options={yearsOfConsultancyOptions}
@@ -565,7 +565,7 @@
 
 				<div class="two grid">
 					<MultiSelectFilter
-						label="Preferred Consultancy Types"
+						label="Preferred Research / Consultancy"
 						selected={preferredConsultancyTypes}
 						options={[...preferredConsultancyTypeOptions]}
 						onchange={(value) => (preferredConsultancyTypes = value)}
@@ -579,11 +579,11 @@
 				</div>
 
 				<label>
-					Consultancy Experience
+					Experience
 					<textarea
 						bind:value={consultancyExperience}
 						rows="4"
-						placeholder="Summarize past consultancy projects, clients, and outcomes"
+						placeholder="Summarize past Research, Consultancy and Outcomes"
 					></textarea>
 				</label>
 			</div>
@@ -616,7 +616,7 @@
 						onchange={(value) => (skillsAndCompetences = value)}
 					/>
 					<MultiSelectFilter
-						label="Languages Spoken"
+						label="Language"
 						selected={languagesSpoken}
 						options={[...languageOptions]}
 						allowCustom

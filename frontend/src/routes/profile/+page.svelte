@@ -41,7 +41,7 @@
 		},
 		{
 			id: 'consultancy',
-			label: 'Consultancy',
+			label: 'Experience',
 			icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`
 		},
 		{
@@ -182,7 +182,7 @@
 </script>
 
 <svelte:head>
-	<title>My Profile | University of Zimbabwe Experts</title>
+	<title>My Profile | University of Zimbabwe Researchers</title>
 </svelte:head>
 
 <main class="page-shell profile-shell">
@@ -345,13 +345,13 @@
 
 					<div class="field-grid two">
 						<div class="field">
-							<span class="field-label">Faculty</span>
+							<span class="field-label">Faculty / Institute and Units</span>
 							{#if isEditing}
 								<select
 									value={formData.faculty}
 									onchange={(e) => onFacultyChange(e.currentTarget.value)}
 								>
-									<option value="">Select faculty</option>
+									<option value="">Select faculty, institute or unit</option>
 									{#each facultyOptions as opt}<option value={opt}>{opt}</option>{/each}
 								</select>
 							{:else}
@@ -403,7 +403,7 @@
 			{#if activeSection === 'consultancy'}
 				<section class="content-section">
 					<div class="section-heading">
-						<h2>Consultancy</h2>
+						<h2>Experience</h2>
 						{#if !isEditing}<button class="btn-edit-section" onclick={startEdit}>Edit</button>{/if}
 					</div>
 
@@ -437,13 +437,13 @@
 						<div class="field">
 							{#if isEditing}
 								<MultiSelectFilter
-									label="Preferred Consultancy Types"
+									label="Preferred Research / Consultancy"
 									selected={formData.preferredConsultancyTypes}
 									options={[...preferredConsultancyTypeOptions]}
 									onchange={(v) => (formData.preferredConsultancyTypes = v)}
 								/>
 							{:else}
-								<span class="field-label">Preferred Consultancy Types</span>
+								<span class="field-label">Preferred Research / Consultancy</span>
 								<div class="tags-row">
 									{#each formData.preferredConsultancyTypes as t}
 										<span class="tag">{t}</span>
@@ -530,7 +530,7 @@
 								onchange={(v) => (formData.skillsAndCompetences = v)}
 							/>
 							<MultiSelectFilter
-								label="Languages Spoken"
+								label="Language"
 								selected={formData.languagesSpoken}
 								options={[...languageOptions]}
 								allowCustom

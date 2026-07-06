@@ -179,7 +179,7 @@
 			onclick={() => toggle('faculty')}
 			aria-expanded={openSections.faculty}
 		>
-			<span>Faculty</span>
+			<span>Faculty / Institute and Units</span>
 			<span class="chevron" class:open={openSections.faculty}>&#8963;</span>
 		</button>
 		{#if openSections.faculty}

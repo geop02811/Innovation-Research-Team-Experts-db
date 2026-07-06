@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Research | University of Zimbabwe Experts</title>
+	<title>Research | University of Zimbabwe Researchers</title>
 	<meta
 		name="description"
 		content="Explore cutting-edge research at the University of Zimbabwe — from biomedical engineering to climate science, arts, and AI."
@@ -27,7 +27,7 @@
 					important societal problems. From solar-powered diagnostics in rural clinics to AI tools for
 					indigenous languages, UZ researchers drive change where it matters most.
 				</p>
-				<a href="/experts" class="rp-cta">Browse Our Experts →</a>
+				<a href="/experts" class="rp-cta">Browse Our Researchers →</a>
 			</div>
 			<div class="rp-intro-media">
 				<img src="/bio_med.webp" alt="UZ researcher at work" />
@@ -35,12 +35,12 @@
 		</div>
 	</section>
 
-	<!-- ── Research areas ── -->
+	<!-- ── Areas of Research  ── -->
 	<section class="rp-areas">
 		<div class="rp-section-inner">
 			<div class="rp-section-header">
 				<div class="rp-accent"></div>
-				<h2>Research Areas</h2>
+				<h2>Areas of Research</h2>
 			</div>
 			<div class="rp-areas-grid">
 				{#each areas as area}
@@ -80,7 +80,7 @@
 					<div class="rp-article-meta">
 						<strong>Prof. T. Chinyama</strong> · Faculty of Engineering &amp; the Built Environment
 					</div>
-					<a href="/experts" class="rp-article-link">Find this Expert →</a>
+					<a href="/experts" class="rp-article-link">Find this Researcher →</a>
 				</div>
 			</article>
 
@@ -102,7 +102,7 @@
 					<div class="rp-article-meta">
 						<strong>Dr. S. Moyo</strong> · Faculty of Agriculture, Environment &amp; Food Systems
 					</div>
-					<a href="/experts" class="rp-article-link">Find this Expert →</a>
+					<a href="/experts" class="rp-article-link">Find this Researcher →</a>
 				</div>
 				<div class="rp-article-media">
 					<img src="/climate.jpg" alt="Climate research in the field" />
@@ -130,7 +130,7 @@
 					<div class="rp-article-meta">
 						<strong>Dr. R. Dube</strong> · Faculty of Science
 					</div>
-					<a href="/experts" class="rp-article-link">Find this Expert →</a>
+					<a href="/experts" class="rp-article-link">Find this Researcher →</a>
 				</div>
 			</article>
 
@@ -202,7 +202,7 @@
 					<div class="rp-article-meta">
 						<strong>Prof. C. Nhongo</strong> · Faculty of Arts &amp; Humanities
 					</div>
-					<a href="/experts" class="rp-article-link">Find this Expert →</a>
+					<a href="/experts" class="rp-article-link">Find this Researcher →</a>
 				</div>
 				<div class="rp-article-media">
 					<img src="/Music.jpg" alt="Mbira ethnomusicology research" />
@@ -215,10 +215,10 @@
 	<section class="rp-cta-band">
 		<div class="rp-cta-inner">
 			<h2>Are you a UZ researcher?</h2>
-			<p>Join the expert directory and be discoverable by collaborators, funders, and the global academic community.</p>
+			<p>Join the researcher directory and be discoverable by collaborators, funders, and the global academic community.</p>
 			<div class="rp-cta-btns">
 				<a href="/signup" class="rp-btn-primary">Register Your Profile</a>
-				<a href="/experts" class="rp-btn-outline">Explore All Experts</a>
+				<a href="/experts" class="rp-btn-outline">Explore All Researchers</a>
 			</div>
 		</div>
 	</section>
@@ -354,7 +354,7 @@
 		border-radius: 4px;
 	}
 
-	/* ── Research areas ── */
+	/* ── Areas of Research  ── */
 	.rp-areas {
 		padding: 3rem 0;
 		background: var(--bg);

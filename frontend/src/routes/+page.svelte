@@ -9,15 +9,15 @@
 	];
 
 	let currentSlide = $state(0);
-	let activeTab = $state<'research' | 'alumni' | 'events' | 'internal-grants' | 'grants'>('research');
+	let activeTab = $state<'research' | 'alumni' | 'events' | 'internal-funding-opportunities' | 'funding-opportunities'>('research');
 
 	let events = $state<EventItem[]>([]);
 	let alumniNews = $state<AlumniNewsItem[]>([]);
 	let grants = $state<GrantItem[]>([]);
 
-	// Running projects = grants with status RUNNING pulled from the grants management system
+	// Running projects = funding-opportunities with status RUNNING pulled from the grants management system
 	const runningProjects = $derived(grants.filter((g) => g.status === 'RUNNING'));
-	// Internal grants = grants with status INTERNAL
+	// Internal funding-opportunities = funding-opportunities with status INTERNAL
 	const internalGrants = $derived(grants.filter((g) => g.status === 'INTERNAL'));
 
 	onMount(() => {
@@ -54,10 +54,10 @@
 </script>
 
 <svelte:head>
-	<title>Home | University of Zimbabwe Experts</title>
+	<title>Home | University of Zimbabwe Researchers</title>
 	<meta
 		name="description"
-		content="University of Zimbabwe experts platform for scholar discovery, research, and profile exploration."
+		content="University of Zimbabwe researchers platform for scholar discovery, research, and profile exploration."
 	/>
 </svelte:head>
 
@@ -71,15 +71,15 @@
 		{/each}
 	</div>
 	<div class="hp-hero-inner">
-		<p class="hp-kicker">University of Zimbabwe — Experts &amp; Research</p>
+		<p class="hp-kicker">University of Zimbabwe — Research &amp; Funding</p>
 		<h1 class="hp-title">Discover UZ's Leading Researchers &amp; Scholars</h1>
 		<p class="hp-subtitle">
 			Explore the University of Zimbabwe's community of academics, innovators, and industry consultants.
 			Connect with experts driving research, policy, and development across Africa.
 		</p>
 		<div class="hp-ctas">
-			<a class="hp-btn-primary" href="/experts">Browse Experts</a>
-			<a class="hp-btn-secondary" href="/signup">Join as an Expert</a>
+			<a class="hp-btn-primary" href="/experts">Browse Researchers</a>
+			<a class="hp-btn-secondary" href="/signup">Join as a Researcher</a>
 		</div>
 	</div>
 	<div class="hp-hero-badge" aria-hidden="true">
@@ -101,7 +101,7 @@
 		</div>
 		<div class="stat-item">
 			<span class="stat-number">80+</span>
-			<span class="stat-label">Research Areas</span>
+			<span class="stat-label">Areas of Research </span>
 		</div>
 		<div class="stat-item">
 			<span class="stat-number">40+</span>
@@ -115,8 +115,8 @@
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'research'} onclick={() => activeTab = 'research'}>Research</button>
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'alumni'} onclick={() => activeTab = 'alumni'}>Alumni</button>
 	<button class="hp-tab" class:hp-tab-active={activeTab === 'events'} onclick={() => activeTab = 'events'}>Running Projects</button>
-	<button class="hp-tab" class:hp-tab-active={activeTab === 'internal-grants'} onclick={() => activeTab = 'internal-grants'}>Internal Grants</button>
-	<button class="hp-tab" class:hp-tab-active={activeTab === 'grants'} onclick={() => activeTab = 'grants'}>Grant Opportunities</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'internal-funding-opportunities'} onclick={() => activeTab = 'internal-funding-opportunities'}>Internal Funding Opportunities</button>
+	<button class="hp-tab" class:hp-tab-active={activeTab === 'funding-opportunities'} onclick={() => activeTab = 'funding-opportunities'}>Funding Opportunities</button>
 </nav>
 
 <!-- ══════════════════════════════════════ RESEARCH HIGHLIGHTS ═══ -->
@@ -289,15 +289,15 @@
 </section>
 {/if}
 
-<!-- ══════════════════════════════════ INTERNAL GRANTS ═══ -->
-{#if activeTab === 'internal-grants'}
+<!-- ══════════════════════════════════ INTERNAL funding-opportunities ═══ -->
+{#if activeTab === 'internal-funding-opportunities'}
 <section class="hp-section hp-section-alt" id="internal-grants">
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
-			<h2 class="hp-section-title">Internal Grants</h2>
+			<h2 class="hp-section-title">Internal Funding Opportunities</h2>
 		</div>
 		{#if internalGrants.length === 0}
-			<p class="hp-empty-tab">No internal grants posted yet. Check back soon.</p>
+			<p class="hp-empty-tab">No internal funding opportunities posted yet. Check back soon.</p>
 		{:else}
 			<div class="hp-grant-list">
 				{#each internalGrants.slice(0, 3) as grant (grant.id)}
@@ -327,7 +327,7 @@
 
 		<div class="hp-grant-more">
 			<button type="button" class="hp-grant-more-btn" onclick={goToInternalGrants}>
-				View More Internal Grants
+				View More Internal Funding Opportunities
 				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 					<line x1="3" y1="8" x2="13" y2="8" />
 					<polyline points="9 4 13 8 9 12" />
@@ -338,17 +338,17 @@
 </section>
 {/if}
 
-<!-- ══════════════════════════════════════════ GRANTS ═══ -->
-{#if activeTab === 'grants'}
+<!-- ══════════════════════════════════════════ funding-opportunities ═══ -->
+{#if activeTab === 'funding-opportunities'}
 <section class="hp-section" id="grants">
 	<div class="hp-section-inner">
 		<div class="hp-section-header">
-			<h2 class="hp-section-title">Grant Opportunities</h2>
-			<button type="button" class="hp-section-link hp-section-link-btn" onclick={goToGrants}>View All Grants →</button>
+			<h2 class="hp-section-title">Funding Opportunities</h2>
+			<button type="button" class="hp-section-link hp-section-link-btn" onclick={goToGrants}>View All Funding Opportunities →</button>
 		</div>
 
 		{#if grants.length === 0}
-			<p class="hp-empty-tab">No grants posted yet. Check back soon.</p>
+			<p class="hp-empty-tab">No funding opportunities posted yet. Check back soon.</p>
 		{:else}
 			<div class="hp-grant-list">
 				{#each grants.slice(0, 3) as grant (grant.id)}
@@ -378,7 +378,7 @@
 
 		<div class="hp-grant-more">
 			<button type="button" class="hp-grant-more-btn" onclick={goToGrants}>
-				View All Available Grants
+				View All Available Funding Opportunities
 				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 					<line x1="3" y1="8" x2="13" y2="8" />
 					<polyline points="9 4 13 8 9 12" />
@@ -396,7 +396,7 @@
 		<p>Create your profile and be discovered by collaborators, industry partners, and the global academic community.</p>
 		<div class="hp-ctas">
 			<a class="hp-btn-primary" href="/signup">Register Your Profile</a>
-			<a class="hp-btn-outline" href="/experts">Explore Experts</a>
+			<a class="hp-btn-outline" href="/experts">Explore Researchers</a>
 		</div>
 	</div>
 </section>
@@ -890,7 +890,7 @@
 }
 .hp-comp-cta:hover { text-decoration: underline; }
 
-/* ─── Grants ───────────────────────────────────────── */
+/* ─── funding-opportunities ───────────────────────────────────────── */
 .hp-grant-list {
 	display: flex;
 	flex-direction: column;

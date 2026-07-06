@@ -37,12 +37,12 @@
 				<span class="brand-shape brand-shape-orange" aria-hidden="true"></span>
 				<span class="brand-shape brand-shape-white" aria-hidden="true"></span>
 				<img src="/Uz_logo2.png" alt="University of Zimbabwe" class="nav-logo" />
-				<span class="brand-text">University of Zimbabwe<br /><span class="brand-sub">Projects Repository</span></span>
+				<span class="brand-text">University of Zimbabwe<br /><span class="brand-sub">Research and Funding Portal</span></span>
 			</a>
 			<!-- Desktop nav -->
 			<nav class="desktop-nav" aria-label="Main navigation">
 				<a href="/">Home</a>
-				<a href="/experts">Experts</a>
+				<a href="/experts">Researchers</a>
 				{#if data.session?.role === 'ADMIN'}
 					<a class="admin-link" href="/admin">Admin Dashboard</a>
 				{/if}
@@ -72,7 +72,7 @@
 			<div class="mobile-overlay" onclick={closeMenu}></div>
 			<nav class="mobile-nav" aria-label="Mobile navigation">
 				<a href="/" onclick={closeMenu}>Home</a>
-				<a href="/experts" onclick={closeMenu}>Experts</a>
+				<a href="/experts" onclick={closeMenu}>Researchers</a>
 				{#if data.session?.role === 'ADMIN'}
 					<a class="admin-link" href="/admin" onclick={closeMenu}>Admin Dashboard</a>
 				{/if}
@@ -98,8 +98,8 @@
 			<div class="footer-col">
 				<h4>Explore</h4>
 				<ul>
-					<li><a href="/experts">Expert Directory</a></li>
-					<li><a href="/experts">Research Areas</a></li>
+					<li><a href="/experts">Researchers Directory</a></li>
+					<li><a href="/experts">Area of Research</a></li>
 					<li><a href="/experts">Academic Staff</a></li>
 					<li><a href="/experts">Postgraduate Students</a></li>
 				</ul>
@@ -109,7 +109,7 @@
 				<ul>
 					<li><a href="/experts">Research Highlights</a></li>
 					<li><a href="https://www.uz.ac.zw/index.php/admissions/university-programmes" target="_blank" rel="noopener noreferrer" >Institutes &amp; Centres</a></li>
-					<li><a href="/grants">Grants &amp; Funding</a></li>
+					<li><a href="/grants">Funding Opportunities</a></li>
 					<li><a href="https://www.researchgate.net/institution/University-of-Zimbabwe"  target="_blank" rel="noopener noreferrer">Publications</a></li>
 				</ul>
 			</div>
@@ -126,7 +126,7 @@
 				<h4>Account</h4>
 				<ul>
 					<li><a href="/login">Login</a></li>
-					<li><a href="/signup">Register as Expert</a></li>
+					<li><a href="/signup">Register as Researcher</a></li>
 					<li><a href="/profile">My Profile</a></li>
 				</ul>
 			</div>

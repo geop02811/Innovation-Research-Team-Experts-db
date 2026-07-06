@@ -129,8 +129,8 @@
 </script>
 
 <svelte:head>
-	<title>Grants & Funding | University of Zimbabwe Experts</title>
-	<meta name="description" content="Browse available research grants and funding opportunities for University of Zimbabwe academics and researchers." />
+	<title>Funding Opportunities | University of Zimbabwe Researchers</title>
+	<meta name="description" content="Browse available research funding opportunities and funding opportunities for University of Zimbabwe academics and researchers." />
 </svelte:head>
 
 <!-- Page header -->
@@ -232,7 +232,7 @@
 		<div class="gp-list">
 			{#if filteredGrants.length === 0}
 				<div class="gp-empty">
-					No grants match your search.
+					No funding opportunities match your search.
 					{#if hasFilters}<button type="button" onclick={clearFilters}>Clear filters</button>{/if}
 				</div>
 			{:else}

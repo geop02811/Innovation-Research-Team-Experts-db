@@ -125,11 +125,11 @@
 			<!-- ── VIEWER / EXPERT VIEW ───────────────────── -->
 			{:else}
 				{#if (viewerData?.newExpertsCount ?? 0) === 0}
-					<div class="notif-empty">No new experts in the last 30 days.</div>
+					<div class="notif-empty">No new researchers in the last 30 days.</div>
 				{:else}
 					<div class="notif-section-label">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-						New experts joined
+						New researchers joined
 					</div>
 					{#each viewerData!.newExperts as expert (expert.id)}
 					<a class="notif-item" href="/experts/{expert.fullName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}" onclick={() => (open = false)}>
@@ -149,7 +149,7 @@
 						</a>
 					{/each}
 					<a class="notif-footer-link" href="/experts" onclick={() => (open = false)}>
-						Browse all experts →
+						Browse all Researchers →
 					</a>
 				{/if}
 			{/if}

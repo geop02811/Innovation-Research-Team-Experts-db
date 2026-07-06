@@ -6,11 +6,11 @@
 </script>
 
 <svelte:head>
-	<title>{data.scholar.fullName} | Expert Profile</title>
+	<title>{data.scholar.fullName} | Researcher Profile</title>
 	<meta name="description" content={data.scholar.shortBio} />
 </svelte:head>
 
 <main class="page-shell page-shell-profile">
-	<p class="back-link"><a href="/experts">Back to all experts</a></p>
+	<p class="back-link"><a href="/experts">Back to all researchers</a></p>
 	<ScholarProfile scholar={data.scholar} />
 </main>

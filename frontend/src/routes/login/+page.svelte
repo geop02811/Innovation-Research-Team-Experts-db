@@ -42,14 +42,14 @@
 </script>
 
 <svelte:head>
-	<title>Login | University of Zimbabwe Experts</title>
+	<title>Login | University of Zimbabwe Researchers</title>
 </svelte:head>
 
 <main class="page-shell auth-shell">
 	<section class="auth-card">
 		<p class="kicker">Secure Access</p>
 		<h1>Login</h1>
-		<p class="helper">Only approved users can view experts profiles.</p>
+		<p class="helper">Only approved users can view researcher profiles.</p>
 		{#if info}
 			<p class="info-msg">{info}</p>
 		{/if}

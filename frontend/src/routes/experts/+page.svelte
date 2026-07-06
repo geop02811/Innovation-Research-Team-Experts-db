@@ -141,10 +141,10 @@
 </script>
 
 <svelte:head>
-	<title>Experts | University of Zimbabwe experts</title>
+	<title>Researchers | University of Zimbabwe Researchers</title>
 	<meta
 		name="description"
-		content="Directory of University of Zimbabwe experts, research focus areas, and academic profiles."
+		content="Directory of University of Zimbabwe Researchers, research focus areas, and academic profiles."
 	/>
 </svelte:head>
 
