@@ -32,10 +32,13 @@ public record AdminUserResponse(
         String geographicScope,
         String skillsAndCompetences,
         String languagesSpoken,
+        String languageProficiencies,
         String areasOfExpertise,
         String industrialAreasOfExpertise,
         String notes,
         String profilePhotoDataUrl,
         String cvDataUrl,
-        String universityIdDataUrl
+        String universityIdDataUrl,
+        String professionalExperiences,
+        String profileLinks
 ) {}

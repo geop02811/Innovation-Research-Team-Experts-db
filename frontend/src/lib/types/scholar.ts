@@ -5,6 +5,20 @@ export interface ScholarLink {
 	url: string;
 }
 
+export interface ScholarExperience {
+	title: string;
+	employmentType: string;
+	organization: string;
+	isCurrent: boolean;
+	startMonth: string;
+	startYear: string;
+	endMonth: string;
+	endYear: string;
+	location: string;
+	locationType: string;
+	summary: string;
+}
+
 export interface ScholarProfileSection {
 	title: string;
 	body: string;
@@ -30,6 +44,7 @@ export interface Scholar {
 	shortBio: string;
 	sections: ScholarProfileSection[];
 	links: ScholarLink[];
+	professionalExperiences?: ScholarExperience[];
 	highestQualification?: 'BSc' | 'Masters' | 'PhD';
 	faculty?: string;
 	department?: string;
@@ -38,6 +53,7 @@ export interface Scholar {
 	preferredConsultancyTypes?: string[];
 	geographicScope?: string[];
 	languagesSpoken?: string[];
+	languageProficiencies?: { language: string; proficiency: string }[];
 	areasOfExpertise?: string[];
 	industrialAreasOfExpertise?: string[];
 }

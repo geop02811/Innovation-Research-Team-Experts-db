@@ -3,6 +3,9 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import SelectField from '$lib/components/SelectField.svelte';
+	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
+	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
+	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
@@ -10,18 +13,24 @@
 		academicRankOptions,
 		areasOfExpertiseOptions,
 		consultancyAvailabilityOptions,
+		employmentTypeOptions,
 		getDepartmentOptionsByFaculty,
 		facultyOptions,
 		geographicScopeOptions,
 		highestQualificationOptions,
 		industrialAreasOptions,
 		languageOptions,
+		languageProficiencyOptions,
+		locationTypeOptions,
+		monthOptions,
 		preferredConsultancyTypeOptions,
+		profileLinkTypeOptions,
 		skillsOptions,
 		titlePrefixOptions,
+		yearOptions,
 		yearsOfConsultancyOptions
 	} from '$lib/auth/form-options';
-	import type { ExpertProfile } from '$lib/auth/types';
+	import type { ExpertProfile, LanguageProficiency, ProfessionalExperience, ProfileLink } from '$lib/auth/types';
 
 	// ── Step state ──────────────────────────────────────────────────────────────
 	let currentStep = $state(1);
@@ -29,9 +38,9 @@
 	const stepLabels = [
 		'Personal Details',
 		'Academic Profile',
-		'Experience',
 		'Skills & Competence',
-		'Supporting Docs',
+		'Experience',
+		'Profiles & Publications',
 		'Account Security'
 	];
 
@@ -40,6 +49,7 @@
 	let fullName = $state('');
 	let contactDetails = $state('');
 	let academicRank = $state('');
+	let customAcademicRank = $state('');
 	let universityEmail = $state('');
 	let phoneNumber = $state('');
 	let highestQualification = $state('');
@@ -48,16 +58,14 @@
 	let faculty = $state('');
 	let department = $state('');
 	let yearsOfConsultancyExperience = $state('');
-	let consultancyExperience = $state('');
+	let professionalExperiences = $state<ProfessionalExperience[]>([]);
 	let consultancyAvailability = $state('');
 	let preferredConsultancyTypes = $state<string[]>([]);
 	let geographicScope = $state<string[]>([]);
-	let cvDataUrl = $state('');
-	let cvFileName = $state('');
-	let universityIdDataUrl = $state('');
-	let universityIdFileName = $state('');
+	let profileLinks = $state<ProfileLink[]>([]);
 	let skillsAndCompetences = $state<string[]>([]);
 	let languagesSpoken = $state<string[]>([]);
+	let languageProficiencies = $state<LanguageProficiency[]>([]);
 	let areasOfExpertise = $state<string[]>([]);
 	let industrialAreasOfExpertise = $state<string[]>([]);
 	let password = $state('');
@@ -75,6 +83,7 @@
 		fullName: string;
 		contactDetails: string;
 		academicRank: string;
+		customAcademicRank: string;
 		universityEmail: string;
 		phoneNumber: string;
 		highestQualification: string;
@@ -83,17 +92,29 @@
 		faculty: string;
 		department: string;
 		yearsOfConsultancyExperience: string;
-		consultancyExperience: string;
+		professionalExperiences: ProfessionalExperience[];
 		consultancyAvailability: string;
 		preferredConsultancyTypes: string[];
 		geographicScope: string[];
+		profileLinks: ProfileLink[];
 		skillsAndCompetences: string[];
 		languagesSpoken: string[];
+		languageProficiencies: LanguageProficiency[];
 		areasOfExpertise: string[];
 		industrialAreasOfExpertise: string[];
 	};
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
+	const isCustomAcademicRank = $derived(
+		academicRank === 'Other' ||
+		(Boolean(academicRank) && !(academicRankOptions as readonly string[]).includes(academicRank))
+	);
+	const resolvedAcademicRank = () =>
+		isCustomAcademicRank ? customAcademicRank.trim() : academicRank;
+	const onAcademicRankChange = (value: string) => {
+		academicRank = value;
+		if (value !== 'Other') customAcademicRank = '';
+	};
 
 	const onFacultyChange = (value: string) => {
 		faculty = value;
@@ -103,10 +124,97 @@
 	};
 
 	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+	const PROFILE_PHOTO_SIZE = 400;
 
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
 		Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+	const asProfessionalExperienceArray = (value: unknown) =>
+		Array.isArray(value)
+			? value.filter(
+					(item): item is ProfessionalExperience =>
+						typeof item === 'object' &&
+						item !== null &&
+						typeof (item as ProfessionalExperience).title === 'string' &&
+						typeof (item as ProfessionalExperience).organization === 'string' &&
+						typeof (item as ProfessionalExperience).summary === 'string'
+				)
+			: [];
+	const asProfileLinkArray = (value: unknown) =>
+		Array.isArray(value)
+			? value.filter(
+					(item): item is ProfileLink =>
+						typeof item === 'object' &&
+						item !== null &&
+						typeof (item as ProfileLink).type === 'string' &&
+						typeof (item as ProfileLink).url === 'string'
+				)
+			: [];
+	const asLanguageProficiencyArray = (value: unknown) =>
+		Array.isArray(value)
+			? value.filter(
+					(item): item is LanguageProficiency =>
+						typeof item === 'object' &&
+						item !== null &&
+						typeof (item as LanguageProficiency).language === 'string' &&
+						typeof (item as LanguageProficiency).proficiency === 'string'
+				)
+			: [];
+	const normalizedKey = (value: string) => value.trim().toLowerCase();
+	const syncLanguageProficiencies = (selectedLanguages: string[]) => {
+		languagesSpoken = selectedLanguages;
+		languageProficiencies = selectedLanguages.map((language) => {
+			const existing = languageProficiencies.find(
+				(entry) => normalizedKey(entry.language) === normalizedKey(language)
+			);
+			return { language, proficiency: existing?.proficiency ?? '' };
+		});
+	};
+	const hasCompleteLanguageProficiencies = () =>
+		languagesSpoken.every((language) => {
+			const entry = languageProficiencies.find(
+				(item) => normalizedKey(item.language) === normalizedKey(language)
+			);
+			return Boolean(entry?.proficiency);
+		});
+	const hasCompleteProfessionalExperiences = () =>
+		professionalExperiences.every(
+			(experience) =>
+				Boolean(experience.title.trim()) &&
+				Boolean(experience.organization.trim()) &&
+				Boolean(experience.startYear) &&
+				Boolean(experience.summary.trim())
+		);
+	const hasCompleteProfileLinks = () =>
+		profileLinks.every(
+			(link) =>
+				Boolean(link.type.trim()) &&
+				Boolean(link.url.trim()) &&
+				(link.type !== 'Other' || Boolean(link.label.trim()))
+		);
+	const normalizeUrl = (value: string) => {
+		const trimmed = value.trim();
+		if (!trimmed) return '';
+		return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+	};
+	const normalizedProfileLinks = () =>
+		profileLinks.map((link) => ({
+			type: link.type,
+			label: link.label.trim() || link.type,
+			url: normalizeUrl(link.url)
+		}));
+	const summarizeExperiences = (experiences: ProfessionalExperience[]) =>
+		experiences
+			.map((experience) =>
+				[
+					[experience.title, experience.organization].filter(Boolean).join(' at '),
+					experience.summary
+				]
+					.filter(Boolean)
+					.join(': ')
+			)
+			.filter(Boolean)
+			.join('\n\n');
 	const isValidUzEmail = (value: string) => {
 		const email = value.trim().toLowerCase();
 		const studentEmailPattern = /^[a-z]+(?:-[a-z]+)*\.[a-z]+(?:-[a-z]+)*@students\.uz\.ac\.zw$/;
@@ -131,6 +239,7 @@
 		fullName,
 		contactDetails,
 		academicRank,
+		customAcademicRank,
 		universityEmail,
 		phoneNumber,
 		highestQualification,
@@ -139,12 +248,14 @@
 		faculty,
 		department,
 		yearsOfConsultancyExperience,
-		consultancyExperience,
+		professionalExperiences,
 		consultancyAvailability,
 		preferredConsultancyTypes,
 		geographicScope,
+		profileLinks,
 		skillsAndCompetences,
 		languagesSpoken,
+		languageProficiencies,
 		areasOfExpertise,
 		industrialAreasOfExpertise
 	});
@@ -155,6 +266,11 @@
 		fullName = asString(draft.fullName);
 		contactDetails = asString(draft.contactDetails);
 		academicRank = asString(draft.academicRank);
+		customAcademicRank = asString(draft.customAcademicRank);
+		if (academicRank && !(academicRankOptions as readonly string[]).includes(academicRank)) {
+			customAcademicRank = customAcademicRank || academicRank;
+			academicRank = 'Other';
+		}
 		universityEmail = asString(draft.universityEmail);
 		phoneNumber = asString(draft.phoneNumber);
 		highestQualification = asString(draft.highestQualification);
@@ -163,12 +279,15 @@
 		faculty = asString(draft.faculty);
 		department = asString(draft.department);
 		yearsOfConsultancyExperience = asString(draft.yearsOfConsultancyExperience);
-		consultancyExperience = asString(draft.consultancyExperience);
+		professionalExperiences = asProfessionalExperienceArray(draft.professionalExperiences);
 		consultancyAvailability = asString(draft.consultancyAvailability);
 		preferredConsultancyTypes = asStringArray(draft.preferredConsultancyTypes);
 		geographicScope = asStringArray(draft.geographicScope);
+		profileLinks = asProfileLinkArray(draft.profileLinks);
 		skillsAndCompetences = asStringArray(draft.skillsAndCompetences);
 		languagesSpoken = asStringArray(draft.languagesSpoken);
+		languageProficiencies = asLanguageProficiencyArray(draft.languageProficiencies);
+		syncLanguageProficiencies(languagesSpoken);
 		areasOfExpertise = asStringArray(draft.areasOfExpertise);
 		industrialAreasOfExpertise = asStringArray(draft.industrialAreasOfExpertise);
 	};
@@ -210,7 +329,7 @@
 			return;
 		}
 
-		// Resize + compress to JPEG ≤ 400×400, quality 0.8 — keeps data URL under ~100KB
+		// Center-crop to LinkedIn-style 400×400 square, then compress to JPEG.
 		const dataUrl = await new Promise<string>((resolve, reject) => {
 			const reader = new FileReader();
 			reader.onerror = () => reject(new Error('Cannot read image file'));
@@ -218,12 +337,25 @@
 				const img = new Image();
 				img.onerror = () => reject(new Error('Cannot decode image'));
 				img.onload = () => {
-					const MAX = 400;
-					const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+					const sourceSize = Math.min(img.width, img.height);
+					const sourceX = Math.round((img.width - sourceSize) / 2);
+					const sourceY = Math.round((img.height - sourceSize) / 2);
 					const canvas = document.createElement('canvas');
-					canvas.width = Math.round(img.width * scale);
-					canvas.height = Math.round(img.height * scale);
-					canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+					canvas.width = PROFILE_PHOTO_SIZE;
+					canvas.height = PROFILE_PHOTO_SIZE;
+					canvas
+						.getContext('2d')!
+						.drawImage(
+							img,
+							sourceX,
+							sourceY,
+							sourceSize,
+							sourceSize,
+							0,
+							0,
+							PROFILE_PHOTO_SIZE,
+							PROFILE_PHOTO_SIZE
+						);
 					resolve(canvas.toDataURL('image/jpeg', 0.8));
 				};
 				img.src = String(reader.result);
@@ -233,50 +365,6 @@
 
 		error = '';
 		profilePhotoDataUrl = dataUrl;
-	};
-
-	const onCvChange = (event: Event) => {
-		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) {
-			cvDataUrl = '';
-			cvFileName = '';
-			return;
-		}
-		if (file.size > MAX_FILE_BYTES) {
-			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
-			input.value = '';
-			return;
-		}
-		const reader = new FileReader();
-		reader.onload = () => {
-			cvDataUrl = String(reader.result);
-			cvFileName = file.name;
-			error = '';
-		};
-		reader.readAsDataURL(file);
-	};
-
-	const onUniversityIdChange = (event: Event) => {
-		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) {
-			universityIdDataUrl = '';
-			universityIdFileName = '';
-			return;
-		}
-		if (file.size > MAX_FILE_BYTES) {
-			error = `${file.name} exceeds the 5 MB limit. Please choose a smaller file.`;
-			input.value = '';
-			return;
-		}
-		const reader = new FileReader();
-		reader.onload = () => {
-			universityIdDataUrl = String(reader.result);
-			universityIdFileName = file.name;
-			error = '';
-		};
-		reader.readAsDataURL(file);
 	};
 
 	// ── Per-step validation ─────────────────────────────────────────────────────
@@ -290,7 +378,7 @@
 				break;
 			case 2:
 				if (
-					!academicRank ||
+					!resolvedAcademicRank() ||
 					!highestQualification ||
 					!faculty ||
 					!department ||
@@ -301,27 +389,33 @@
 				break;
 			case 3:
 				if (
-					!yearsOfConsultancyExperience ||
-					!consultancyAvailability ||
-					!consultancyExperience ||
-					geographicScope.length === 0
-				)
-					return 'Please complete all fields to continue.';
-				if (preferredConsultancyTypes.length === 0)
-					return 'Please select at least one preferred experience type.';
-				break;
-			case 4:
-				if (
 					areasOfExpertise.length === 0 ||
 					industrialAreasOfExpertise.length === 0 ||
 					skillsAndCompetences.length === 0 ||
 					languagesSpoken.length === 0
 				)
 					return 'Please select at least one option in each expertise field.';
+				if (!hasCompleteLanguageProficiencies())
+					return 'Please select a proficiency level for each language.';
+				break;
+			case 4:
+				if (
+					!yearsOfConsultancyExperience ||
+					!consultancyAvailability ||
+					professionalExperiences.length === 0 ||
+					geographicScope.length === 0
+				)
+					return 'Please complete all fields to continue.';
+				if (preferredConsultancyTypes.length === 0)
+					return 'Please select at least one preferred experience type.';
+				if (!hasCompleteProfessionalExperiences())
+					return 'Please complete the title, organization, start year, and summary for each experience.';
 				break;
 			case 5:
-				if (!cvDataUrl || !universityIdDataUrl)
-					return 'Please upload both your CV and University ID to continue.';
+				if (profileLinks.length === 0)
+					return 'Please add at least one profile or publication link.';
+				if (!hasCompleteProfileLinks())
+					return 'Please complete the platform and URL for each profile link.';
 				break;
 			case 6:
 				if (!profilePhotoDataUrl || !password || !confirmPassword)
@@ -365,11 +459,12 @@
 		}
 
 		submitting = true;
+		const links = normalizedProfileLinks();
 		const profile: ExpertProfile = {
 			titlePrefix: titlePrefix as ExpertProfile['titlePrefix'],
 			fullName,
 			contactDetails,
-			academicRank: academicRank as ExpertProfile['academicRank'],
+			academicRank: resolvedAcademicRank(),
 			universityEmail,
 			phoneNumber,
 			highestQualification,
@@ -379,17 +474,18 @@
 			department: department as ExpertProfile['department'],
 			yearsOfConsultancyExperience:
 				yearsOfConsultancyExperience as ExpertProfile['yearsOfConsultancyExperience'],
-			consultancyExperience,
+			consultancyExperience: summarizeExperiences(professionalExperiences),
+			professionalExperiences,
 			consultancyAvailability: consultancyAvailability as ExpertProfile['consultancyAvailability'],
 			preferredConsultancyTypes,
 			geographicScope: geographicScope.join(',') as unknown as ExpertProfile['geographicScope'],
-			cvDataUrl,
-			universityIdDataUrl,
 			skillsAndCompetences,
 			languagesSpoken,
+			languageProficiencies,
 			areasOfExpertise,
 			industrialAreasOfExpertise,
 			notes: '',
+			profileLinks: links,
 			profilePhotoDataUrl
 		};
 
@@ -498,7 +594,7 @@
 						value={academicRank}
 						placeholder="Select rank"
 						options={academicRankOptions}
-						onchange={(value) => (academicRank = value)}
+						onchange={onAcademicRankChange}
 					/>
 					<SelectField
 						label="Highest Qualification"
@@ -509,6 +605,13 @@
 					/>
 				</div>
 
+				{#if isCustomAcademicRank}
+					<label>
+						Custom Academic Title / Rank
+						<input bind:value={customAcademicRank} placeholder="Enter your academic title or rank" />
+					</label>
+				{/if}
+
 				<div class="two grid">
 					<SelectField
 						label="Faculty / Institute and Units"
@@ -518,9 +621,9 @@
 						onchange={onFacultyChange}
 					/>
 					<SelectField
-						label="Department"
+						label="Department / Institute / Unit"
 						value={department}
-						placeholder="Select department"
+						placeholder="Select department, institute or unit"
 						options={availableDepartmentOptions}
 						onchange={(value) => (department = value)}
 					/>
@@ -543,8 +646,49 @@
 			</div>
 		{/if}
 
-		<!-- ── Step 3: Experience ───────────────────────────────────────── -->
+		<!-- ── Step 3: Expertise & Skills ───────────────────────────────── -->
 		{#if currentStep === 3}
+			<div class="step-body">
+				<TagFilter
+					label="Areas of Expertise"
+					selected={areasOfExpertise}
+					options={[...areasOfExpertiseOptions]}
+					onchange={(value) => (areasOfExpertise = value)}
+				/>
+
+				<TagFilter
+					label="Industrial Areas of Expertise"
+					selected={industrialAreasOfExpertise}
+					options={[...industrialAreasOptions]}
+					onchange={(value) => (industrialAreasOfExpertise = value)}
+				/>
+
+				<div class="two grid">
+					<MultiSelectFilter
+						label="Skills and Competences"
+						selected={skillsAndCompetences}
+						options={[...skillsOptions]}
+						allowCustom
+						customPlaceholder="Add custom skill or competence"
+						onchange={(value) => (skillsAndCompetences = value)}
+					/>
+					<LanguageProficiencyField
+						label="Language"
+						selected={languagesSpoken}
+						entries={languageProficiencies}
+						options={[...languageOptions]}
+						proficiencyOptions={languageProficiencyOptions}
+						allowCustom
+						customPlaceholder="Add custom language"
+						onLanguagesChange={syncLanguageProficiencies}
+						onEntriesChange={(value) => (languageProficiencies = value)}
+					/>
+				</div>
+			</div>
+		{/if}
+
+		<!-- ── Step 4: Experience ───────────────────────────────────────── -->
+		{#if currentStep === 4}
 			<div class="step-body">
 				<div class="two grid">
 					<SelectField
@@ -578,81 +722,30 @@
 					/>
 				</div>
 
-				<label>
-					Experience
-					<textarea
-						bind:value={consultancyExperience}
-						rows="4"
-						placeholder="Summarize past Research, Consultancy and Outcomes"
-					></textarea>
-				</label>
+
+				<ExperienceEntriesEditor
+					experiences={professionalExperiences}
+					employmentTypeOptions={employmentTypeOptions}
+					monthOptions={monthOptions}
+					yearOptions={yearOptions}
+					locationTypeOptions={locationTypeOptions}
+					onchange={(value) => (professionalExperiences = value)}
+				/>
 			</div>
 		{/if}
 
-		<!-- ── Step 4: Expertise & Skills ───────────────────────────────── -->
-		{#if currentStep === 4}
-			<div class="step-body">
-				<TagFilter
-					label="Areas of Expertise"
-					selected={areasOfExpertise}
-					options={[...areasOfExpertiseOptions]}
-					onchange={(value) => (areasOfExpertise = value)}
-				/>
-
-				<TagFilter
-					label="Industrial Areas of Expertise"
-					selected={industrialAreasOfExpertise}
-					options={[...industrialAreasOptions]}
-					onchange={(value) => (industrialAreasOfExpertise = value)}
-				/>
-
-				<div class="two grid">
-					<MultiSelectFilter
-						label="Skills and Competences"
-						selected={skillsAndCompetences}
-						options={[...skillsOptions]}
-						allowCustom
-						customPlaceholder="Add custom skill or competence"
-						onchange={(value) => (skillsAndCompetences = value)}
-					/>
-					<MultiSelectFilter
-						label="Language"
-						selected={languagesSpoken}
-						options={[...languageOptions]}
-						allowCustom
-						customPlaceholder="Add custom language"
-						onchange={(value) => (languagesSpoken = value)}
-					/>
-				</div>
-			</div>
-		{/if}
-
-		<!-- ── Step 5: Supporting Documents ────────────────────────────── -->
+		<!-- ── Step 5: Profiles & Publications ─────────────────────────── -->
 		{#if currentStep === 5}
 			<div class="step-body">
 				<p class="step-intro">
-					Please upload your CV and University ID for verification. Files are stored securely and
-					only visible to administrators.
+					Add public profile and publication links collaborators can use to review your work.
 				</p>
 
-				<label>
-					CV / Résumé <span class="required">*</span>
-					<input
-						type="file"
-						accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
-						onchange={onCvChange}
-					/>
-					{#if cvFileName}<span class="file-chosen">{cvFileName}</span>{/if}
-				</label>
-
-				<label>
-					University ID <span class="required">*</span>
-					<input type="file" accept="image/*,.pdf" onchange={onUniversityIdChange} />
-					{#if universityIdFileName}<span class="file-chosen">{universityIdFileName}</span>{/if}
-					{#if universityIdDataUrl && universityIdDataUrl.startsWith('data:image')}
-						<img src={universityIdDataUrl} alt="University ID preview" class="photo-preview" />
-					{/if}
-				</label>
+				<ProfileLinksEditor
+					links={profileLinks}
+					typeOptions={profileLinkTypeOptions}
+					onchange={(value) => (profileLinks = value)}
+				/>
 			</div>
 		{/if}
 
@@ -859,8 +952,9 @@
 	}
 
 	.photo-preview {
-		width: 96px;
-		height: 96px;
+		width: 120px;
+		height: 120px;
+		aspect-ratio: 1 / 1;
 		border-radius: 50%;
 		object-fit: cover;
 		border: 2px solid #cfd4de;
@@ -871,18 +965,6 @@
 		margin: 0 0 1rem;
 		line-height: 1.55;
 	}
-	.required {
-		color: var(--uz-orange);
-		font-weight: 700;
-	}
-	.file-chosen {
-		display: block;
-		margin-top: 0.3rem;
-		font-size: 0.82rem;
-		color: var(--ink-soft);
-		font-style: italic;
-	}
-
 	/* ── Error ── */
 	.error-msg {
 		background: #fee;

@@ -14,17 +14,58 @@
 	let open = $state(false);
 	let adminData = $state<AdminNotificationsResponse | null>(null);
 	let viewerData = $state<ViewerNotificationsResponse | null>(null);
+	let profileReminder = $state<{ incomplete: boolean; completion: number } | null>(null);
 	let loading = $state(false);
 
 	// Total badge count
 	const badgeCount = $derived.by(() => {
-		if (role === 'ADMIN') return adminData?.pendingCount ?? 0;
-		return viewerData?.newExpertsCount ?? 0;
+		const reminderCount = profileReminder?.incomplete ? 1 : 0;
+		if (role === 'ADMIN') return (adminData?.pendingCount ?? 0) + reminderCount;
+		return (viewerData?.newExpertsCount ?? 0) + reminderCount;
 	});
+
+	const hasItems = $derived(badgeCount > 0);
+
+	const getArrayLength = (value: unknown) => (Array.isArray(value) ? value.length : 0);
+	const getJsonArrayLength = (value: unknown) => {
+		if (Array.isArray(value)) return value.length;
+		if (typeof value !== 'string' || !value.trim()) return 0;
+		try {
+			const parsed = JSON.parse(value);
+			return Array.isArray(parsed) ? parsed.length : 0;
+		} catch {
+			return 0;
+		}
+	};
+
+	const calculateProfileCompletion = (profile: Record<string, unknown>) => {
+		const checks = [
+			profile.profilePhotoDataUrl,
+			profile.fullName,
+			profile.email,
+			profile.phoneNumber,
+			profile.academicRank,
+			profile.highestQualification,
+			profile.faculty,
+			profile.department,
+			getArrayLength(profile.skillsAndCompetences) > 0,
+			getJsonArrayLength(profile.languageProficiencies) > 0,
+			getJsonArrayLength(profile.professionalExperiences) > 0,
+			getJsonArrayLength(profile.profileLinks) > 0,
+			profile.notes
+		];
+
+		return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+	};
 
 	// ── Fetch ──────────────────────────────────────────────
 	const fetchNotifications = async () => {
 		loading = true;
+		const profile = await authService.getProfile();
+		if (profile) {
+			const completion = calculateProfileCompletion(profile);
+			profileReminder = { incomplete: completion < 100, completion };
+		}
 		if (role === 'ADMIN') {
 			adminData = await authService.getAdminNotifications();
 		} else {
@@ -88,19 +129,30 @@
 		<div class="notif-panel" role="dialog" aria-label="Notifications panel">
 			<div class="notif-header">
 				<span class="notif-title">Notifications</span>
-				{#if badgeCount > 0}
+				{#if hasItems}
 					<span class="notif-count-label">{badgeCount} new</span>
 				{/if}
 			</div>
 
 			{#if loading}
 				<div class="notif-empty">Loading…</div>
+			{:else}
+				{#if profileReminder?.incomplete}
+					<a class="notif-item profile-reminder" href="/profile" onclick={() => (open = false)}>
+						<div class="notif-avatar">%</div>
+						<div class="notif-body">
+							<span class="notif-name">Complete your profile</span>
+							<span class="notif-meta">Your profile is {profileReminder.completion}% complete.</span>
+							<span class="notif-tags">Add missing details so collaborators can assess your work.</span>
+						</div>
+					</a>
+				{/if}
 
 			<!-- ── ADMIN VIEW ─────────────────────────────── -->
-			{:else if role === 'ADMIN'}
-				{#if (adminData?.pendingCount ?? 0) === 0}
+			{#if role === 'ADMIN'}
+				{#if (adminData?.pendingCount ?? 0) === 0 && !profileReminder?.incomplete}
 					<div class="notif-empty">No pending approvals right now.</div>
-				{:else}
+				{:else if (adminData?.pendingCount ?? 0) > 0}
 					<div class="notif-section-label">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
 						Pending approvals
@@ -124,9 +176,9 @@
 
 			<!-- ── VIEWER / EXPERT VIEW ───────────────────── -->
 			{:else}
-				{#if (viewerData?.newExpertsCount ?? 0) === 0}
+				{#if (viewerData?.newExpertsCount ?? 0) === 0 && !profileReminder?.incomplete}
 					<div class="notif-empty">No new researchers in the last 30 days.</div>
-				{:else}
+				{:else if (viewerData?.newExpertsCount ?? 0) > 0}
 					<div class="notif-section-label">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
 						New researchers joined
@@ -152,6 +204,7 @@
 						Browse all Researchers →
 					</a>
 				{/if}
+			{/if}
 			{/if}
 		</div>
 	{/if}

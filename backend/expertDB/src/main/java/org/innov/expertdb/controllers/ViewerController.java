@@ -61,6 +61,7 @@ public class ViewerController {
         if (req.complianceAccreditation() != null) user.setComplianceAccreditation(req.complianceAccreditation());
         if (req.yearsOfConsultancyExperience() != null) user.setYearsOfConsultancyExperience(req.yearsOfConsultancyExperience());
         if (req.consultancyExperience() != null) user.setConsultancyExperience(req.consultancyExperience());
+        if (req.professionalExperiences() != null) user.setProfessionalExperiences(req.professionalExperiences());
         if (req.consultancyAvailability() != null) user.setConsultancyAvailability(req.consultancyAvailability());
         if (req.geographicScope() != null) user.setGeographicScope(req.geographicScope());
         if (req.preferredConsultancyTypes() != null) user.setPreferredConsultancyTypes(req.preferredConsultancyTypes());
@@ -68,7 +69,9 @@ public class ViewerController {
         if (req.industrialAreasOfExpertise() != null) user.setIndustrialAreasOfExpertise(req.industrialAreasOfExpertise());
         if (req.skillsAndCompetences() != null) user.setSkillsAndCompetences(req.skillsAndCompetences());
         if (req.languagesSpoken() != null) user.setLanguagesSpoken(req.languagesSpoken());
+        if (req.languageProficiencies() != null) user.setLanguageProficiencies(req.languageProficiencies());
         if (req.notes() != null) user.setNotes(req.notes());
+        if (req.profileLinks() != null) user.setProfileLinks(req.profileLinks());
         if (req.profilePhotoDataUrl() != null) user.setProfilePhotoDataUrl(req.profilePhotoDataUrl());
         if (req.cvDataUrl() != null) user.setCvDataUrl(req.cvDataUrl());
         if (req.universityIdDataUrl() != null) user.setUniversityIdDataUrl(req.universityIdDataUrl());
@@ -99,8 +102,11 @@ public class ViewerController {
                 splitCsv(u.getIndustrialAreasOfExpertise()),
                 splitCsv(u.getSkillsAndCompetences()),
                 splitCsv(u.getLanguagesSpoken()),
+                u.getLanguageProficiencies(),
                 u.getNotes(),
-                u.getProfilePhotoDataUrl()
+                u.getProfilePhotoDataUrl(),
+                u.getProfessionalExperiences(),
+                u.getProfileLinks()
         );
     }
 
@@ -188,8 +194,11 @@ public class ViewerController {
                 u.getIndustrialAreasOfExpertise(),
                 u.getSkillsAndCompetences(),
                 u.getLanguagesSpoken(),
+                u.getLanguageProficiencies(),
                 u.getNotes(),
-                u.getProfilePhotoDataUrl()
+                u.getProfilePhotoDataUrl(),
+                u.getProfessionalExperiences(),
+                u.getProfileLinks()
         );
     }
 }

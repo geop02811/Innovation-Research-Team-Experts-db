@@ -84,6 +84,9 @@ public class User {
     @Column(name = "consultancy_experience", columnDefinition = "TEXT")
     private String consultancyExperience;
 
+    @Column(name = "professional_experiences", columnDefinition = "TEXT")
+    private String professionalExperiences;
+
     @Column(name = "consultancy_availability")
     private String consultancyAvailability;
 
@@ -102,6 +105,9 @@ public class User {
     @Column(name = "languages_spoken", columnDefinition = "TEXT")
     private String languagesSpoken;
 
+    @Column(name = "language_proficiencies", columnDefinition = "TEXT")
+    private String languageProficiencies;
+
     /** Comma-separated list */
     @Column(name = "areas_of_expertise", columnDefinition = "TEXT")
     private String areasOfExpertise;
@@ -112,6 +118,9 @@ public class User {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "profile_links", columnDefinition = "TEXT")
+    private String profileLinks;
 
     @Column(name = "profile_photo_data_url", columnDefinition = "TEXT")
     private String profilePhotoDataUrl;

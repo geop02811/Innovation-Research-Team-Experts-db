@@ -11,6 +11,7 @@ export const academicRankOptions = [
 	'Academic Technician',
 	'PhD Student',
 	'Post Doctorate',
+	'Other'
 ] as const;
 export const highestQualificationOptions = ['BSc','BSc Hons','MSc / MPhil / MBA','DBL','DEng','DPhil / PhD'] as const;
 export const facultyOptions = [
@@ -95,7 +96,7 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Social Work'
 	],
 	'Veterinary Science': ['Department of Animal Disease Intelligence', 'Department of Zoonotic Diseases and Food Safety', 'Department of Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Department of Aquatic Health and Apiculture','Department of Animal Reproductive Technologies and Nutrition'],
-	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies']
+	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies', 'Agro Industrial Park']
 }; 
 
 export const allDepartmentOptions = Array.from(
@@ -129,6 +130,42 @@ export const preferredConsultancyTypeOptions = [
 	'Workshop Facilitation'
 ] as const;
 export const geographicScopeOptions = ['Local', 'Regional', 'Continental', 'International'] as const;
+export const employmentTypeOptions = [
+	'Full-time',
+	'Part-time',
+	'Contract',
+	'Consultancy',
+	'Freelance',
+	'Internship',
+	'Volunteer'
+] as const;
+export const locationTypeOptions = ['On-site', 'Hybrid', 'Remote'] as const;
+export const monthOptions = [
+	'January',
+	'February',
+	'March',
+	'April',
+	'May',
+	'June',
+	'July',
+	'August',
+	'September',
+	'October',
+	'November',
+	'December'
+] as const;
+export const yearOptions = Array.from({ length: 70 }, (_, index) => String(new Date().getFullYear() - index));
+export const profileLinkTypeOptions = [
+	'LinkedIn',
+	'Google Scholar',
+	'GitHub',
+	'ResearchGate',
+	'ORCID',
+	'Scopus',
+	'Web of Science',
+	'Personal website',
+	'Other'
+] as const;
 export const skillsOptions = [
 	'Leadership',
 	'Training',
@@ -146,6 +183,13 @@ export const languageOptions = [
 	'Ndebele',
 	'Shona',
 	'Other'
+] as const;
+export const languageProficiencyOptions = [
+	'Basic',
+	'Conversational',
+	'Professional working',
+	'Fluent',
+	'Native / bilingual'
 ] as const;
 export const areasOfExpertiseOptions = [
 	'Human Capital Development',

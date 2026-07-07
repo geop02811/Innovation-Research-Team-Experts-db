@@ -46,6 +46,7 @@ public record RegisterRequest(
         String skillsAndCompetences,
         /** Comma-separated */
         String languagesSpoken,
+        String languageProficiencies,
         /** Comma-separated */
         String areasOfExpertise,
         /** Comma-separated */
@@ -53,6 +54,8 @@ public record RegisterRequest(
         String notes,
         String profilePhotoDataUrl,
         String cvDataUrl,
-        String universityIdDataUrl) { }
+        String universityIdDataUrl,
+        String professionalExperiences,
+        String profileLinks) { }
 
 

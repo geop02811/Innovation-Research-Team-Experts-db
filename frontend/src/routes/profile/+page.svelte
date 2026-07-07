@@ -1,4 +1,7 @@
 <script lang="ts">
+	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
+	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
+	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
@@ -10,23 +13,31 @@
 		getDepartmentOptionsByFaculty,
 		yearsOfConsultancyOptions,
 		consultancyAvailabilityOptions,
+		employmentTypeOptions,
 		preferredConsultancyTypeOptions,
 		geographicScopeOptions,
 		skillsOptions,
 		languageOptions,
+		languageProficiencyOptions,
+		locationTypeOptions,
+		monthOptions,
+		profileLinkTypeOptions,
+		yearOptions,
 		areasOfExpertiseOptions,
 		industrialAreasOptions
 	} from '$lib/auth/form-options';
+	import type { LanguageProficiency, ProfessionalExperience, ProfileLink } from '$lib/auth/types';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	type Section = 'personal' | 'academic' | 'consultancy' | 'expertise' | 'biography';
+	type Section = 'personal' | 'academic' | 'consultancy' | 'expertise' | 'links' | 'biography';
 
 	let activeSection = $state<Section>('personal');
 	let isEditing = $state(false);
 	let isSaving = $state(false);
 	let saveError = $state('');
+	const PROFILE_PHOTO_SIZE = 400;
 
 	const sections: { id: Section; label: string; icon: string }[] = [
 		{
@@ -50,42 +61,202 @@
 			icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
 		},
 		{
+			id: 'links',
+			label: 'Links & Publications',
+			icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
+		},
+		{
 			id: 'biography',
 			label: 'Biography & Notes',
 			icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
 		}
 	];
 
-	let formData = $state({
-		titlePrefix: data.profile?.titlePrefix || '',
-		fullName: data.profile?.fullName || '',
-		email: data.profile?.email || '',
-		phone: data.profile?.phoneNumber || '',
-		contactDetails: data.profile?.contactDetails || '',
-		academicRank: data.profile?.academicRank || '',
-		highestQualification: data.profile?.highestQualification || '',
-		faculty: data.profile?.faculty || '',
-		department: data.profile?.department || '',
-		professionalMemberships: data.profile?.professionalMemberships || '',
-		complianceAccreditation: data.profile?.complianceAccreditation || '',
-		yearsOfConsultancyExperience: data.profile?.yearsOfConsultancyExperience || '',
-		consultancyAvailability: data.profile?.consultancyAvailability || '',
-		consultancyExperience: data.profile?.consultancyExperience || '',
-		preferredConsultancyTypes: (data.profile?.preferredConsultancyTypes || []) as string[],
-		geographicScope: (data.profile?.geographicScope
-			? data.profile.geographicScope
+	const normalizedKey = (value: string) => value.trim().toLowerCase();
+	const parseLanguageProficiencies = (
+		value: unknown,
+		languages: string[]
+	): LanguageProficiency[] => {
+		let parsed: unknown = value;
+		if (typeof value === 'string' && value.trim()) {
+			try {
+				parsed = JSON.parse(value);
+			} catch {
+				parsed = [];
+			}
+		}
+
+		const entries = Array.isArray(parsed)
+			? parsed.filter(
+					(item): item is LanguageProficiency =>
+						typeof item === 'object' &&
+						item !== null &&
+						typeof (item as LanguageProficiency).language === 'string' &&
+						typeof (item as LanguageProficiency).proficiency === 'string'
+				)
+			: [];
+
+		return languages.map((language) => {
+			const entry = entries.find((item) => normalizedKey(item.language) === normalizedKey(language));
+			return { language, proficiency: entry?.proficiency ?? '' };
+		});
+	};
+
+	const parseJsonArray = (value: unknown): unknown[] => {
+		if (Array.isArray(value)) return value;
+		if (typeof value !== 'string' || !value.trim()) return [];
+		try {
+			const parsed = JSON.parse(value);
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	};
+
+	const parseProfessionalExperiences = (
+		value: unknown,
+		fallbackSummary: string | null | undefined
+	): ProfessionalExperience[] => {
+		const entries = parseJsonArray(value).filter(
+			(item): item is ProfessionalExperience =>
+				typeof item === 'object' &&
+				item !== null &&
+				typeof (item as ProfessionalExperience).title === 'string' &&
+				typeof (item as ProfessionalExperience).organization === 'string' &&
+				typeof (item as ProfessionalExperience).summary === 'string'
+		);
+
+		if (entries.length > 0 || !fallbackSummary) return entries;
+		return [
+			{
+				title: 'Experience',
+				employmentType: '',
+				organization: '',
+				isCurrent: false,
+				startMonth: '',
+				startYear: '',
+				endMonth: '',
+				endYear: '',
+				location: '',
+				locationType: '',
+				summary: fallbackSummary
+			}
+		];
+	};
+
+	const parseProfileLinks = (value: unknown): ProfileLink[] =>
+		parseJsonArray(value).filter(
+			(item): item is ProfileLink =>
+				typeof item === 'object' &&
+				item !== null &&
+				typeof (item as ProfileLink).type === 'string' &&
+				typeof (item as ProfileLink).url === 'string'
+		);
+
+	const normalizeUrl = (value: string) => {
+		const trimmed = value.trim();
+		if (!trimmed) return '';
+		return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+	};
+
+	const normalizeProfileLinks = (links: ProfileLink[]) =>
+		links.map((link) => ({
+			type: link.type,
+			label: link.label.trim() || link.type,
+			url: normalizeUrl(link.url)
+		}));
+
+	const summarizeExperiences = (experiences: ProfessionalExperience[]) =>
+		experiences
+			.map((experience) =>
+				[
+					[experience.title, experience.organization].filter(Boolean).join(' at '),
+					experience.summary
+				]
+					.filter(Boolean)
+					.join(': ')
+			)
+			.filter(Boolean)
+			.join('\n\n');
+
+	const experienceDateRange = (experience: ProfessionalExperience) => {
+		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
+		const end = experience.isCurrent
+			? 'Present'
+			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
+		return [start, end].filter(Boolean).join(' - ');
+	};
+	const isKnownAcademicRank = (value: string) =>
+		(academicRankOptions as readonly string[]).includes(value);
+
+	const profileCompletion = $derived.by(() => {
+		const checks = [
+			formData.profilePhotoDataUrl,
+			formData.fullName,
+			formData.email,
+			formData.phone,
+			formData.academicRank,
+			formData.highestQualification,
+			formData.faculty,
+			formData.department,
+			formData.skillsAndCompetences.length > 0,
+			formData.languageProficiencies.length > 0,
+			formData.professionalExperiences.length > 0,
+			formData.profileLinks.length > 0,
+			formData.notes
+		];
+
+		return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+	});
+
+	const getInitialFormData = () => {
+		const profile = data.profile;
+		const selectedLanguages = (profile?.languagesSpoken || []) as string[];
+
+		return {
+			titlePrefix: profile?.titlePrefix || '',
+			fullName: profile?.fullName || '',
+			email: profile?.email || '',
+			phone: profile?.phoneNumber || '',
+			contactDetails: profile?.contactDetails || '',
+			academicRank: profile?.academicRank || '',
+			customAcademicRank:
+				profile?.academicRank && !isKnownAcademicRank(profile.academicRank) ? profile.academicRank : '',
+			highestQualification: profile?.highestQualification || '',
+			faculty: profile?.faculty || '',
+			department: profile?.department || '',
+			professionalMemberships: profile?.professionalMemberships || '',
+			complianceAccreditation: profile?.complianceAccreditation || '',
+			yearsOfConsultancyExperience: profile?.yearsOfConsultancyExperience || '',
+			consultancyAvailability: profile?.consultancyAvailability || '',
+			consultancyExperience: profile?.consultancyExperience || '',
+			professionalExperiences: parseProfessionalExperiences(
+				profile?.professionalExperiences,
+				profile?.consultancyExperience
+			),
+			preferredConsultancyTypes: (profile?.preferredConsultancyTypes || []) as string[],
+			geographicScope: (profile?.geographicScope
+				? profile.geographicScope
 					.split(',')
 					.map((s: string) => s.trim())
 					.filter(Boolean)
-			: []) as string[],
+				: []) as string[],
 
-		areasOfExpertise: (data.profile?.areasOfExpertise || []) as string[],
-		industrialAreasOfExpertise: (data.profile?.industrialAreasOfExpertise || []) as string[],
-		skillsAndCompetences: (data.profile?.skillsAndCompetences || []) as string[],
-		languagesSpoken: (data.profile?.languagesSpoken || []) as string[],
-		notes: data.profile?.notes || '',
-		profilePhotoDataUrl: data.profile?.profilePhotoDataUrl || ''
-	});
+			areasOfExpertise: (profile?.areasOfExpertise || []) as string[],
+			industrialAreasOfExpertise: (profile?.industrialAreasOfExpertise || []) as string[],
+			skillsAndCompetences: (profile?.skillsAndCompetences || []) as string[],
+			languagesSpoken: selectedLanguages,
+			languageProficiencies: parseLanguageProficiencies(
+				profile?.languageProficiencies,
+				selectedLanguages
+			),
+			notes: profile?.notes || '',
+			profileLinks: parseProfileLinks(profile?.profileLinks),
+			profilePhotoDataUrl: profile?.profilePhotoDataUrl || ''
+		};
+	};
+
+	let formData = $state(getInitialFormData());
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(formData.faculty));
 
@@ -99,6 +270,26 @@
 		}
 	};
 
+	const academicRankSelectValue = () =>
+		formData.academicRank && !isKnownAcademicRank(formData.academicRank) ? 'Other' : formData.academicRank;
+	const isCustomAcademicRank = $derived(academicRankSelectValue() === 'Other');
+	const resolvedAcademicRank = () =>
+		isCustomAcademicRank ? formData.customAcademicRank.trim() : formData.academicRank;
+	const onAcademicRankChange = (value: string) => {
+		formData.academicRank = value;
+		if (value !== 'Other') formData.customAcademicRank = '';
+	};
+
+	const syncLanguageProficiencies = (languages: string[]) => {
+		formData.languagesSpoken = languages;
+		formData.languageProficiencies = languages.map((language) => {
+			const existing = formData.languageProficiencies.find(
+				(entry) => normalizedKey(entry.language) === normalizedKey(language)
+			);
+			return { language, proficiency: existing?.proficiency ?? '' };
+		});
+	};
+
 	const onPhotoChange = async (e: Event) => {
 		const file = (e.target as HTMLInputElement).files?.[0];
 		if (!file) return;
@@ -109,12 +300,25 @@
 				const img = new Image();
 				img.onerror = () => reject(new Error('Cannot decode image'));
 				img.onload = () => {
-					const MAX = 400;
-					const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+					const sourceSize = Math.min(img.width, img.height);
+					const sourceX = Math.round((img.width - sourceSize) / 2);
+					const sourceY = Math.round((img.height - sourceSize) / 2);
 					const canvas = document.createElement('canvas');
-					canvas.width = Math.round(img.width * scale);
-					canvas.height = Math.round(img.height * scale);
-					canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+					canvas.width = PROFILE_PHOTO_SIZE;
+					canvas.height = PROFILE_PHOTO_SIZE;
+					canvas
+						.getContext('2d')!
+						.drawImage(
+							img,
+							sourceX,
+							sourceY,
+							sourceSize,
+							sourceSize,
+							0,
+							0,
+							PROFILE_PHOTO_SIZE,
+							PROFILE_PHOTO_SIZE
+						);
 					resolve(canvas.toDataURL('image/jpeg', 0.8));
 				};
 				img.src = String(reader.result);
@@ -136,11 +340,12 @@
 	const handleSave = async () => {
 		isSaving = true;
 		saveError = '';
+		const profileLinks = normalizeProfileLinks(formData.profileLinks);
 		const result = await authService.updateProfile({
 			fullName: formData.fullName,
 			phoneNumber: formData.phone,
 			contactDetails: formData.contactDetails,
-			academicRank: formData.academicRank,
+			academicRank: resolvedAcademicRank(),
 			highestQualification: formData.highestQualification,
 			faculty: formData.faculty,
 			department: formData.department,
@@ -148,18 +353,25 @@
 			complianceAccreditation: formData.complianceAccreditation,
 			yearsOfConsultancyExperience: formData.yearsOfConsultancyExperience,
 			consultancyAvailability: formData.consultancyAvailability,
-			consultancyExperience: formData.consultancyExperience,
+			consultancyExperience: summarizeExperiences(formData.professionalExperiences),
+			professionalExperiences: JSON.stringify(formData.professionalExperiences),
 			preferredConsultancyTypes: formData.preferredConsultancyTypes.join(','),
 			geographicScope: formData.geographicScope.join(','),
 			areasOfExpertise: formData.areasOfExpertise.join(','),
 			industrialAreasOfExpertise: formData.industrialAreasOfExpertise.join(','),
 			skillsAndCompetences: formData.skillsAndCompetences.join(','),
 			languagesSpoken: formData.languagesSpoken.join(','),
+			languageProficiencies: JSON.stringify(formData.languageProficiencies),
 			notes: formData.notes,
+			profileLinks: JSON.stringify(profileLinks),
 			profilePhotoDataUrl: formData.profilePhotoDataUrl
 		});
 		isSaving = false;
 		if (result.ok) {
+			formData.academicRank = resolvedAcademicRank();
+			formData.customAcademicRank = '';
+			formData.profileLinks = profileLinks;
+			formData.consultancyExperience = summarizeExperiences(formData.professionalExperiences);
 			isEditing = false;
 		} else {
 			saveError = result.message;
@@ -186,65 +398,85 @@
 </svelte:head>
 
 <main class="page-shell profile-shell">
-	<!-- Profile hero header -->
-	<div class="profile-hero">
-		<div class="profile-hero-inner">
-			<div class="avatar-wrap">
-				<img
-					src={formData.profilePhotoDataUrl || '/default-avatar.svg'}
-					alt={formData.fullName || 'User avatar'}
-					class="avatar-img"
-				/>
-				{#if isEditing}
-					<label class="avatar-edit-btn" title="Change photo">
-						✏
-						<input type="file" accept="image/*" onchange={onPhotoChange} hidden />
-					</label>
-				{/if}
-			</div>
-			<div class="hero-info">
-				<p class="hero-prefix">{formData.titlePrefix}</p>
-				<h1 class="hero-name">{formData.fullName || '—'}</h1>
-				<p class="hero-rank">{formData.academicRank}</p>
-				<p class="hero-faculty">
-					{formData.faculty}{formData.department ? ' · ' + formData.department : ''}
-				</p>
-				<p class="hero-email">{formData.email}</p>
-			</div>
-			<div class="hero-actions">
-				{#if isEditing}
-					{#if saveError}<p class="save-error">{saveError}</p>{/if}
-					<button class="btn btn-outline" onclick={cancelEdit}>Cancel</button>
-					<button class="btn btn-primary" onclick={handleSave} disabled={isSaving}>
-						{isSaving ? 'Saving…' : 'Save Changes'}
-					</button>
-				{:else}
-					<button class="btn btn-primary" onclick={startEdit}>Edit Profile</button>
-					<button class="btn btn-danger" onclick={handleLogout}>Logout</button>
-				{/if}
-			</div>
-		</div>
-	</div>
-
-	<!-- Sidebar + content -->
-	<div class="profile-body">
-		<nav class="profile-sidebar" aria-label="Profile sections">
-			{#each sections as s}
-				<button
-					class="sidebar-item"
-					class:active={activeSection === s.id}
-					onclick={() => switchSection(s.id)}
-				>
-					<span class="sidebar-icon">{@html s.icon}</span>
-					<span class="sidebar-label">{s.label}</span>
-					{#if activeSection === s.id}
-						<span class="sidebar-indicator"></span>
+	<div class="profile-dashboard">
+		<section class="profile-overview" aria-label="Profile overview">
+			<div class="profile-editor-card">
+				<div class="avatar-wrap">
+					<img
+						src={formData.profilePhotoDataUrl || '/default-avatar.svg'}
+						alt={formData.fullName || 'User avatar'}
+						class="avatar-img"
+					/>
+					{#if isEditing}
+						<label class="avatar-edit-btn" title="Upload new photo">
+							Upload photo
+							<input type="file" accept="image/*" onchange={onPhotoChange} hidden />
+						</label>
 					{/if}
-				</button>
-			{/each}
-		</nav>
+				</div>
 
-		<div class="profile-content">
+				<div class="hero-info">
+					<p class="hero-prefix">{formData.titlePrefix || 'Expert profile'}</p>
+					<h1 class="hero-name">{formData.fullName || 'Complete your profile'}</h1>
+					<p class="hero-rank">{formData.academicRank || 'Academic rank not set'}</p>
+					<p class="hero-faculty">
+						{formData.faculty || 'Faculty not set'}{formData.department ? ' · ' + formData.department : ''}
+					</p>
+					<p class="hero-email">{formData.email}</p>
+				</div>
+
+				<div class="hero-actions">
+					{#if isEditing}
+						{#if saveError}<p class="save-error">{saveError}</p>{/if}
+						<button class="btn btn-outline" onclick={cancelEdit}>Cancel</button>
+						<button class="btn btn-primary" onclick={handleSave} disabled={isSaving}>
+							{isSaving ? 'Saving…' : 'Save Changes'}
+						</button>
+					{:else}
+						<button class="btn btn-primary" onclick={startEdit}>Edit Profile</button>
+						<button class="btn btn-danger" onclick={handleLogout}>Logout</button>
+					{/if}
+				</div>
+			</div>
+
+			<aside class="completion-card" aria-label="Profile completion">
+				<div
+					class="completion-ring"
+					style={`background: conic-gradient(#20bf55 ${profileCompletion}%, #d9dee9 0);`}
+				>
+					<span>{profileCompletion}%</span>
+				</div>
+				<div>
+					<h2>Complete your profile</h2>
+					<ul class="completion-list">
+						<li class:done={Boolean(formData.profilePhotoDataUrl)}>Profile photo</li>
+						<li class:done={Boolean(formData.fullName && formData.phone)}>Personal details</li>
+						<li class:done={Boolean(formData.academicRank && formData.faculty)}>Academic profile</li>
+						<li class:done={formData.professionalExperiences.length > 0}>Experience</li>
+						<li class:done={formData.profileLinks.length > 0}>Links & publications</li>
+					</ul>
+				</div>
+			</aside>
+		</section>
+
+		<div class="profile-body">
+			<nav class="profile-sidebar" aria-label="Profile sections">
+				<p class="sidebar-group-label">Profile</p>
+				<div class="sidebar-menu-list">
+					{#each sections as s}
+						<button
+							class="sidebar-item"
+							class:active={activeSection === s.id}
+							onclick={() => switchSection(s.id)}
+						>
+							<span class="sidebar-icon">{@html s.icon}</span>
+							<span class="sidebar-label">{s.label}</span>
+						</button>
+					{/each}
+				</div>
+			</nav>
+
+			<div class="profile-content">
 			<!-- PERSONAL DETAILS -->
 			{#if activeSection === 'personal'}
 				<section class="content-section">
@@ -321,10 +553,17 @@
 						<div class="field">
 							<span class="field-label">Academic Rank</span>
 							{#if isEditing}
-								<select bind:value={formData.academicRank}>
+								<select value={academicRankSelectValue()} onchange={(e) => onAcademicRankChange(e.currentTarget.value)}>
 									<option value="">Select rank</option>
 									{#each academicRankOptions as opt}<option value={opt}>{opt}</option>{/each}
 								</select>
+								{#if isCustomAcademicRank}
+									<input
+										type="text"
+										bind:value={formData.customAcademicRank}
+										placeholder="Enter your academic title or rank"
+									/>
+								{/if}
 							{:else}
 								<span class="field-value">{formData.academicRank || '—'}</span>
 							{/if}
@@ -359,10 +598,10 @@
 							{/if}
 						</div>
 						<div class="field">
-							<span class="field-label">Department</span>
+							<span class="field-label">Department / Institute / Unit</span>
 							{#if isEditing}
 								<select bind:value={formData.department}>
-									<option value="">Select department</option>
+									<option value="">Select department, institute or unit</option>
 									{#each availableDepartmentOptions as opt}<option value={opt}>{opt}</option>{/each}
 								</select>
 							{:else}
@@ -485,15 +724,39 @@
 					</div>
 
 					<div class="field">
-						<span class="field-label">Consultancy Experience Summary</span>
+						<span class="field-label">Experience</span>
 						{#if isEditing}
-							<textarea
-								bind:value={formData.consultancyExperience}
-								rows="5"
-								placeholder="Summarise past consultancy projects, clients, and outcomes"
-							></textarea>
+							<ExperienceEntriesEditor
+								experiences={formData.professionalExperiences}
+								employmentTypeOptions={employmentTypeOptions}
+								monthOptions={monthOptions}
+								yearOptions={yearOptions}
+								locationTypeOptions={locationTypeOptions}
+								onchange={(v) => (formData.professionalExperiences = v)}
+							/>
 						{:else}
-							<p class="field-value long-text">{formData.consultancyExperience || '—'}</p>
+							<div class="experience-list">
+								{#each formData.professionalExperiences as experience}
+									<article class="experience-card-view">
+										<h3>{experience.title || 'Experience'}</h3>
+										<p class="experience-meta">
+											{#if experience.organization}{experience.organization}{/if}
+											{#if experience.employmentType} · {experience.employmentType}{/if}
+										</p>
+										{#if experienceDateRange(experience)}
+											<p class="experience-meta">{experienceDateRange(experience)}</p>
+										{/if}
+										{#if experience.location || experience.locationType}
+											<p class="experience-meta">
+												{[experience.location, experience.locationType].filter(Boolean).join(' · ')}
+											</p>
+										{/if}
+										<p class="field-value long-text">{experience.summary || '—'}</p>
+									</article>
+								{:else}
+									<span class="field-value">—</span>
+								{/each}
+							</div>
 						{/if}
 					</div>
 				</section>
@@ -529,13 +792,16 @@
 								customPlaceholder="Add custom skill or competence"
 								onchange={(v) => (formData.skillsAndCompetences = v)}
 							/>
-							<MultiSelectFilter
+							<LanguageProficiencyField
 								label="Language"
 								selected={formData.languagesSpoken}
+								entries={formData.languageProficiencies}
 								options={[...languageOptions]}
+								proficiencyOptions={languageProficiencyOptions}
 								allowCustom
 								customPlaceholder="Add custom language"
-								onchange={(v) => (formData.languagesSpoken = v)}
+								onLanguagesChange={syncLanguageProficiencies}
+								onEntriesChange={(v) => (formData.languageProficiencies = v)}
 							/>
 						</div>
 					{:else}
@@ -566,11 +832,44 @@
 							<div class="expertise-group">
 								<span class="field-label">Languages Spoken</span>
 								<div class="tags-row">
-									{#each formData.languagesSpoken as t}<span class="tag">{t}</span>{:else}<span
-											class="field-value">—</span
-										>{/each}
+									{#each formData.languageProficiencies as item}
+										<span class="tag">
+											{item.language}{item.proficiency ? ` · ${item.proficiency}` : ''}
+										</span>
+									{:else}
+										<span class="field-value">—</span>
+									{/each}
 								</div>
 							</div>
+						</div>
+					{/if}
+				</section>
+			{/if}
+
+			<!-- LINKS & PUBLICATIONS -->
+			{#if activeSection === 'links'}
+				<section class="content-section">
+					<div class="section-heading">
+						<h2>Links &amp; Publications</h2>
+						{#if !isEditing}<button class="btn-edit-section" onclick={startEdit}>Edit</button>{/if}
+					</div>
+
+					{#if isEditing}
+						<ProfileLinksEditor
+							links={formData.profileLinks}
+							typeOptions={profileLinkTypeOptions}
+							onchange={(v) => (formData.profileLinks = v)}
+						/>
+					{:else}
+						<div class="profile-link-grid">
+							{#each formData.profileLinks as link}
+								<a href={link.url} target="_blank" rel="noreferrer" class="profile-link-card">
+									<span class="profile-link-type">{link.type}</span>
+									<span class="profile-link-label">{link.label || link.type}</span>
+								</a>
+							{:else}
+								<span class="field-value">—</span>
+							{/each}
 						</div>
 					{/if}
 				</section>
@@ -608,7 +907,7 @@
 								<img src={formData.profilePhotoDataUrl} alt="Preview" class="photo-preview" />
 							{/if}
 						{:else if formData.profilePhotoDataUrl}
-							<img src={formData.profilePhotoDataUrl} alt="Profile photo" class="photo-preview" />
+							<img src={formData.profilePhotoDataUrl} alt={formData.fullName || 'Profile'} class="photo-preview" />
 						{:else}
 							<span class="field-value">No photo uploaded</span>
 						{/if}
@@ -627,56 +926,87 @@
 				</div>
 			{/if}
 		</div>
+		</div>
 	</div>
 </main>
 
 <style>
 	.profile-shell {
-		padding: 0 0 3rem;
-		margin-top: 2.5rem;
-		margin-bottom: 2.5rem;
+		width: 100%;
+		padding: 2rem 1.25rem 4rem;
+		margin-top: 0;
+		margin-bottom: 0;
+		background:
+			radial-gradient(circle at 5% 8%, rgba(10, 58, 141, 0.1), transparent 26rem),
+			linear-gradient(180deg, #f4f7fb 0%, #eef2f7 100%);
 	}
 
-	.profile-hero {
-		background: var(--uz-navy);
-		padding: 2rem 1.5rem;
-		border-bottom: 3px solid var(--uz-orange);
-	}
-	.profile-hero-inner {
-		max-width: 1100px;
+	.profile-dashboard {
+		max-width: 1180px;
 		margin: 0 auto;
+		display: grid;
+		gap: 1.4rem;
+	}
+
+	.profile-overview {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 270px;
+		gap: 1rem;
+		align-items: stretch;
+	}
+
+	.profile-editor-card,
+	.completion-card,
+	.profile-sidebar,
+	.content-section,
+	.save-bar {
+		background: rgba(255, 255, 255, 0.94);
+		border: 1px solid #dfe5ef;
+		box-shadow: 0 18px 48px rgba(27, 43, 78, 0.09);
+	}
+
+	.profile-editor-card {
 		display: flex;
 		align-items: center;
-		gap: 1.5rem;
+		gap: 1.25rem;
 		flex-wrap: wrap;
+		border-radius: 22px;
+		padding: 1.35rem;
 	}
+
 	.avatar-wrap {
 		position: relative;
 		flex-shrink: 0;
 	}
 	.avatar-img {
-		width: 96px;
-		height: 96px;
-		border-radius: 12px;
+		width: 152px;
+		height: 152px;
+		aspect-ratio: 1 / 1;
+		border-radius: 50%;
 		object-fit: cover;
-		border: 3px solid rgba(255, 255, 255, 0.25);
+		border: 4px solid #fff;
+		box-shadow: 0 18px 36px rgba(27, 43, 78, 0.2);
 		display: block;
 	}
 	.avatar-edit-btn {
 		position: absolute;
-		bottom: 4px;
-		right: 4px;
-		background: var(--uz-orange);
-		color: #fff;
-		border-radius: 50%;
-		width: 26px;
-		height: 26px;
+		left: 50%;
+		bottom: -0.55rem;
+		transform: translateX(-50%);
+		background: #fff;
+		color: #0a3a8d;
+		border-radius: 999px;
+		min-width: 8rem;
+		min-height: 2.2rem;
+		padding: 0 0.85rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 0.75rem;
+		font-size: 0.8rem;
+		font-weight: 800;
 		cursor: pointer;
-		border: 2px solid #fff;
+		border: 1px solid #d7deeb;
+		box-shadow: 0 10px 24px rgba(27, 43, 78, 0.12);
 	}
 	.hero-info {
 		flex: 1;
@@ -684,32 +1014,35 @@
 	}
 	.hero-prefix {
 		margin: 0;
-		font-size: 0.78rem;
-		color: rgba(255, 255, 255, 0.55);
+		font-size: 0.76rem;
+		font-weight: 800;
+		color: #6f7788;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
 	}
 	.hero-name {
-		margin: 0.1rem 0 0.25rem;
+		margin: 0.15rem 0 0.25rem;
 		font-family: 'Fraunces', serif;
-		font-size: clamp(1.2rem, 3vw, 1.7rem);
-		color: #fff;
+		font-size: clamp(1.6rem, 3vw, 2.3rem);
+		color: #17213b;
+		line-height: 1.08;
 	}
 	.hero-rank {
 		margin: 0;
-		font-weight: 600;
-		color: var(--uz-gold);
-		font-size: 0.92rem;
+		font-weight: 800;
+		color: #0a3a8d;
+		font-size: 1rem;
 	}
 	.hero-faculty {
-		margin: 0.1rem 0 0;
-		color: rgba(255, 255, 255, 0.65);
-		font-size: 0.85rem;
+		margin: 0.25rem 0 0;
+		color: #545f73;
+		font-size: 0.95rem;
+		font-weight: 600;
 	}
 	.hero-email {
-		margin: 0.15rem 0 0;
-		color: rgba(255, 255, 255, 0.45);
-		font-size: 0.8rem;
+		margin: 0.25rem 0 0;
+		color: #6f7788;
+		font-size: 0.92rem;
 	}
 	.hero-actions {
 		display: flex;
@@ -717,100 +1050,163 @@
 		flex-wrap: wrap;
 		align-items: center;
 		margin-left: auto;
+		justify-content: flex-end;
 	}
 	.save-error {
-		color: #fca5a5;
+		color: #d32f2f;
 		font-size: 0.85rem;
 		margin: 0;
+		width: 100%;
+		text-align: right;
+	}
+
+	.completion-card {
+		border-radius: 22px;
+		padding: 1.25rem;
+		display: grid;
+		gap: 1rem;
+		align-content: start;
+	}
+	.completion-ring {
+		width: 104px;
+		height: 104px;
+		border-radius: 50%;
+		padding: 12px;
+		display: grid;
+		place-items: center;
+		justify-self: center;
+	}
+	.completion-ring span {
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		background: #fff;
+		font-size: 1.2rem;
+		font-weight: 900;
+		color: #17213b;
+	}
+	.completion-card h2 {
+		margin: 0 0 0.6rem;
+		font-size: 0.95rem;
+		font-weight: 900;
+		color: #17213b;
+		text-align: center;
+	}
+	.completion-list {
+		display: grid;
+		gap: 0.45rem;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+	.completion-list li {
+		position: relative;
+		padding-left: 1.35rem;
+		font-size: 0.86rem;
+		font-weight: 700;
+		color: #7a8496;
+	}
+	.completion-list li::before {
+		content: '×';
+		position: absolute;
+		left: 0;
+		color: #98a2b3;
+	}
+	.completion-list li.done {
+		color: #27334f;
+	}
+	.completion-list li.done::before {
+		content: '✓';
+		color: #16803c;
 	}
 
 	.profile-body {
-		max-width: 1100px;
-		margin: 2rem auto 0;
-		padding: 0 1.5rem;
+		margin: 0;
+		padding: 0;
 		display: grid;
-		grid-template-columns: 220px 1fr;
-		gap: 2rem;
+		grid-template-columns: 260px minmax(0, 1fr);
+		gap: 1rem;
 		align-items: start;
 	}
 
 	.profile-sidebar {
-		background: #fff;
-		border: 1px solid var(--line);
-		border-radius: 16px;
-		overflow: hidden;
-		box-shadow: 0 2px 12px rgba(27, 43, 78, 0.07);
+		border-radius: 22px;
+		padding: 1rem;
 		position: sticky;
 		top: 100px;
-		display: flex;
-		flex-direction: column;
+		align-self: start;
+		display: grid;
+		gap: 0.6rem;
+		min-width: 0;
+	}
+	.sidebar-group-label {
+		margin: 0;
+		padding: 0 0.4rem;
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: #98a2b3;
+	}
+	.sidebar-menu-list {
+		display: grid;
+		gap: 0.25rem;
 	}
 	.sidebar-item {
 		display: flex;
 		align-items: center;
-		gap: 0.65rem;
-		padding: 0.9rem 1.1rem;
+		gap: 0.6rem;
+		width: 100%;
+		padding: 0.58rem 0.65rem;
 		background: none;
-		border: none;
-		border-top: 1px solid var(--line);
+		border: 1.5px solid transparent;
+		border-radius: 10px;
 		cursor: pointer;
 		font-family: inherit;
-		font-size: 0.88rem;
-		font-weight: 600;
-		color: var(--ink-soft);
+		font-size: 0.84rem;
+		font-weight: 700;
+		color: #505a70;
 		text-align: left;
-		position: relative;
 		transition:
-			background 0.15s,
-			color 0.15s;
-	}
-	.sidebar-item:first-child {
-		border-top: none;
-		padding-top: 1.3rem;
-	}
-	.sidebar-item:last-child {
-		padding-bottom: 1.3rem;
+			background 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease,
+			box-shadow 0.15s ease;
 	}
 	.sidebar-item:hover {
-		background: var(--uz-orange-light);
-		color: var(--uz-orange-dark);
+		background: #f6f9ff;
+		color: #0a3a8d;
 	}
 	.sidebar-item.active {
-		background: var(--uz-orange-light);
-		color: var(--uz-orange-dark);
-	}
-	.sidebar-indicator {
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 4px;
-		background: var(--uz-orange);
-		border-radius: 0 4px 4px 0;
+		background: #fff;
+		border-color: #2f6df6;
+		color: #0a3a8d;
+		box-shadow: 0 8px 18px rgba(47, 109, 246, 0.1);
 	}
 	.sidebar-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
-		width: 20px;
+		width: 1.1rem;
+		height: 1.1rem;
 		color: inherit;
 	}
 	.sidebar-label {
 		flex: 1;
+		min-width: 0;
+		overflow-wrap: anywhere;
 	}
 
 	.profile-content {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 1rem;
+		min-width: 0;
 	}
 	.content-section {
-		background: #fff;
-		border: 1px solid var(--line);
-		border-radius: 16px;
-		padding: 1.8rem;
-		box-shadow: 0 2px 12px rgba(27, 43, 78, 0.07);
+		border-radius: 22px;
+		padding: 1.75rem;
 		display: flex;
 		flex-direction: column;
 		gap: 1.2rem;
@@ -821,13 +1217,13 @@
 		justify-content: space-between;
 		gap: 1rem;
 		padding-bottom: 0.75rem;
-		border-bottom: 2px solid var(--uz-gold);
+		border-bottom: 1px solid #dfe5ef;
 	}
 	.section-heading h2 {
 		font-family: 'Fraunces', serif;
-		font-size: 1.2rem;
+		font-size: 1.35rem;
 		margin: 0;
-		color: var(--uz-navy);
+		color: #17213b;
 	}
 	.btn-edit-section {
 		background: none;
@@ -877,6 +1273,61 @@
 		white-space: pre-wrap;
 		line-height: 1.6;
 		margin: 0;
+	}
+	.experience-list {
+		display: grid;
+		gap: 0.85rem;
+	}
+	.experience-card-view {
+		display: grid;
+		gap: 0.35rem;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		padding: 1rem;
+		background: #fff;
+	}
+	.experience-card-view h3 {
+		margin: 0;
+		font-size: 1rem;
+		color: var(--ink);
+	}
+	.experience-meta {
+		margin: 0;
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: var(--ink-soft);
+	}
+	.profile-link-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.85rem;
+	}
+	.profile-link-card {
+		display: grid;
+		gap: 0.25rem;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		padding: 0.9rem 1rem;
+		background: #fff;
+		color: inherit;
+		text-decoration: none;
+	}
+	.profile-link-card:hover {
+		border-color: var(--uz-navy);
+		box-shadow: 0 10px 24px rgba(27, 43, 78, 0.1);
+	}
+	.profile-link-type {
+		font-size: 0.72rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--ink-soft);
+	}
+	.profile-link-label {
+		font-size: 0.95rem;
+		font-weight: 800;
+		color: var(--uz-navy);
+		overflow-wrap: anywhere;
 	}
 
 	input,
@@ -975,24 +1426,22 @@
 		background: var(--uz-orange-dark);
 	}
 	.photo-preview {
-		width: 120px;
-		height: 120px;
-		border-radius: 10px;
+		width: 152px;
+		height: 152px;
+		aspect-ratio: 1 / 1;
+		border-radius: 50%;
 		object-fit: cover;
 		border: 1px solid var(--line);
 		margin-top: 0.5rem;
 	}
 
 	.save-bar {
-		background: #fff;
-		border: 1px solid var(--line);
-		border-radius: 16px;
+		border-radius: 22px;
 		padding: 1rem 1.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
 		gap: 0.75rem;
-		box-shadow: 0 2px 12px rgba(27, 43, 78, 0.07);
 	}
 	.save-error-bar {
 		color: #d32f2f;
@@ -1014,7 +1463,7 @@
 	.btn-primary {
 		background: var(--uz-navy);
 		color: #fff;
-		border: 1.5px solid #fff;
+		border: 1.5px solid var(--uz-navy);
 	}
 	.btn-primary:hover:not(:disabled) {
 		background: #0a2a6b;
@@ -1025,11 +1474,11 @@
 	}
 	.btn-outline {
 		background: transparent;
-		color: #fff;
-		border: 1.5px solid #fff;
+		color: var(--uz-navy);
+		border: 1.5px solid var(--uz-navy);
 	}
 	.btn-outline:hover {
-		background: rgba(255, 255, 255, 0.12);
+		background: #eef4ff;
 	}
 	.btn-danger {
 		background: transparent;
@@ -1041,38 +1490,62 @@
 		color: #fff;
 	}
 
+	@media (max-width: 960px) {
+		.profile-overview {
+			grid-template-columns: 1fr;
+		}
+		.completion-card {
+			grid-template-columns: auto minmax(0, 1fr);
+			align-items: center;
+		}
+		.completion-card h2 {
+			text-align: left;
+		}
+	}
+
 	@media (max-width: 720px) {
+		.profile-shell {
+			padding: 1rem 0.75rem 3rem;
+		}
+		.profile-editor-card {
+			justify-content: center;
+			text-align: center;
+		}
+		.hero-actions {
+			justify-content: center;
+			margin-left: 0;
+			width: 100%;
+		}
+		.completion-card {
+			grid-template-columns: 1fr;
+		}
+		.completion-card h2 {
+			text-align: center;
+		}
 		.profile-body {
 			grid-template-columns: 1fr;
 			gap: 1rem;
 		}
 		.profile-sidebar {
 			position: static;
-			flex-direction: row;
 			overflow-x: auto;
+		}
+		.sidebar-menu-list {
+			display: flex;
+			gap: 0.35rem;
+			min-width: max-content;
+		}
+		.sidebar-group-label {
+			display: none;
 		}
 		.sidebar-item {
 			flex-direction: column;
 			gap: 0.25rem;
-			padding: 0.65rem 0.8rem;
+			padding: 0.58rem 0.7rem;
 			font-size: 0.72rem;
-			border-bottom: none;
-			border-right: 1px solid var(--line);
-			min-width: 75px;
+			min-width: 6.25rem;
 			text-align: center;
 			justify-content: center;
-		}
-		.sidebar-item:last-child {
-			border-right: none;
-		}
-		.sidebar-indicator {
-			top: auto;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			height: 3px;
-			width: auto;
-			border-radius: 0;
 		}
 	}
 </style>

@@ -50,14 +50,17 @@ public class UserService {
         user.setDepartment(request.department());
         user.setYearsOfConsultancyExperience(request.yearsOfConsultancyExperience());
         user.setConsultancyExperience(request.consultancyExperience());
+        user.setProfessionalExperiences(request.professionalExperiences());
         user.setConsultancyAvailability(request.consultancyAvailability());
         user.setPreferredConsultancyTypes(request.preferredConsultancyTypes());
         user.setGeographicScope(request.geographicScope());
         user.setSkillsAndCompetences(request.skillsAndCompetences());
         user.setLanguagesSpoken(request.languagesSpoken());
+        user.setLanguageProficiencies(request.languageProficiencies());
         user.setAreasOfExpertise(request.areasOfExpertise());
         user.setIndustrialAreasOfExpertise(request.industrialAreasOfExpertise());
         user.setNotes(request.notes());
+        user.setProfileLinks(request.profileLinks());
         user.setProfilePhotoDataUrl(request.profilePhotoDataUrl());
         user.setCvDataUrl(request.cvDataUrl());
         user.setUniversityIdDataUrl(request.universityIdDataUrl());

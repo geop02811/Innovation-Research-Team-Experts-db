@@ -93,14 +93,17 @@ export const authService = {
 					department: p.department,
 					yearsOfConsultancyExperience: p.yearsOfConsultancyExperience,
 					consultancyExperience: p.consultancyExperience,
+					professionalExperiences: JSON.stringify(p.professionalExperiences),
 					consultancyAvailability: p.consultancyAvailability,
 					preferredConsultancyTypes: p.preferredConsultancyTypes.join(','),
 					geographicScope: p.geographicScope,
 					skillsAndCompetences: p.skillsAndCompetences.join(','),
 					languagesSpoken: p.languagesSpoken.join(','),
+					languageProficiencies: JSON.stringify(p.languageProficiencies),
 					areasOfExpertise: p.areasOfExpertise.join(','),
 					industrialAreasOfExpertise: p.industrialAreasOfExpertise.join(','),
 					notes: p.notes,
+					profileLinks: JSON.stringify(p.profileLinks),
 					profilePhotoDataUrl: p.profilePhotoDataUrl,
 					cvDataUrl: p.cvDataUrl ?? '',
 					universityIdDataUrl: p.universityIdDataUrl ?? ''
@@ -205,6 +208,16 @@ export const authService = {
 			return { ok: true, message: 'Profile saved.', profile };
 		} catch {
 			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
+	getProfile: async (): Promise<Record<string, unknown> | null> => {
+		try {
+			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`);
+			if (!res.ok) return null;
+			return res.json();
+		} catch {
+			return null;
 		}
 	},
 

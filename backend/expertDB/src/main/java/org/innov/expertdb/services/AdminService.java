@@ -119,10 +119,11 @@ public class AdminService {
                 u.getFaculty(), u.getDepartment(), u.getYearsOfConsultancyExperience(),
                 u.getConsultancyExperience(), u.getConsultancyAvailability(),
                 u.getPreferredConsultancyTypes(), u.getGeographicScope(),
-                u.getSkillsAndCompetences(), u.getLanguagesSpoken(),
+                u.getSkillsAndCompetences(), u.getLanguagesSpoken(), u.getLanguageProficiencies(),
                 u.getAreasOfExpertise(), u.getIndustrialAreasOfExpertise(),
                 u.getNotes(), u.getProfilePhotoDataUrl(),
-                u.getCvDataUrl(), u.getUniversityIdDataUrl()
+                u.getCvDataUrl(), u.getUniversityIdDataUrl(),
+                u.getProfessionalExperiences(), u.getProfileLinks()
         );
     }
 }

@@ -37,7 +37,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null,
-                    null, null
+                    null, null, null, null, null
             );
 
             userService.createUser(adminRequest, AccountStatus.ACTIVE, Role.ADMIN);

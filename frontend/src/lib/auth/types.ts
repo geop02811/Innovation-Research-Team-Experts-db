@@ -1,27 +1,46 @@
 export type AccountStatus = 'PENDING' | 'APPROVED' | 'ACTIVE' | 'DISABLED';
 export type UserRole = 'USER' | 'VIEWER' | 'ADMIN';
 
+export interface LanguageProficiency {
+	language: string;
+	proficiency: string;
+}
+
+export interface ProfileLink {
+	type: string;
+	label: string;
+	url: string;
+}
+
+export interface ProfessionalExperience {
+	title: string;
+	employmentType: string;
+	organization: string;
+	isCurrent: boolean;
+	startMonth: string;
+	startYear: string;
+	endMonth: string;
+	endYear: string;
+	location: string;
+	locationType: string;
+	summary: string;
+}
+
 export interface ExpertProfile {
 	titlePrefix: 'Eng' | 'Dr' | 'Prof' | 'Mr' | 'Mrs' | 'Ms';
 	fullName: string;
 	contactDetails: string;
-	academicRank: 'Lecturer' | 'Senior Lecturer' | 'Associate Professor' | 'Professor';
+	academicRank: string;
 	universityEmail: string;
 	phoneNumber: string;
 	highestQualification: string;
 	professionalMemberships: string;
 	complianceAccreditation: string;
 	faculty: string;
-	department:
-		| 'Business'
-		| 'Engineering'
-		| 'ICT'
-		| 'Education'
-		| 'Health Sciences'
-		| 'Agriculture'
-		| 'Social Sciences';
+	department: string;
 	yearsOfConsultancyExperience: '0-2 years' | '3-5 years' | '6-10 years' | '10+ years';
 	consultancyExperience: string;
+	professionalExperiences: ProfessionalExperience[];
 	consultancyAvailability:
 		| 'Full-time'
 		| 'Part-time'
@@ -32,9 +51,11 @@ export interface ExpertProfile {
 	geographicScope: 'Local' | 'Regional' | 'Continental' | 'International';
 	skillsAndCompetences: string[];
 	languagesSpoken: string[];
+	languageProficiencies: LanguageProficiency[];
 	areasOfExpertise: string[];
 	industrialAreasOfExpertise: string[];
 	notes: string;
+	profileLinks: ProfileLink[];
 	profilePhotoDataUrl: string;
 	cvDataUrl?: string;
 	universityIdDataUrl?: string;
@@ -88,14 +109,17 @@ export interface AdminUser {
 	department: string | null;
 	yearsOfConsultancyExperience: string | null;
 	consultancyExperience: string | null;
+	professionalExperiences: string | null;
 	consultancyAvailability: string | null;
 	preferredConsultancyTypes: string | null;
 	geographicScope: string | null;
 	skillsAndCompetences: string | null;
 	languagesSpoken: string | null;
+	languageProficiencies: string | null;
 	areasOfExpertise: string | null;
 	industrialAreasOfExpertise: string | null;
 	notes: string | null;
+	profileLinks: string | null;
 	profilePhotoDataUrl: string | null;
 	cvDataUrl: string | null;
 	universityIdDataUrl: string | null;

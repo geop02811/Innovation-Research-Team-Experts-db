@@ -48,7 +48,7 @@ class SignUpServiceTest {
                 "password123",
                 null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null, null
         );
 
         expectedResponse = new RegisterResponse(

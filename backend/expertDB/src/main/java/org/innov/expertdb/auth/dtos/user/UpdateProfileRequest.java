@@ -19,8 +19,11 @@ public record UpdateProfileRequest(
         String industrialAreasOfExpertise,
         String skillsAndCompetences,
         String languagesSpoken,
+        String languageProficiencies,
         String notes,
         String profilePhotoDataUrl,
         String cvDataUrl,
-        String universityIdDataUrl
+        String universityIdDataUrl,
+        String professionalExperiences,
+        String profileLinks
 ) {}

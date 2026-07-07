@@ -21,6 +21,9 @@ public record ExpertSummaryResponse(
         String industrialAreasOfExpertise,
         String skillsAndCompetences,
         String languagesSpoken,
+        String languageProficiencies,
         String notes,
-        String profilePhotoDataUrl
+        String profilePhotoDataUrl,
+        String professionalExperiences,
+        String profileLinks
 ) {}

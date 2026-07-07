@@ -136,7 +136,6 @@
 		if (!areasOfExpertise.includes(expertise)) {
 			areasOfExpertise = [...areasOfExpertise, expertise];
 		}
-		showAdvancedFilters = true;
 	};
 </script>
 

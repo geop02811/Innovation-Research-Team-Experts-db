@@ -25,6 +25,9 @@ public record UserProfileResponse(
         List<String> industrialAreasOfExpertise,
         List<String> skillsAndCompetences,
         List<String> languagesSpoken,
+        String languageProficiencies,
         String notes,
-        String profilePhotoDataUrl
+        String profilePhotoDataUrl,
+        String professionalExperiences,
+        String profileLinks
 ) {}

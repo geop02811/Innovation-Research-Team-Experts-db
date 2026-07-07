@@ -3,6 +3,14 @@
 	import type { Scholar } from '$lib/types/scholar';
 
 	let { scholar }: { scholar: Scholar } = $props();
+
+	const experienceDateRange = (experience: NonNullable<Scholar['professionalExperiences']>[number]) => {
+		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
+		const end = experience.isCurrent
+			? 'Present'
+			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
+		return [start, end].filter(Boolean).join(' - ');
+	};
 </script>
 
 <article class="profile-shell">
@@ -89,12 +97,39 @@
 			{#if scholar.languagesSpoken?.length}
 				<h3 class="aside-heading">Languages</h3>
 				<ul>
-					{#each scholar.languagesSpoken as lang}<li>{lang}</li>{/each}
+					{#each scholar.languageProficiencies?.length ? scholar.languageProficiencies : scholar.languagesSpoken.map((language) => ({ language, proficiency: '' })) as item}
+						<li>{item.language}{item.proficiency ? ` · ${item.proficiency}` : ''}</li>
+					{/each}
 				</ul>
 			{/if}
 		</aside>
 
 		<section class="profile-sections">
+			{#if scholar.professionalExperiences?.length}
+				<section class="experience-section">
+					<h2>Experience</h2>
+					<div class="experience-grid">
+						{#each scholar.professionalExperiences as experience}
+							<article class="experience-card">
+								<h3>{experience.title || 'Experience'}</h3>
+								<p class="experience-meta">
+									{#if experience.organization}{experience.organization}{/if}
+									{#if experience.employmentType} · {experience.employmentType}{/if}
+								</p>
+								{#if experienceDateRange(experience)}
+									<p class="experience-meta">{experienceDateRange(experience)}</p>
+								{/if}
+								{#if experience.location || experience.locationType}
+									<p class="experience-meta">
+										{[experience.location, experience.locationType].filter(Boolean).join(' · ')}
+									</p>
+								{/if}
+								<p>{experience.summary}</p>
+							</article>
+						{/each}
+					</div>
+				</section>
+			{/if}
 			<ProfileTabs sections={scholar.sections} />
 		</section>
 	</div>
@@ -145,10 +180,13 @@
 	}
 	.banner-photo img {
 		display: block;
-		width: 220px;
-		aspect-ratio: 3 / 4;
+		width: 152px;
+		height: 152px;
+		aspect-ratio: 1 / 1;
+		border-radius: 50%;
 		object-fit: cover;
-		margin-bottom: -3.5rem;
+		margin-bottom: -3rem;
+		border: 4px solid #fff;
 		box-shadow: 0 8px 28px rgba(0,0,0,0.35);
 	}
 
@@ -224,14 +262,15 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 38px;
-		height: 38px;
+		min-height: 38px;
 		background: var(--uz-orange, #e87722);
 		color: #fff;
 		font-size: 0.75rem;
 		font-weight: 700;
 		text-decoration: none;
-		border-radius: 50%;
+		border-radius: 8px;
+		padding: 0.45rem 0.65rem;
+		text-align: center;
 	}
 	.contact-grid {
 		flex: 1;
@@ -285,6 +324,47 @@
 		font-size: 0.88rem;
 		color: #555;
 		border-bottom: 1px solid var(--line);
+	}
+	.profile-sections {
+		display: grid;
+		gap: 2rem;
+		min-width: 0;
+	}
+	.experience-section {
+		display: grid;
+		gap: 1rem;
+	}
+	.experience-section h2 {
+		margin: 0;
+		font-size: 1.25rem;
+		color: var(--ink, #1f2a44);
+	}
+	.experience-grid {
+		display: grid;
+		gap: 1rem;
+	}
+	.experience-card {
+		display: grid;
+		gap: 0.35rem;
+		border: 1px solid var(--line);
+		border-radius: 8px;
+		padding: 1rem;
+		background: #fff;
+	}
+	.experience-card h3 {
+		margin: 0;
+		font-size: 1rem;
+		color: var(--ink, #1f2a44);
+	}
+	.experience-card p {
+		margin: 0;
+		line-height: 1.6;
+		color: #555;
+	}
+	.experience-card .experience-meta {
+		font-size: 0.86rem;
+		font-weight: 700;
+		color: #6a7282;
 	}
 
 	/* ── Responsive ── */

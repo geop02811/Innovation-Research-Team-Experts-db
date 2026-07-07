@@ -79,8 +79,16 @@
 		openSections[section] = !openSections[section];
 	};
 
+	type StringArrayScholarField =
+		| 'consultancyAvailability'
+		| 'preferredConsultancyTypes'
+		| 'geographicScope'
+		| 'languagesSpoken'
+		| 'areasOfExpertise'
+		| 'industrialAreasOfExpertise';
+
 	// Count helpers — how many scholars have this value
-	const countArray = (field: keyof Scholar, value: string): number =>
+	const countArray = (field: StringArrayScholarField, value: string): number =>
 		allScholars.filter((s) => {
 			const v = s[field];
 			return Array.isArray(v) ? v.includes(value) : v === value;
@@ -202,7 +210,7 @@
 						value={department}
 						onchange={(e) => onDepartmentChange(e.currentTarget.value)}
 					>
-						<option value="">All Departments</option>
+						<option value="">All Departments / Institutes / Units</option>
 						{#each availableDepts as dept}
 							<option value={dept}>{dept}</option>
 						{/each}
