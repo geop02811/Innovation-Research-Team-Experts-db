@@ -34,14 +34,13 @@
 
 	// ── Step state ──────────────────────────────────────────────────────────────
 	let currentStep = $state(1);
-	const totalSteps = 6;
+	const totalSteps = 5;
 	const stepLabels = [
-		'Personal Details',
+		'Personal & Account',
 		'Academic Profile',
 		'Skills & Competence',
 		'Experience',
-		'Profiles & Publications',
-		'Account Security'
+		'Profiles & Publications'
 	];
 
 	// ── Form fields ─────────────────────────────────────────────────────────────
@@ -125,6 +124,7 @@
 
 	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 	const PROFILE_PHOTO_SIZE = 400;
+	const MIN_PROFILE_PHOTO_DIMENSION = PROFILE_PHOTO_SIZE;
 
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
@@ -261,7 +261,7 @@
 	});
 
 	const restoreSignupDraft = (draft: Partial<SignupDraft>) => {
-		currentStep = Math.min(clampStep(draft.currentStep), 5);
+		currentStep = clampStep(draft.currentStep);
 		titlePrefix = asString(draft.titlePrefix);
 		fullName = asString(draft.fullName);
 		contactDetails = asString(draft.contactDetails);
@@ -319,17 +319,18 @@
 
 		if (file.size > MAX_FILE_BYTES) {
 			error = 'Profile picture must be 5 MB or smaller.';
+			profilePhotoDataUrl = '';
 			input.value = '';
 			return;
 		}
 
 		if (!file.type.startsWith('image/')) {
 			error = 'Profile picture must be an image file.';
+			profilePhotoDataUrl = '';
 			input.value = '';
 			return;
 		}
 
-		// Center-crop to LinkedIn-style 400×400 square, then compress to JPEG.
 		const dataUrl = await new Promise<string>((resolve, reject) => {
 			const reader = new FileReader();
 			reader.onerror = () => reject(new Error('Cannot read image file'));
@@ -337,6 +338,18 @@
 				const img = new Image();
 				img.onerror = () => reject(new Error('Cannot decode image'));
 				img.onload = () => {
+					if (
+						img.width < MIN_PROFILE_PHOTO_DIMENSION ||
+						img.height < MIN_PROFILE_PHOTO_DIMENSION
+					) {
+						reject(
+							new Error(
+								`Profile picture must be at least ${PROFILE_PHOTO_SIZE} x ${PROFILE_PHOTO_SIZE} pixels.`
+							)
+						);
+						return;
+					}
+
 					const sourceSize = Math.min(img.width, img.height);
 					const sourceX = Math.round((img.width - sourceSize) / 2);
 					const sourceY = Math.round((img.height - sourceSize) / 2);
@@ -361,7 +374,15 @@
 				img.src = String(reader.result);
 			};
 			reader.readAsDataURL(file);
+		}).catch((photoError) => {
+			const message = photoError instanceof Error ? photoError.message : 'Cannot process image file.';
+			error = message;
+			profilePhotoDataUrl = '';
+			input.value = '';
+			return '';
 		});
+
+		if (!dataUrl) return;
 
 		error = '';
 		profilePhotoDataUrl = dataUrl;
@@ -375,6 +396,10 @@
 					return 'Please complete all fields to continue.';
 				if (!isValidUzEmail(universityEmail))
 					return 'Please enter a valid UZ student, admin, or departmental email address.';
+					if (!profilePhotoDataUrl || !password || !confirmPassword)
+						return 'Please complete all account fields to continue.';
+					if (password !== confirmPassword) return 'Passwords do not match.';
+					if (password.length < 6) return 'Password must be at least 6 characters long.';
 				break;
 			case 2:
 				if (
@@ -416,12 +441,6 @@
 					return 'Please add at least one profile or publication link.';
 				if (!hasCompleteProfileLinks())
 					return 'Please complete the platform and URL for each profile link.';
-				break;
-			case 6:
-				if (!profilePhotoDataUrl || !password || !confirmPassword)
-					return 'Please complete all fields to continue.';
-				if (password !== confirmPassword) return 'Passwords do not match.';
-				if (password.length < 6) return 'Password must be at least 6 characters long.';
 				break;
 		}
 		return null;
@@ -512,7 +531,7 @@
 
 <main class="page-shell signup-shell">
 	<section class="signup-card">
-		<p class="kicker">Expert Registration</p>
+		<p class="kicker">Researcher Registration</p>
 		<h1>Create your expert profile</h1>
 		<p class="helper">
 			All fields are mandatory. Once your profile is approved, you will be able to log in.
@@ -542,7 +561,7 @@
 			<p class="error-msg" role="alert">{error}</p>
 		{/if}
 
-		<!-- ── Step 1: Personal Details ─────────────────────────────────── -->
+		<!-- ── Step 1: Personal & Account ─────────────────────────────────── -->
 		{#if currentStep === 1}
 			<div class="step-body">
 				<div class="two grid">
@@ -582,6 +601,26 @@
 						placeholder="Office address, preferred contact method, etc."
 					></textarea>
 				</label>
+
+				<label>
+					Professional Profile Picture
+					<input type="file" accept="image/*" onchange={onPhotoChange} />
+				</label>
+
+				{#if profilePhotoDataUrl}
+					<img src={profilePhotoDataUrl} alt="Profile preview" class="photo-preview" />
+				{/if}
+
+				<div class="two grid">
+					<label>
+						Password
+						<input type="password" bind:value={password} minlength="6" />
+					</label>
+					<label>
+						Confirm Password
+						<input type="password" bind:value={confirmPassword} minlength="6" />
+					</label>
+				</div>
 			</div>
 		{/if}
 
@@ -746,31 +785,6 @@
 					typeOptions={profileLinkTypeOptions}
 					onchange={(value) => (profileLinks = value)}
 				/>
-			</div>
-		{/if}
-
-		<!-- ── Step 6: Account Security ───────────────────────────────────── -->
-		{#if currentStep === 6}
-			<div class="step-body">
-				<label>
-					Professional Profile Picture
-					<input type="file" accept="image/*" onchange={onPhotoChange} />
-				</label>
-
-				{#if profilePhotoDataUrl}
-					<img src={profilePhotoDataUrl} alt="Profile preview" class="photo-preview" />
-				{/if}
-
-				<div class="two grid">
-					<label>
-						Password
-						<input type="password" bind:value={password} minlength="6" />
-					</label>
-					<label>
-						Confirm Password
-						<input type="password" bind:value={confirmPassword} minlength="6" />
-					</label>
-				</div>
 			</div>
 		{/if}
 
