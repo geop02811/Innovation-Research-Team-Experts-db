@@ -555,7 +555,7 @@
 <main class="page-shell signup-shell">
 	<section class="signup-card">
 		<p class="kicker">Researcher Registration</p>
-		<h1>Create your expert profile</h1>
+		<h1>Create your researcher profile</h1>
 		<p class="helper">
 			All fields are mandatory. Once your profile is approved, you will be able to log in.
 		</p>
