@@ -41,6 +41,15 @@
 		);
 	};
 
+	const toggleCurrentRole = (index: number) => {
+		const checked = !experiences[index]?.isCurrent;
+		updateExperience(index, {
+			isCurrent: checked,
+			endMonth: checked ? '' : experiences[index]?.endMonth,
+			endYear: checked ? '' : experiences[index]?.endYear
+		});
+	};
+
 	const removeExperience = (index: number) => {
 		onchange(experiences.filter((_, itemIndex) => itemIndex !== index));
 	};
@@ -90,19 +99,19 @@
 				/>
 			</label>
 
-			<label class="checkbox-row">
-				<input
-					type="checkbox"
-					checked={experience.isCurrent}
-					onchange={(event) =>
-						updateExperience(index, {
-							isCurrent: event.currentTarget.checked,
-							endMonth: event.currentTarget.checked ? '' : experience.endMonth,
-							endYear: event.currentTarget.checked ? '' : experience.endYear
-						})}
-				/>
+			<button
+				type="button"
+				class="current-role-toggle"
+				class:active={experience.isCurrent}
+				role="switch"
+				aria-checked={experience.isCurrent}
+				onclick={() => toggleCurrentRole(index)}
+			>
+				<span class="toggle-track" aria-hidden="true">
+					<span class="toggle-thumb"></span>
+				</span>
 				<span>I am currently working in this role</span>
-			</label>
+			</button>
 
 			<div class="field-grid two">
 				<label>
@@ -243,17 +252,57 @@
 		min-width: 0;
 	}
 
-	.checkbox-row {
+	.current-role-toggle {
+		border: 0;
+		background: transparent;
+		padding: 0;
 		display: flex;
 		align-items: center;
 		gap: 0.55rem;
+		justify-self: start;
+		font: inherit;
 		font-weight: 700;
+		color: var(--ink);
+		cursor: pointer;
+		text-align: left;
 	}
 
-	.checkbox-row input {
-		width: 1.1rem;
-		height: 1.1rem;
-		accent-color: #0a3a8d;
+	.toggle-track {
+		width: 2.35rem;
+		height: 1.35rem;
+		border: 2px solid #0a3a8d;
+		border-radius: 999px;
+		background: #fff;
+		padding: 0.12rem;
+		display: inline-flex;
+		align-items: center;
+		transition:
+			background 0.18s ease,
+			border-color 0.18s ease;
+	}
+
+	.toggle-thumb {
+		width: 0.85rem;
+		height: 0.85rem;
+		border-radius: 999px;
+		background: #0a3a8d;
+		transform: translateX(0);
+		transition: transform 0.18s ease;
+	}
+
+	.current-role-toggle.active .toggle-track {
+		background: #0a3a8d;
+	}
+
+	.current-role-toggle.active .toggle-thumb {
+		background: #fff;
+		transform: translateX(1rem);
+	}
+
+	.current-role-toggle:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.16);
+		border-radius: 999px;
 	}
 
 	input,

@@ -125,6 +125,10 @@
 	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 	const PROFILE_PHOTO_SIZE = 400;
 	const MIN_PROFILE_PHOTO_DIMENSION = PROFILE_PHOTO_SIZE;
+	const PASSWORD_VALIDATION_ERRORS = [
+		'Passwords do not match.',
+		'Password must be at least 6 characters long.'
+	];
 
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
@@ -388,6 +392,21 @@
 		profilePhotoDataUrl = dataUrl;
 	};
 
+	const validatePasswordFields = (): string | null => {
+		if (password && password.length < 6) return 'Password must be at least 6 characters long.';
+		if (password && confirmPassword && password !== confirmPassword) return 'Passwords do not match.';
+		return null;
+	};
+
+	const validatePasswordEntry = () => {
+		const passwordError = validatePasswordFields();
+		if (passwordError) {
+			error = passwordError;
+			return;
+		}
+		if (PASSWORD_VALIDATION_ERRORS.includes(error)) error = '';
+	};
+
 	// ── Per-step validation ─────────────────────────────────────────────────────
 	const validateStep = (step: number): string | null => {
 		switch (step) {
@@ -396,10 +415,9 @@
 					return 'Please complete all fields to continue.';
 				if (!isValidUzEmail(universityEmail))
 					return 'Please enter a valid UZ student, admin, or departmental email address.';
-					if (!profilePhotoDataUrl || !password || !confirmPassword)
-						return 'Please complete all account fields to continue.';
-					if (password !== confirmPassword) return 'Passwords do not match.';
-					if (password.length < 6) return 'Password must be at least 6 characters long.';
+				if (!profilePhotoDataUrl || !password || !confirmPassword)
+					return 'Please complete all account fields to continue.';
+				return validatePasswordFields();
 				break;
 			case 2:
 				if (
@@ -463,6 +481,11 @@
 	};
 
 	const nextStep = () => {
+		const stepError = validateStep(currentStep);
+		if (stepError) {
+			error = stepError;
+			return;
+		}
 		goToStep(currentStep + 1);
 	};
 
@@ -614,11 +637,16 @@
 				<div class="two grid">
 					<label>
 						Password
-						<input type="password" bind:value={password} minlength="6" />
+						<input type="password" bind:value={password} minlength="6" oninput={validatePasswordEntry} />
 					</label>
 					<label>
 						Confirm Password
-						<input type="password" bind:value={confirmPassword} minlength="6" />
+						<input
+							type="password"
+							bind:value={confirmPassword}
+							minlength="6"
+							oninput={validatePasswordEntry}
+						/>
 					</label>
 				</div>
 			</div>

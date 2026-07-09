@@ -50,7 +50,7 @@ public class  SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(
                         request -> {
                             var config = new org.springframework.web.cors.CorsConfiguration();
@@ -77,7 +77,7 @@ public class  SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/grants").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/events").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/competitions").permitAll()
