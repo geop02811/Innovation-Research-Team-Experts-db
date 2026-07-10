@@ -10,7 +10,7 @@
 	let activeTab = $state<TabId>('bio');
 
 	const tabs: { id: TabId; label: string }[] = [
-		{ id: 'bio', label: 'Bio' },
+		{ id: 'bio', label: 'Biography' },
 		{ id: 'skills', label: 'Skills & Competence' },
 		{ id: 'experience', label: 'Experience' },
 		{ id: 'profiles', label: 'Profiles & Publications' }
@@ -43,7 +43,7 @@
 	<div class="tabs-content">
 		{#if activeTab === 'bio'}
 			<section class="tab-content active" role="tabpanel">
-				<h2>Bio</h2>
+				<h2>Biography</h2>
 				<p class="bio-copy">{scholar.bio || scholar.shortBio || 'No bio has been added yet.'}</p>
 			</section>
 		{:else if activeTab === 'skills'}
@@ -145,36 +145,46 @@
 
 	.profile-tabs {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.65rem;
+		gap: 2.2rem;
 		border-bottom: 1px solid #dfe5ef;
-		padding-bottom: 0.8rem;
+		overflow-x: auto;
 	}
 
 	.tab-button {
-		background: #fff;
-		border: 1px solid #d9e0ec;
-		border-radius: 999px;
-		padding: 0.55rem 0.9rem;
-		font-size: 0.88rem;
-		font-weight: 700;
-		color: #59606f;
+		position: relative;
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		padding: 1rem 0 1.05rem;
+		font-size: clamp(1rem, 2vw, 1.45rem);
+		font-weight: 800;
+		color: var(--uz-navy, #1b2b4e);
 		cursor: pointer;
+		white-space: nowrap;
 		transition:
-			background 0.2s ease,
-			border-color 0.2s ease,
 			color 0.2s ease;
 	}
 
+	.tab-button::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		height: 3px;
+		background: transparent;
+	}
+
 	.tab-button:hover {
-		border-color: var(--uz-navy, #1b2b4e);
-		color: var(--uz-navy, #1b2b4e);
+		color: var(--uz-orange, #e87722);
 	}
 
 	.tab-button.active {
-		background: var(--uz-navy, #1b2b4e);
-		border-color: var(--uz-navy, #1b2b4e);
-		color: #fff;
+		color: var(--uz-orange, #e87722);
+	}
+
+	.tab-button.active::before {
+		background: var(--uz-orange, #e87722);
 	}
 
 	.tab-content {

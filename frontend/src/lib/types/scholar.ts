@@ -28,6 +28,7 @@ export interface Scholar {
 	id: string;
 	slug: string;
 	fullName: string;
+	titlePrefix?: string;
 	qualifications: string;
 	role: ScholarRole;
 	headline: string;

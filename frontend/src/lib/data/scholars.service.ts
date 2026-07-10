@@ -86,13 +86,21 @@ const parseProfessionalExperiences = (
 	return parseLegacyExperienceSummary(fallbackSummary);
 };
 
+const displayFullName = (fullName: string | undefined, titlePrefix: string | undefined) => {
+	const name = fullName?.trim() ?? '';
+	const prefix = titlePrefix?.trim() ?? '';
+	if (!prefix || name.toLowerCase().startsWith(`${prefix.toLowerCase()} `)) return name;
+	return `${prefix} ${name}`.trim();
+};
+
 const mapToScholar = (e: Record<string, string>): Scholar => ({
 	id: e.id,
 	slug: slugify(e.fullName ?? e.id),
-	fullName: e.fullName ?? '',
+	fullName: displayFullName(e.fullName, e.titlePrefix),
+	titlePrefix: e.titlePrefix,
 	qualifications: e.highestQualification ?? '',
 	role: (e.academicRank as Scholar['role']) ?? 'Lecturer',
-	headline: [e.titlePrefix, e.academicRank, e.department].filter(Boolean).join(' · '),
+	headline: [e.academicRank, e.department].filter(Boolean).join(' · '),
 	college: e.faculty ?? '',
 	program: e.department ?? '',
 	cohort: e.faculty ?? '',

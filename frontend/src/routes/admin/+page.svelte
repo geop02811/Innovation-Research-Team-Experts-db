@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authService } from '$lib/auth/auth.service';
+	import {
+		credentialIssueDate,
+		membershipOrganizationName,
+		membershipPeriod,
+		membershipPositionHeld,
+		parseComplianceCredentials,
+		parseProfessionalMemberships
+	} from '$lib/auth/structured-profile-fields';
 	import type { GrantItem, GrantPayload, EventItem, EventPayload, CompetitionItem, CompetitionPayload, AlumniNewsItem, AlumniNewsPayload } from '$lib/auth/auth.service';
-	import type { AdminUser, UserRole } from '$lib/auth/types';
+	import type { AdminUser, ProfessionalExperience, ProfileLink, UserRole } from '$lib/auth/types';
 
 	let users = $state<AdminUser[]>([]);
 	let activeTab = $state<'pending' | 'approved' | 'all' | 'funding-opportunities' | 'events' | 'competitions' | 'alumni'>('pending');
@@ -158,6 +166,79 @@
 
 	const displayName = (u: AdminUser) =>
 		`${u.titlePrefix ?? ''} ${u.fullName ?? u.name + ' ' + u.surname}`.trim();
+
+	const parseJsonArray = (value: unknown): unknown[] => {
+		if (Array.isArray(value)) return value;
+		if (typeof value !== 'string' || !value.trim()) return [];
+		try {
+			const parsed = JSON.parse(value);
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	};
+
+	const parseLegacyExperienceSummary = (summary: string): ProfessionalExperience[] =>
+		summary
+			.split(/\n{2,}|\s+\.\s+(?=[^.:]{2,90}\sat\s[^:]{2,120}:)/)
+			.map((entry) => entry.trim().replace(/^\.+\s*/, ''))
+			.filter(Boolean)
+			.map((entry): ProfessionalExperience => {
+				const match = entry.match(/^(.+?)\s+at\s+(.+?):\s*(.+)$/i);
+				return {
+					title: match?.[1]?.trim() || 'Experience',
+					employmentType: '',
+					organization: match?.[2]?.trim() || '',
+					isCurrent: false,
+					startMonth: '',
+					startYear: '',
+					endMonth: '',
+					endYear: '',
+					location: '',
+					locationType: '',
+					summary: (match?.[3] ?? entry).trim()
+				};
+			});
+
+	const parseProfessionalExperiences = (
+		value: unknown,
+		fallbackSummary: string | null | undefined
+	): ProfessionalExperience[] => {
+		const entries = parseJsonArray(value).filter(
+			(item): item is ProfessionalExperience =>
+				typeof item === 'object' &&
+				item !== null &&
+				typeof (item as ProfessionalExperience).title === 'string' &&
+				typeof (item as ProfessionalExperience).organization === 'string' &&
+				typeof (item as ProfessionalExperience).summary === 'string'
+		);
+
+		if (entries.length > 0 || !fallbackSummary) return entries;
+		return parseLegacyExperienceSummary(fallbackSummary);
+	};
+
+	const parseProfileLinks = (value: unknown): ProfileLink[] =>
+		parseJsonArray(value).filter(
+			(item): item is ProfileLink =>
+				typeof item === 'object' &&
+				item !== null &&
+				typeof (item as ProfileLink).type === 'string' &&
+				typeof (item as ProfileLink).url === 'string'
+		);
+
+	const splitCsv = (value: string | null) =>
+		(value ?? '')
+			.split(',')
+			.map((item) => item.trim())
+			.filter(Boolean);
+
+	const experienceDateRange = (experience: ProfessionalExperience) => {
+		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
+		const end = experience.isCurrent
+			? 'Present'
+			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
+		return [start, end].filter(Boolean).join(' - ');
+	};
 </script>
 
 <svelte:head>
@@ -215,6 +296,10 @@
 
 							<!-- Expandable detail drawer -->
 							{#if expandedId === user.id}
+								{@const memberships = parseProfessionalMemberships(user.professionalMemberships)}
+								{@const complianceCredentials = parseComplianceCredentials(user.complianceAccreditation)}
+								{@const experiences = parseProfessionalExperiences(user.professionalExperiences, user.consultancyExperience)}
+								{@const links = parseProfileLinks(user.profileLinks)}
 								<div class="detail-drawer">
 									<div class="detail-grid">
 										<div class="detail-section">
@@ -231,25 +316,94 @@
 										{/if}
 										<div class="detail-section">
 											<p class="section-label">Academic</p>
-											<p>{user.academicRank ?? '—'} • {user.highestQualification ?? '—'}</p>
-											<p>{user.faculty ?? '—'} — {user.department ?? '—'}</p>
-											{#if user.professionalMemberships}<p>{user.professionalMemberships}</p>{/if}
+											<div class="profile-detail-card compact-card">
+												<h4>{user.academicRank ?? 'Academic rank not set'}</h4>
+												<p class="detail-card-meta">{user.highestQualification ?? 'Qualification not set'}</p>
+												<p>{user.faculty ?? 'Faculty not set'} — {user.department ?? 'Department not set'}</p>
+											</div>
 										</div>
-										<div class="detail-section">
+										<div class="detail-section wide-section">
+											<p class="section-label">Professional Memberships</p>
+											<div class="detail-card-list">
+												{#each memberships as membership}
+													<article class="profile-detail-card">
+														<h4>{membershipOrganizationName(membership) || 'Membership organization'}</h4>
+														<p class="detail-card-meta">{membershipPositionHeld(membership) || 'Position not set'}</p>
+														{#if membership.associatedWith}
+															<p>Associated with: {membership.associatedWith}</p>
+														{/if}
+														{#if membershipPeriod(membership)}
+															<p>{membershipPeriod(membership)}</p>
+														{/if}
+														<p class="long-text">{membership.description || '—'}</p>
+													</article>
+												{:else}
+													<p class="muted-text">No memberships supplied.</p>
+												{/each}
+											</div>
+										</div>
+										<div class="detail-section wide-section">
 											<p class="section-label">Experience</p>
-											<p>{user.yearsOfConsultancyExperience ?? '—'} • {user.consultancyAvailability ?? '—'}</p>
-											<p>{user.geographicScope ?? '—'}</p>
-											{#if user.consultancyExperience}<p class="experience-text">{user.consultancyExperience}</p>{/if}
+											<div class="pill-row">
+												{#if user.yearsOfConsultancyExperience}<span class="pill">{user.yearsOfConsultancyExperience}</span>{/if}
+												{#if user.consultancyAvailability}<span class="pill">{user.consultancyAvailability}</span>{/if}
+												{#each splitCsv(user.geographicScope) as scope}<span class="pill">{scope}</span>{/each}
+											</div>
+											<div class="detail-card-list">
+												{#each experiences as experience}
+													<article class="profile-detail-card">
+														<h4>{experience.title || 'Experience'}</h4>
+														<p class="detail-card-meta">
+															{[experience.organization, experience.employmentType].filter(Boolean).join(' • ') || 'Organization not set'}
+														</p>
+														{#if experienceDateRange(experience)}<p>{experienceDateRange(experience)}</p>{/if}
+														{#if experience.location || experience.locationType}
+															<p>{[experience.location, experience.locationType].filter(Boolean).join(' • ')}</p>
+														{/if}
+														<p class="long-text">{experience.summary || '—'}</p>
+													</article>
+												{:else}
+													<p class="muted-text">No experience details supplied.</p>
+												{/each}
+											</div>
 										</div>
 										<div class="detail-section">
 											<p class="section-label">Expertise</p>
-											{#if user.areasOfExpertise}<p>{user.areasOfExpertise.split(',').join(' • ')}</p>{/if}
-											{#if user.skillsAndCompetences}<p>{user.skillsAndCompetences.split(',').join(' • ')}</p>{/if}
+											<div class="pill-row">
+												{#each [...splitCsv(user.areasOfExpertise), ...splitCsv(user.industrialAreasOfExpertise), ...splitCsv(user.skillsAndCompetences)] as item}
+													<span class="pill">{item}</span>
+												{:else}
+													<span class="muted-text">No expertise supplied.</span>
+												{/each}
+											</div>
 										</div>
-										{#if user.complianceAccreditation}
-											<div class="detail-section">
-												<p class="section-label">Compliance / Accreditation</p>
-												<p>{user.complianceAccreditation}</p>
+										<div class="detail-section wide-section">
+											<p class="section-label">Compliance / Accreditation</p>
+											<div class="detail-card-list">
+												{#each complianceCredentials as credential}
+													<article class="profile-detail-card">
+														<h4>{credential.name || 'Compliance credential'}</h4>
+														<p class="detail-card-meta">{credential.issuingOrganization || 'Issuing organization not set'}</p>
+														{#if credentialIssueDate(credential)}<p>Issue date: {credentialIssueDate(credential)}</p>{/if}
+														{#if credential.credentialUrl}<p>Credential ID / URL: {credential.credentialUrl}</p>{/if}
+														<p class="long-text">{credential.skillsAssociated || '—'}</p>
+													</article>
+												{:else}
+													<p class="muted-text">No compliance credentials supplied.</p>
+												{/each}
+											</div>
+										</div>
+										{#if links.length > 0}
+											<div class="detail-section wide-section">
+												<p class="section-label">Profiles & Publications</p>
+												<div class="link-card-list">
+													{#each links as link}
+														<a class="profile-link-card-admin" href={link.url} target="_blank" rel="noopener noreferrer">
+															<strong>{link.label || link.type}</strong>
+															<span>{link.url}</span>
+														</a>
+													{/each}
+												</div>
 											</div>
 										{/if}
 										{#if user.notes}
@@ -761,9 +915,24 @@
 
 	.detail-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 		gap: 1rem;
 		margin-bottom: 1rem;
+		align-items: start;
+	}
+
+	.detail-section {
+		display: grid;
+		gap: 0.55rem;
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		padding: 0.85rem;
+		background: #fff;
+		min-width: 0;
+	}
+
+	.wide-section {
+		grid-column: span 2;
 	}
 
 	.detail-section p {
@@ -784,6 +953,94 @@
 	.experience-text {
 		color: #555 !important;
 		line-height: 1.5;
+	}
+
+	.detail-card-list,
+	.link-card-list {
+		display: grid;
+		gap: 0.65rem;
+	}
+
+	.profile-detail-card {
+		display: grid;
+		gap: 0.35rem;
+		border: 1px solid #d8dee9;
+		border-left: 3px solid #0a3a8d;
+		border-radius: 8px;
+		padding: 0.8rem;
+		background: #f8fafc;
+		min-width: 0;
+	}
+
+	.compact-card {
+		background: #f6f8fb;
+	}
+
+	.profile-detail-card h4 {
+		margin: 0;
+		font-size: 0.96rem;
+		color: var(--ink);
+	}
+
+	.detail-card-meta {
+		font-weight: 700;
+		color: var(--ink-soft) !important;
+	}
+
+	.long-text {
+		white-space: pre-wrap;
+		line-height: 1.55;
+	}
+
+	.muted-text {
+		color: var(--ink-soft) !important;
+		font-style: italic;
+	}
+
+	.pill-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		border-radius: 999px;
+		background: #e8eef8;
+		color: #0a3a8d;
+		padding: 0.25rem 0.55rem;
+		font-size: 0.78rem;
+		font-weight: 800;
+	}
+
+	.profile-link-card-admin {
+		display: grid;
+		gap: 0.18rem;
+		border: 1px solid #d8dee9;
+		border-radius: 8px;
+		padding: 0.72rem 0.8rem;
+		background: #f8fafc;
+		color: inherit;
+		text-decoration: none;
+		min-width: 0;
+	}
+
+	.profile-link-card-admin strong,
+	.profile-link-card-admin span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.profile-link-card-admin span {
+		font-size: 0.82rem;
+		color: var(--ink-soft);
+	}
+
+	.profile-link-card-admin:hover {
+		border-color: #0a3a8d;
+		box-shadow: 0 10px 22px rgba(27, 43, 78, 0.08);
 	}
 
 	/* ── Supporting documents ── */
@@ -978,6 +1235,10 @@
 	}
 
 	@media (max-width: 600px) {
+		.wide-section {
+			grid-column: 1;
+		}
+
 		.pt-header,
 		.pt-row {
 			grid-template-columns: 1fr 90px 110px;
