@@ -149,9 +149,37 @@
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 0.75rem;
+		align-items: stretch;
 		border-top: 1px solid #dfe5ef;
 		border-bottom: 1px solid #dfe5ef;
 		min-width: 0;
+	}
+
+	.profile-tabs::before {
+		content: '';
+		position: absolute;
+		top: -1px;
+		width: min(100%, 12.5rem);
+		height: 3px;
+		background: var(--uz-orange, #e87722);
+		transform: translateX(-50%);
+		z-index: 1;
+	}
+
+	.profile-tabs:has(.tab-button:nth-child(1).active)::before {
+		left: 12.5%;
+	}
+
+	.profile-tabs:has(.tab-button:nth-child(2).active)::before {
+		left: 37.5%;
+	}
+
+	.profile-tabs:has(.tab-button:nth-child(3).active)::before {
+		left: 62.5%;
+	}
+
+	.profile-tabs:has(.tab-button:nth-child(4).active)::before {
+		left: 87.5%;
 	}
 
 	.tab-button {
@@ -160,6 +188,10 @@
 		border: 0;
 		border-radius: 0;
 		padding: 0.65rem 0.25rem 0.7rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: stretch;
 		font-size: clamp(0.88rem, 1.35vw, 1.12rem);
 		font-weight: 800;
 		line-height: 1.16;
@@ -173,26 +205,12 @@
 			color 0.2s ease;
 	}
 
-	.tab-button::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: -1px;
-		height: 3px;
-		background: transparent;
-	}
-
 	.tab-button:hover {
 		color: var(--uz-orange, #e87722);
 	}
 
 	.tab-button.active {
 		color: var(--uz-orange, #e87722);
-	}
-
-	.tab-button.active::before {
-		background: var(--uz-orange, #e87722);
 	}
 
 	.tab-content {
