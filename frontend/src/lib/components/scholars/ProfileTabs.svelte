@@ -150,8 +150,10 @@
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 0.75rem;
 		align-items: stretch;
+		padding: 0;
+		background: transparent;
 		border-top: 1px solid #dfe5ef;
-		border-bottom: 1px solid #dfe5ef;
+		border-bottom: 0;
 		min-width: 0;
 	}
 

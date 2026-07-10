@@ -267,7 +267,7 @@
 		display: grid;
 		grid-template-columns: 230px 1fr;
 		gap: 3rem;
-		padding: 2rem;
+		padding: 0 2rem 2rem;
 	}
 
 	.profile-aside { border-right: 1px solid var(--line); padding-right: 2rem; }
