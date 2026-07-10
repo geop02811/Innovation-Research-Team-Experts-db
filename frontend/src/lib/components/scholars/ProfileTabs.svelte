@@ -141,13 +141,15 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
+		min-width: 0;
 	}
 
 	.profile-tabs {
-		display: flex;
-		gap: 2.2rem;
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 0.75rem;
 		border-bottom: 1px solid #dfe5ef;
-		overflow-x: auto;
+		min-width: 0;
 	}
 
 	.tab-button {
@@ -155,12 +157,16 @@
 		background: transparent;
 		border: 0;
 		border-radius: 0;
-		padding: 1rem 0 1.05rem;
-		font-size: clamp(1rem, 2vw, 1.45rem);
+		padding: 0.9rem 0.25rem 0.95rem;
+		font-size: clamp(0.88rem, 1.35vw, 1.12rem);
 		font-weight: 800;
+		line-height: 1.16;
 		color: var(--uz-navy, #1b2b4e);
 		cursor: pointer;
-		white-space: nowrap;
+		min-width: 0;
+		text-align: center;
+		white-space: normal;
+		text-wrap: balance;
 		transition:
 			color 0.2s ease;
 	}
@@ -276,6 +282,11 @@
 	}
 
 	@media (max-width: 720px) {
+		.profile-tabs {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.35rem 0.75rem;
+		}
+
 		.section-grid {
 			grid-template-columns: 1fr;
 		}
