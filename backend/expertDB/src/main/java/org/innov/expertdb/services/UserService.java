@@ -40,6 +40,7 @@ public class UserService {
         user.setTitlePrefix(request.titlePrefix());
         user.setFullName(request.fullName());
         user.setContactDetails(request.contactDetails());
+        user.setBio(request.bio());
         user.setAcademicRank(request.academicRank());
         user.setUniversityEmail(request.universityEmail());
         user.setPhoneNumber(request.phoneNumber());

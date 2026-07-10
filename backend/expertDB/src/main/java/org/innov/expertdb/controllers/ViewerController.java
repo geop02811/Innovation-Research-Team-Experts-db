@@ -53,6 +53,7 @@ public class ViewerController {
         if (req.fullName() != null) user.setFullName(req.fullName());
         if (req.titlePrefix() != null) user.setTitlePrefix(req.titlePrefix());
         if (req.phoneNumber() != null) user.setPhoneNumber(req.phoneNumber());
+        if (req.bio() != null) user.setBio(req.bio());
         if (req.faculty() != null) user.setFaculty(req.faculty());
         if (req.department() != null) user.setDepartment(req.department());
         if (req.academicRank() != null) user.setAcademicRank(req.academicRank());
@@ -87,6 +88,7 @@ public class ViewerController {
                 u.getTitlePrefix(),
                 u.getPhoneNumber(),
                 u.getUniversityEmail(),
+                u.getBio(),
                 u.getFaculty(),
                 u.getDepartment(),
                 u.getAcademicRank(),
@@ -185,6 +187,7 @@ public class ViewerController {
                 u.getDepartment(),
                 u.getUniversityEmail(),
                 u.getPhoneNumber(),
+                u.getBio(),
                 u.getConsultancyExperience(),
                 u.getConsultancyAvailability(),
                 u.getYearsOfConsultancyExperience(),

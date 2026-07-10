@@ -17,6 +17,7 @@ public record AdminUserResponse(
         String titlePrefix,
         String fullName,
         String contactDetails,
+        String bio,
         String academicRank,
         String universityEmail,
         String phoneNumber,

@@ -1,5 +1,4 @@
 import { redirect } from '@sveltejs/kit';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent, cookies, fetch }) => {
@@ -15,7 +14,7 @@ export const load: PageServerLoad = async ({ parent, cookies, fetch }) => {
 	}
 
 	try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`, {
+		const res = await fetch('/api/viewer/profile', {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 

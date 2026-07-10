@@ -10,6 +10,7 @@ public record UserProfileResponse(
         String titlePrefix,
         String phoneNumber,
         String universityEmail,
+        String bio,
         String faculty,
         String department,
         String academicRank,

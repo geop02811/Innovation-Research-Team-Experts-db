@@ -1,5 +1,4 @@
 import { browser } from '$app/environment';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import { SESSION_COOKIE_NAME, parseSession, serializeSession } from '$lib/auth/session';
 import type {
 	AdminNotificationsResponse,
@@ -9,6 +8,7 @@ import type {
 } from '$lib/auth/types';
 
 const JWT_STORAGE_KEY = 'uz_token';
+const API_BASE_URL = '';
 
 const clearSession = () => {
 	if (!browser) return;
@@ -72,7 +72,7 @@ export const authService = {
 		const p = payload.profile;
 
 		try {
-			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/auth/signup`, {
+			const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -83,6 +83,7 @@ export const authService = {
 					titlePrefix: p.titlePrefix,
 					fullName: p.fullName,
 					contactDetails: p.contactDetails,
+					bio: p.bio,
 					academicRank: p.academicRank,
 					universityEmail: p.universityEmail,
 					phoneNumber: p.phoneNumber,
@@ -126,7 +127,7 @@ export const authService = {
 		password: string
 	): Promise<{ ok: boolean; message: string; session?: SessionUser }> => {
 		try {
-			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/auth/login`, {
+			const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password })
@@ -166,7 +167,7 @@ export const authService = {
 
 	listUsers: async (): Promise<{ users: import('$lib/auth/types').AdminUser[]; error?: string }> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users`);
+			const res = await authFetch(`${API_BASE_URL}/api/admin/users`);
 			if (!res.ok) {
 				const text = await res.text();
 				return { users: [], error: `Server error ${res.status}: ${text || res.statusText}` };
@@ -178,15 +179,15 @@ export const authService = {
 	},
 
 	approveUser: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/approve`, { method: 'PUT' });
+		await authFetch(`${API_BASE_URL}/api/admin/users/${id}/approve`, { method: 'PUT' });
 	},
 
 	rejectUser: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/reject`, { method: 'PUT' });
+		await authFetch(`${API_BASE_URL}/api/admin/users/${id}/reject`, { method: 'PUT' });
 	},
 
 	updateRole: async (id: string, role: import('$lib/auth/types').UserRole): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/users/${id}/role`, {
+		await authFetch(`${API_BASE_URL}/api/admin/users/${id}/role`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ role })
@@ -195,7 +196,7 @@ export const authService = {
 
 	updateProfile: async (payload: Record<string, unknown>): Promise<{ ok: boolean; message: string; profile?: unknown }> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`, {
+			const res = await authFetch(`${API_BASE_URL}/api/viewer/profile`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
@@ -213,7 +214,7 @@ export const authService = {
 
 	getProfile: async (): Promise<Record<string, unknown> | null> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/profile`);
+			const res = await authFetch(`${API_BASE_URL}/api/viewer/profile`);
 			if (!res.ok) return null;
 			return res.json();
 		} catch {
@@ -223,7 +224,7 @@ export const authService = {
 
 	getAdminNotifications: async (): Promise<AdminNotificationsResponse> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/notifications`);
+			const res = await authFetch(`${API_BASE_URL}/api/admin/notifications`);
 			if (!res.ok) return { pendingCount: 0, pendingUsers: [] };
 			return res.json();
 		} catch {
@@ -233,7 +234,7 @@ export const authService = {
 
 	getViewerNotifications: async (): Promise<ViewerNotificationsResponse> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/viewer/notifications`);
+			const res = await authFetch(`${API_BASE_URL}/api/viewer/notifications`);
 			if (!res.ok) return { newExpertsCount: 0, newExperts: [] };
 			return res.json();
 		} catch {
@@ -244,7 +245,7 @@ export const authService = {
 	// ── Grants (public read) ──────────────────────────────────────
 	getGrants: async (): Promise<GrantItem[]> => {
 		try {
-			const res = await fetch(`${PUBLIC_API_BASE_URL}/api/grants`);
+			const res = await fetch(`${API_BASE_URL}/api/grants`);
 			if (!res.ok) return [];
 			return res.json();
 		} catch {
@@ -255,7 +256,7 @@ export const authService = {
 	// ── Grants (admin write) ──────────────────────────────────────
 	createGrant: async (payload: GrantPayload): Promise<{ ok: boolean; data?: GrantItem; message?: string }> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants`, {
+			const res = await authFetch(`${API_BASE_URL}/api/admin/grants`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
@@ -269,7 +270,7 @@ export const authService = {
 
 	updateGrant: async (id: string, payload: GrantPayload): Promise<{ ok: boolean; data?: GrantItem; message?: string }> => {
 		try {
-			const res = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants/${id}`, {
+			const res = await authFetch(`${API_BASE_URL}/api/admin/grants/${id}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
@@ -282,49 +283,49 @@ export const authService = {
 	},
 
 	deleteGrant: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/grants/${id}`, { method: 'DELETE' });
+		await authFetch(`${API_BASE_URL}/api/admin/grants/${id}`, { method: 'DELETE' });
 	},
 
 	// ── Events ────────────────────────────────────────────────────
 	getEvents: async (): Promise<EventItem[]> => {
-		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/events`); return r.ok ? r.json() : []; } catch { return []; }
+		try { const r = await fetch(`${API_BASE_URL}/api/events`); return r.ok ? r.json() : []; } catch { return []; }
 	},
 	createEvent: async (p: EventPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/events`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	updateEvent: async (id: string, p: EventPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/events/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	deleteEvent: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/events/${id}`, { method: 'DELETE' });
+		await authFetch(`${API_BASE_URL}/api/admin/events/${id}`, { method: 'DELETE' });
 	},
 
 	// ── Competitions ──────────────────────────────────────────────
 	getCompetitions: async (): Promise<CompetitionItem[]> => {
-		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/competitions`); return r.ok ? r.json() : []; } catch { return []; }
+		try { const r = await fetch(`${API_BASE_URL}/api/competitions`); return r.ok ? r.json() : []; } catch { return []; }
 	},
 	createCompetition: async (p: CompetitionPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/competitions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	updateCompetition: async (id: string, p: CompetitionPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/competitions/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	deleteCompetition: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/competitions/${id}`, { method: 'DELETE' });
+		await authFetch(`${API_BASE_URL}/api/admin/competitions/${id}`, { method: 'DELETE' });
 	},
 
 	// ── Alumni News ───────────────────────────────────────────────
 	getAlumniNews: async (): Promise<AlumniNewsItem[]> => {
-		try { const r = await fetch(`${PUBLIC_API_BASE_URL}/api/alumni-news`); return r.ok ? r.json() : []; } catch { return []; }
+		try { const r = await fetch(`${API_BASE_URL}/api/alumni-news`); return r.ok ? r.json() : []; } catch { return []; }
 	},
 	createAlumniNews: async (p: AlumniNewsPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/alumni-news`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	updateAlumniNews: async (id: string, p: AlumniNewsPayload) => {
-		try { const r = await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
+		try { const r = await authFetch(`${API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }); return r.ok ? { ok: true, data: await r.json() } : { ok: false, message: await r.text() }; } catch { return { ok: false, message: 'Network error' }; }
 	},
 	deleteAlumniNews: async (id: string): Promise<void> => {
-		await authFetch(`${PUBLIC_API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'DELETE' });
+		await authFetch(`${API_BASE_URL}/api/admin/alumni-news/${id}`, { method: 'DELETE' });
 	}
 };
 

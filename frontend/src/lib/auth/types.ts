@@ -30,6 +30,7 @@ export interface ExpertProfile {
 	titlePrefix: 'Eng' | 'Dr' | 'Prof' | 'Mr' | 'Mrs' | 'Ms';
 	fullName: string;
 	contactDetails: string;
+	bio: string;
 	academicRank: string;
 	universityEmail: string;
 	phoneNumber: string;
@@ -99,6 +100,7 @@ export interface AdminUser {
 	titlePrefix: string | null;
 	fullName: string | null;
 	contactDetails: string | null;
+	bio: string | null;
 	academicRank: string | null;
 	universityEmail: string | null;
 	phoneNumber: string | null;

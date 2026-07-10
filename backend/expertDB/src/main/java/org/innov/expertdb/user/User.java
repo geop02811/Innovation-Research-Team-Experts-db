@@ -54,6 +54,9 @@ public class User {
     @Column(name = "contact_details", columnDefinition = "TEXT")
     private String contactDetails;
 
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio;
+
     @Column(name = "academic_rank")
     private String academicRank;
 

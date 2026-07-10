@@ -47,6 +47,7 @@
 	let titlePrefix = $state('');
 	let fullName = $state('');
 	let contactDetails = $state('');
+	let bio = $state('');
 	let academicRank = $state('');
 	let customAcademicRank = $state('');
 	let universityEmail = $state('');
@@ -81,6 +82,7 @@
 		titlePrefix: string;
 		fullName: string;
 		contactDetails: string;
+		bio: string;
 		academicRank: string;
 		customAcademicRank: string;
 		universityEmail: string;
@@ -242,6 +244,7 @@
 		titlePrefix,
 		fullName,
 		contactDetails,
+		bio,
 		academicRank,
 		customAcademicRank,
 		universityEmail,
@@ -269,6 +272,7 @@
 		titlePrefix = asString(draft.titlePrefix);
 		fullName = asString(draft.fullName);
 		contactDetails = asString(draft.contactDetails);
+		bio = asString(draft.bio);
 		academicRank = asString(draft.academicRank);
 		customAcademicRank = asString(draft.customAcademicRank);
 		if (academicRank && !(academicRankOptions as readonly string[]).includes(academicRank)) {
@@ -411,7 +415,7 @@
 	const validateStep = (step: number): string | null => {
 		switch (step) {
 			case 1:
-				if (!titlePrefix || !fullName || !universityEmail || !phoneNumber || !contactDetails)
+				if (!titlePrefix || !fullName || !universityEmail || !phoneNumber || !contactDetails || !bio)
 					return 'Please complete all fields to continue.';
 				if (!isValidUzEmail(universityEmail))
 					return 'Please enter a valid UZ student, admin, or departmental email address.';
@@ -506,6 +510,7 @@
 			titlePrefix: titlePrefix as ExpertProfile['titlePrefix'],
 			fullName,
 			contactDetails,
+			bio,
 			academicRank: resolvedAcademicRank(),
 			universityEmail,
 			phoneNumber,
@@ -622,6 +627,16 @@
 						bind:value={contactDetails}
 						rows="3"
 						placeholder="Office address, preferred contact method, etc."
+					></textarea>
+				</label>
+
+				<label>
+					Profile Bio
+					<textarea
+						bind:value={bio}
+						rows="4"
+						maxlength="600"
+						placeholder="Write the short professional bio shown on your researcher card and profile."
 					></textarea>
 				</label>
 

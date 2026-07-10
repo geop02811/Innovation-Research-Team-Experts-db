@@ -23,6 +23,7 @@ public record RegisterRequest(
         String titlePrefix,
         String fullName,
         String contactDetails,
+        String bio,
         String academicRank,
         @NotBlank(message = "University email is required")
         @Pattern(

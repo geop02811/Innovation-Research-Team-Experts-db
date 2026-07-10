@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PUBLIC_API_BASE_URL } from '$env/static/public';
 	import { authService } from '$lib/auth/auth.service';
 	import type { GrantItem } from '$lib/auth/auth.service';
+
+	const API_BASE_URL = '';
 
 	let grants = $state<GrantItem[]>([]);
 	let loadError = $state('');
@@ -13,7 +14,7 @@
 		const params = new URLSearchParams();
 		if (q && q.trim()) params.set('q', q.trim());
 		if (status && status.trim()) params.set('status', status.trim());
-		const url = `${PUBLIC_API_BASE_URL}/api/grants${params.size ? '?' + params.toString() : ''}`;
+		const url = `${API_BASE_URL}/api/grants${params.size ? '?' + params.toString() : ''}`;
 		try {
 			const res = await fetch(url);
 			if (!res.ok) return;

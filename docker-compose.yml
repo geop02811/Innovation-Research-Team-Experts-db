@@ -4,18 +4,51 @@ services:
     container_name: expertdb-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: expert_db
-      POSTGRES_USER: olivermazorodze
-      POSTGRES_PASSWORD: root
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-expert_db}
+      POSTGRES_USER: ${POSTGRES_USER:-expert_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     volumes:
       - expertdb_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U olivermazorodze -d expert_db"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  backend:
+    build:
+      context: ./backend/expertDB
+    container_name: expertdb-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-expert_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-expert_app}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:3000,http://127.0.0.1:3000}
+    expose:
+      - "8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: expertdb-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PRIVATE_API_BASE_URL: http://backend:8080
+      HOST: 0.0.0.0
+      PORT: 3000
+      ORIGIN: ${PUBLIC_APP_ORIGIN:-http://localhost:3000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
 
 volumes:
   expertdb_data:

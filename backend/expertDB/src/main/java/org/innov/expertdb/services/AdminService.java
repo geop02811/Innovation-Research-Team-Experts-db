@@ -114,7 +114,7 @@ public class AdminService {
         return new AdminUserResponse(
                 u.getId(), u.getName(), u.getSurname(), u.getEmail(), u.getRole(), u.getStatus(),
                 u.getTitlePrefix(), u.getFullName(), u.getContactDetails(), u.getAcademicRank(),
-                u.getUniversityEmail(), u.getPhoneNumber(), u.getHighestQualification(),
+                u.getBio(), u.getUniversityEmail(), u.getPhoneNumber(), u.getHighestQualification(),
                 u.getProfessionalMemberships(), u.getComplianceAccreditation(),
                 u.getFaculty(), u.getDepartment(), u.getYearsOfConsultancyExperience(),
                 u.getConsultancyExperience(), u.getConsultancyAvailability(),

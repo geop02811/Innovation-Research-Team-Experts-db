@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ public class  SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,27 +53,7 @@ public class  SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(
-                        request -> {
-                            var config = new org.springframework.web.cors.CorsConfiguration();
-                            config.setAllowedOriginPatterns(java.util.List.of(
-                                    "http://localhost:5173",
-                                    "http://localhost:5174",
-                                    "http://127.0.0.1:5173",
-                                    "http://127.0.0.1:5174",
-                                    "http://10.*:5173",
-                                    "http://10.*:5174",
-                                    "http://192.168.*:5173",
-                                    "http://192.168.*:5174",
-                                    "http://172.*:5173",
-                                    "http://172.*:5174"
-                            ));
-                            config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                            config.setAllowedHeaders(java.util.List.of("*"));
-                            config.setAllowCredentials(true);
-                            return config;
-                        }
-                ))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

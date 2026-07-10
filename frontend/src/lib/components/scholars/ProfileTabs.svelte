@@ -1,39 +1,138 @@
 <script lang="ts">
-	import type { ScholarProfileSection } from '$lib/types/scholar';
+	import type { Scholar } from '$lib/types/scholar';
 
 	interface Props {
-		sections: ScholarProfileSection[];
+		scholar: Scholar;
 	}
 
-	let { sections }: Props = $props();
-	let activeTab = $state(0);
+	let { scholar }: Props = $props();
+	type TabId = 'bio' | 'skills' | 'experience' | 'profiles';
+	let activeTab = $state<TabId>('bio');
+
+	const tabs: { id: TabId; label: string }[] = [
+		{ id: 'bio', label: 'Bio' },
+		{ id: 'skills', label: 'Skills & Competence' },
+		{ id: 'experience', label: 'Experience' },
+		{ id: 'profiles', label: 'Profiles & Publications' }
+	];
+
+	const experienceDateRange = (experience: NonNullable<Scholar['professionalExperiences']>[number]) => {
+		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
+		const end = experience.isCurrent
+			? 'Present'
+			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
+		return [start, end].filter(Boolean).join(' - ');
+	};
 </script>
 
 <div class="profile-tabs-container">
 	<nav class="profile-tabs" aria-label="Profile sections">
-		{#each sections as section, index}
+		{#each tabs as tab}
 			<button
 				type="button"
-				class="tab-button {activeTab === index ? 'active' : ''}"
-				onclick={() => (activeTab = index)}
+				class="tab-button"
+				class:active={activeTab === tab.id}
+				onclick={() => (activeTab = tab.id)}
+				aria-pressed={activeTab === tab.id}
 			>
-				{section.title}
+				{tab.label}
 			</button>
 		{/each}
 	</nav>
 
 	<div class="tabs-content">
-		{#each sections as section, index}
-			<div
-				id={`tab-content-${index}`}
-				class="tab-content {activeTab === index ? 'active' : ''}"
-				role="tabpanel"
-				aria-labelledby={`tab-button-${index}`}
-			>
-				<h2>{section.title}</h2>
-				<p>{section.body}</p>
-			</div>
-		{/each}
+		{#if activeTab === 'bio'}
+			<section class="tab-content active" role="tabpanel">
+				<h2>Bio</h2>
+				<p class="bio-copy">{scholar.bio || scholar.shortBio || 'No bio has been added yet.'}</p>
+			</section>
+		{:else if activeTab === 'skills'}
+			<section class="tab-content active" role="tabpanel">
+				<h2>Skills &amp; Competence</h2>
+				<div class="section-grid">
+					<div class="subsection-card">
+						<h3>Areas of Expertise</h3>
+						<div class="tag-list">
+							{#each scholar.areasOfExpertise ?? [] as item}
+								<span>{item}</span>
+							{:else}
+								<p>No areas added yet.</p>
+							{/each}
+						</div>
+					</div>
+					<div class="subsection-card">
+						<h3>Skills</h3>
+						<div class="tag-list">
+							{#each scholar.sections.find((section) => section.title === 'Skills & Competences')?.body.split(' · ').filter(Boolean) ?? [] as item}
+								<span>{item}</span>
+							{:else}
+								<p>No skills added yet.</p>
+							{/each}
+						</div>
+					</div>
+					<div class="subsection-card">
+						<h3>Industrial Areas</h3>
+						<div class="tag-list">
+							{#each scholar.industrialAreasOfExpertise ?? [] as item}
+								<span>{item}</span>
+							{:else}
+								<p>No industrial areas added yet.</p>
+							{/each}
+						</div>
+					</div>
+					<div class="subsection-card">
+						<h3>Languages</h3>
+						<div class="tag-list">
+							{#each scholar.languageProficiencies?.length ? scholar.languageProficiencies : (scholar.languagesSpoken ?? []).map((language) => ({ language, proficiency: '' })) as item}
+								<span>{item.language}{item.proficiency ? ` · ${item.proficiency}` : ''}</span>
+							{:else}
+								<p>No languages added yet.</p>
+							{/each}
+						</div>
+					</div>
+				</div>
+			</section>
+		{:else if activeTab === 'experience'}
+			<section class="tab-content active" role="tabpanel">
+				<h2>Experience</h2>
+				<div class="experience-grid">
+					{#each scholar.professionalExperiences ?? [] as experience}
+						<article class="experience-card">
+							<h3>{experience.title || 'Experience'}</h3>
+							<p class="experience-meta">
+								{#if experience.organization}{experience.organization}{/if}
+								{#if experience.employmentType} · {experience.employmentType}{/if}
+							</p>
+							{#if experienceDateRange(experience)}
+								<p class="experience-meta">{experienceDateRange(experience)}</p>
+							{/if}
+							{#if experience.location || experience.locationType}
+								<p class="experience-meta">
+									{[experience.location, experience.locationType].filter(Boolean).join(' · ')}
+								</p>
+							{/if}
+							<p>{experience.summary || 'No summary added.'}</p>
+						</article>
+					{:else}
+						<p>No experience has been added yet.</p>
+					{/each}
+				</div>
+			</section>
+		{:else if activeTab === 'profiles'}
+			<section class="tab-content active" role="tabpanel">
+				<h2>Profiles &amp; Publications</h2>
+				<div class="link-grid">
+					{#each scholar.links as link}
+						<a class="profile-link-card" href={link.url} target="_blank" rel="noreferrer">
+							<span>{link.label}</span>
+							<small>{link.url}</small>
+						</a>
+					{:else}
+						<p>No public profile or publication links have been added yet.</p>
+					{/each}
+				</div>
+			</section>
+		{/if}
 	</div>
 </div>
 
@@ -46,59 +145,129 @@
 
 	.profile-tabs {
 		display: flex;
-		gap: 2rem;
-		border-bottom: 1px solid #e0e0e0;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+		border-bottom: 1px solid #dfe5ef;
+		padding-bottom: 0.8rem;
 	}
 
 	.tab-button {
-		background: none;
-		border: none;
-		padding: 0.75rem 0;
-		font-size: 1rem;
-		font-weight: 500;
-		color: #666;
+		background: #fff;
+		border: 1px solid #d9e0ec;
+		border-radius: 999px;
+		padding: 0.55rem 0.9rem;
+		font-size: 0.88rem;
+		font-weight: 700;
+		color: #59606f;
 		cursor: pointer;
-		position: relative;
-		transition: color 0.2s ease;
-		border-bottom: 2px solid transparent;
-		margin-bottom: -1px;
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease,
+			color 0.2s ease;
 	}
 
 	.tab-button:hover {
-		color: #333;
+		border-color: var(--uz-navy, #1b2b4e);
+		color: var(--uz-navy, #1b2b4e);
 	}
 
 	.tab-button.active {
-		color: #333;
-		border-bottom-color: #333;
-	}
-
-	.tabs-content {
-		position: relative;
+		background: var(--uz-navy, #1b2b4e);
+		border-color: var(--uz-navy, #1b2b4e);
+		color: #fff;
 	}
 
 	.tab-content {
-		opacity: 0;
-		pointer-events: none;
-		position: absolute;
-		width: 100%;
-		transition: opacity 0.3s ease;
-	}
-
-	.tab-content.active {
-		opacity: 1;
-		pointer-events: auto;
-		position: relative;
+		display: grid;
+		gap: 1rem;
 	}
 
 	.tab-content h2 {
 		margin: 0 0 1rem 0;
 		font-size: 1.25rem;
+		color: var(--ink, #1f2a44);
 	}
 
-	.tab-content p {
+	.tab-content p,
+	.bio-copy {
 		line-height: 1.6;
 		color: #555;
 		margin: 0;
+	}
+
+	.section-grid,
+	.experience-grid,
+	.link-grid {
+		display: grid;
+		gap: 1rem;
+	}
+
+	.section-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.subsection-card,
+	.experience-card,
+	.profile-link-card {
+		display: grid;
+		gap: 0.5rem;
+		border: 1px solid #dfe5ef;
+		border-radius: 8px;
+		padding: 1rem;
+		background: #fff;
+	}
+
+	.subsection-card h3,
+	.experience-card h3 {
+		margin: 0;
+		font-size: 1rem;
+		color: var(--ink, #1f2a44);
+	}
+
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	.tag-list span {
+		border-radius: 999px;
+		background: #f3f6fb;
+		border: 1px solid #d9e0ec;
+		padding: 0.35rem 0.65rem;
+		font-size: 0.82rem;
+		font-weight: 700;
+		color: #41506a;
+	}
+
+	.experience-meta {
+		font-size: 0.86rem;
+		font-weight: 700;
+		color: #6a7282;
+	}
+
+	.profile-link-card {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.profile-link-card:hover {
+		border-color: var(--uz-orange, #e87722);
+	}
+
+	.profile-link-card span {
+		font-weight: 800;
+		color: var(--ink, #1f2a44);
+	}
+
+	.profile-link-card small {
+		color: #6a7282;
+		word-break: break-word;
+	}
+
+	@media (max-width: 720px) {
+		.section-grid {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

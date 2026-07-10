@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import type { Scholar, ScholarExperience, ScholarLink } from '$lib/types/scholar';
+
+const API_BASE_URL = '';
 
 const slugify = (name: string) =>
 	name
@@ -46,6 +47,28 @@ const parseProfileLinks = (value: unknown): ScholarLink[] =>
 			typeof (item as ScholarLink).url === 'string'
 	);
 
+const parseLegacyExperienceSummary = (summary: string): ScholarExperience[] =>
+	summary
+		.split(/\n{2,}|\s+\.\s+(?=[^.:]{2,90}\sat\s[^:]{2,120}:)/)
+		.map((entry) => entry.trim().replace(/^\.+\s*/, ''))
+		.filter(Boolean)
+		.map((entry): ScholarExperience => {
+			const match = entry.match(/^(.+?)\s+at\s+(.+?):\s*(.+)$/i);
+			return {
+				title: match?.[1]?.trim() || 'Experience',
+				employmentType: '',
+				organization: match?.[2]?.trim() || '',
+				isCurrent: false,
+				startMonth: '',
+				startYear: '',
+				endMonth: '',
+				endYear: '',
+				location: '',
+				locationType: '',
+				summary: (match?.[3] ?? entry).trim()
+			};
+		});
+
 const parseProfessionalExperiences = (
 	value: unknown,
 	fallbackSummary: string | undefined
@@ -60,21 +83,7 @@ const parseProfessionalExperiences = (
 	);
 
 	if (entries.length > 0 || !fallbackSummary) return entries;
-	return [
-		{
-			title: 'Experience',
-			employmentType: '',
-			organization: '',
-			isCurrent: false,
-			startMonth: '',
-			startYear: '',
-			endMonth: '',
-			endYear: '',
-			location: '',
-			locationType: '',
-			summary: fallbackSummary
-		}
-	];
+	return parseLegacyExperienceSummary(fallbackSummary);
 };
 
 const mapToScholar = (e: Record<string, string>): Scholar => ({
@@ -94,7 +103,8 @@ const mapToScholar = (e: Record<string, string>): Scholar => ({
 	phone: e.phoneNumber ?? '',
 	location: e.faculty ?? '',
 	researchAreas: e.areasOfExpertise ? e.areasOfExpertise.split(',').map((s: string) => s.trim()) : [],
-	shortBio: e.consultancyExperience ?? e.notes ?? '',
+	bio: e.bio ?? e.notes ?? '',
+	shortBio: e.bio ?? e.notes ?? '',
 	links: parseProfileLinks(e.profileLinks),
 	professionalExperiences: parseProfessionalExperiences(e.professionalExperiences, e.consultancyExperience),
 	highestQualification: e.highestQualification as Scholar['highestQualification'],
@@ -109,7 +119,7 @@ const mapToScholar = (e: Record<string, string>): Scholar => ({
 	areasOfExpertise: e.areasOfExpertise ? e.areasOfExpertise.split(',').map((s: string) => s.trim()) : [],
 	industrialAreasOfExpertise: e.industrialAreasOfExpertise ? e.industrialAreasOfExpertise.split(',').map((s: string) => s.trim()) : [],
 	sections: [
-		e.notes ? { title: 'Biography', body: e.notes } : null,
+		e.bio ? { title: 'Biography', body: e.bio } : e.notes ? { title: 'Biography', body: e.notes } : null,
 		e.skillsAndCompetences
 			? {
 					title: 'Skills & Competences',
@@ -127,7 +137,7 @@ export const scholarsService = {
 			const token = getToken();
 			const headers: Record<string, string> = {};
 			if (token) headers['Authorization'] = `Bearer ${token}`;
-			const res = await fetchFn(`${PUBLIC_API_BASE_URL}/api/viewer/experts`, { headers });
+			const res = await fetchFn(`${API_BASE_URL}/api/viewer/experts`, { headers });
 			if (!res.ok) return [];
 			const data: Record<string, string>[] = await res.json();
 			return data.map(mapToScholar);
@@ -141,7 +151,7 @@ export const scholarsService = {
 			const token = getToken();
 			const headers: Record<string, string> = {};
 			if (token) headers['Authorization'] = `Bearer ${token}`;
-			const url = `${PUBLIC_API_BASE_URL}/api/viewer/experts?q=${encodeURIComponent(q)}`;
+			const url = `${API_BASE_URL}/api/viewer/experts?q=${encodeURIComponent(q)}`;
 			const res = await fetchFn(url, { headers });
 			if (!res.ok) return [];
 			const data: Record<string, string>[] = await res.json();

@@ -223,6 +223,12 @@
 											<p>{user.phoneNumber ?? '—'}</p>
 											{#if user.contactDetails}<p>{user.contactDetails}</p>{/if}
 										</div>
+										{#if user.bio}
+											<div class="detail-section">
+												<p class="section-label">Bio</p>
+												<p>{user.bio}</p>
+											</div>
+										{/if}
 										<div class="detail-section">
 											<p class="section-label">Academic</p>
 											<p>{user.academicRank ?? '—'} • {user.highestQualification ?? '—'}</p>

@@ -52,7 +52,7 @@
 			getJsonArrayLength(profile.languageProficiencies) > 0,
 			getJsonArrayLength(profile.professionalExperiences) > 0,
 			getJsonArrayLength(profile.profileLinks) > 0,
-			profile.notes
+			profile.bio
 		];
 
 		return Math.round((checks.filter(Boolean).length / checks.length) * 100);

@@ -28,6 +28,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             LOWER(u.fullName)                    LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.name)                        LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.surname)                     LIKE LOWER(CONCAT('%', :q, '%')) OR
+            LOWER(u.bio)                         LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.faculty)                     LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.department)                  LIKE LOWER(CONCAT('%', :q, '%')) OR
             LOWER(u.academicRank)                LIKE LOWER(CONCAT('%', :q, '%')) OR

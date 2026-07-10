@@ -19,6 +19,8 @@ export const SCHOLARS_MOCK: Scholar[] = [
 		phone: '+44 1865 616622',
 		location: 'Engineering Faculty, University of Zimbabwe',
 		researchAreas: ['Artificial Intelligence', 'Future of Work', 'Responsible Innovation'],
+		bio:
+			'Michael leads research at the intersection of artificial intelligence and economic transformation, with a focus on practical systems that expand equitable opportunity.',
 		shortBio:
 			'Michael leads research at the intersection of artificial intelligence and economic transformation, with a focus on practical systems that expand equitable opportunity.',
 		sections: [
@@ -68,6 +70,8 @@ export const SCHOLARS_MOCK: Scholar[] = [
 		phone: '+44 1865 510100',
 		location: 'University of Zimbabwe, Harare',
 		researchAreas: ['Digital Public Infrastructure', 'Identity Systems', 'Civic Technology'],
+		bio:
+			'Rutendo researches trustworthy digital public systems and collaborates with civic institutions on policy and implementation frameworks for inclusive service delivery.',
 		shortBio:
 			'Rutendo researches trustworthy digital public systems and collaborates with civic institutions on policy and implementation frameworks for inclusive service delivery.',
 		sections: [
@@ -117,6 +121,8 @@ export const SCHOLARS_MOCK: Scholar[] = [
 		phone: '+44 1865 288888',
 		location: 'Engineering Faculty, University of Zimbabwe',
 		researchAreas: ['Climate Risk Modelling', 'Hydrology', 'Decision Support Systems'],
+		bio:
+			'Tapiwa develops climate risk models for water systems and leads translational projects connecting engineering research with municipal planning decisions.',
 		shortBio:
 			'Tapiwa develops climate risk models for water systems and leads translational projects connecting engineering research with municipal planning decisions.',
 		sections: [

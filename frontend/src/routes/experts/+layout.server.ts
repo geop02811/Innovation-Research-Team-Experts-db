@@ -1,6 +1,5 @@
 import { parseSession, SESSION_COOKIE_NAME } from '$lib/auth/session';
 import { redirect } from '@sveltejs/kit';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ cookies, url, fetch }) => {
@@ -12,7 +11,7 @@ export const load: LayoutServerLoad = async ({ cookies, url, fetch }) => {
 	// Verify current role live from the backend so a role change takes effect immediately
 	// without requiring the user to log out and back in.
 	try {
-		const res = await fetch(`${PUBLIC_API_BASE_URL}/api/viewer/me`, {
+		const res = await fetch('/api/viewer/me', {
 			headers: { Authorization: `Bearer ${cookies.get('uz_token') ?? ''}` }
 		});
 

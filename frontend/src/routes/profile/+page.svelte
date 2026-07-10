@@ -67,7 +67,7 @@
 		},
 		{
 			id: 'biography',
-			label: 'Biography & Notes',
+			label: 'Bio & Notes',
 			icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
 		}
 	];
@@ -113,6 +113,28 @@
 		}
 	};
 
+	const parseLegacyExperienceSummary = (summary: string): ProfessionalExperience[] =>
+		summary
+			.split(/\n{2,}|\s+\.\s+(?=[^.:]{2,90}\sat\s[^:]{2,120}:)/)
+			.map((entry) => entry.trim().replace(/^\.+\s*/, ''))
+			.filter(Boolean)
+			.map((entry): ProfessionalExperience => {
+				const match = entry.match(/^(.+?)\s+at\s+(.+?):\s*(.+)$/i);
+				return {
+					title: match?.[1]?.trim() || 'Experience',
+					employmentType: '',
+					organization: match?.[2]?.trim() || '',
+					isCurrent: false,
+					startMonth: '',
+					startYear: '',
+					endMonth: '',
+					endYear: '',
+					location: '',
+					locationType: '',
+					summary: (match?.[3] ?? entry).trim()
+				};
+			});
+
 	const parseProfessionalExperiences = (
 		value: unknown,
 		fallbackSummary: string | null | undefined
@@ -127,21 +149,7 @@
 		);
 
 		if (entries.length > 0 || !fallbackSummary) return entries;
-		return [
-			{
-				title: 'Experience',
-				employmentType: '',
-				organization: '',
-				isCurrent: false,
-				startMonth: '',
-				startYear: '',
-				endMonth: '',
-				endYear: '',
-				location: '',
-				locationType: '',
-				summary: fallbackSummary
-			}
-		];
+		return parseLegacyExperienceSummary(fallbackSummary);
 	};
 
 	const parseProfileLinks = (value: unknown): ProfileLink[] =>
@@ -203,7 +211,7 @@
 			formData.languageProficiencies.length > 0,
 			formData.professionalExperiences.length > 0,
 			formData.profileLinks.length > 0,
-			formData.notes
+			formData.bio
 		];
 
 		return Math.round((checks.filter(Boolean).length / checks.length) * 100);
@@ -219,6 +227,7 @@
 			email: profile?.email || '',
 			phone: profile?.phoneNumber || '',
 			contactDetails: profile?.contactDetails || '',
+			bio: profile?.bio || profile?.notes || '',
 			academicRank: profile?.academicRank || '',
 			customAcademicRank:
 				profile?.academicRank && !isKnownAcademicRank(profile.academicRank) ? profile.academicRank : '',
@@ -345,6 +354,7 @@
 			fullName: formData.fullName,
 			phoneNumber: formData.phone,
 			contactDetails: formData.contactDetails,
+			bio: formData.bio,
 			academicRank: resolvedAcademicRank(),
 			highestQualification: formData.highestQualification,
 			faculty: formData.faculty,
@@ -875,21 +885,35 @@
 				</section>
 			{/if}
 
-			<!-- BIOGRAPHY & NOTES -->
+			<!-- BIO & NOTES -->
 			{#if activeSection === 'biography'}
 				<section class="content-section">
 					<div class="section-heading">
-						<h2>Biography &amp; Notes</h2>
+						<h2>Bio &amp; Notes</h2>
 						{#if !isEditing}<button class="btn-edit-section" onclick={startEdit}>Edit</button>{/if}
 					</div>
 
 					<div class="field">
-						<span class="field-label">Profile Notes / Biography</span>
+						<span class="field-label">Profile Bio</span>
+						{#if isEditing}
+							<textarea
+								bind:value={formData.bio}
+								rows="8"
+								maxlength="600"
+								placeholder="Write the short professional bio shown on your researcher card and profile."
+							></textarea>
+						{:else}
+							<p class="field-value long-text">{formData.bio || '—'}</p>
+						{/if}
+					</div>
+
+					<div class="field">
+						<span class="field-label">Additional Notes</span>
 						{#if isEditing}
 							<textarea
 								bind:value={formData.notes}
-								rows="8"
-								placeholder="Write a short professional bio or notes for collaborators…"
+								rows="4"
+								placeholder="Optional internal notes or profile context."
 							></textarea>
 						{:else}
 							<p class="field-value long-text">{formData.notes || '—'}</p>
