@@ -26,6 +26,29 @@ export interface ProfessionalExperience {
 	summary: string;
 }
 
+export interface ProfessionalMembership {
+	organization: string;
+	customOrganization: string;
+	positionHeld: string;
+	customPositionHeld: string;
+	isCurrent: boolean;
+	associatedWith: string;
+	startMonth: string;
+	startYear: string;
+	endMonth: string;
+	endYear: string;
+	description: string;
+}
+
+export interface ComplianceCredential {
+	name: string;
+	issuingOrganization: string;
+	issueMonth: string;
+	issueYear: string;
+	credentialUrl: string;
+	skillsAssociated: string;
+}
+
 export interface ExpertProfile {
 	titlePrefix: 'Eng' | 'Dr' | 'Prof' | 'Mr' | 'Mrs' | 'Ms';
 	fullName: string;

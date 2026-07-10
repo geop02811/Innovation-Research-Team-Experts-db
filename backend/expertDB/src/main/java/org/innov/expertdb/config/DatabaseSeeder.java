@@ -34,7 +34,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     "Smith",
                     adminEmail,
                     "AdminPassword123!",
-                    null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null,
                     null, null, null, null, null, null, null, null,
                     null, null, null, null, null

@@ -23,8 +23,10 @@ public class SignUpService {
 
     @Transactional
     public RegisterResponse signUp(RegisterRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase();
+
         // Step 1: Check if user exists by email
-        Optional<User> existingUser = userRepository.findByEmail(request.email());
+        Optional<User> existingUser = userRepository.findByEmail(normalizedEmail);
         
         if (existingUser.isPresent()) {
             User user = existingUser.get();
@@ -32,7 +34,7 @@ public class SignUpService {
             
             // Step 2: If user exists with ACTIVE or PENDING status, reject signup
             if (currentStatus == AccountStatus.ACTIVE) {
-                throw new RuntimeException("User with this email already exists and is active");
+                throw new RuntimeException("An account with this email already exists.");
             }
             
             if (currentStatus == AccountStatus.PENDING) {
@@ -40,7 +42,7 @@ public class SignUpService {
             }
             
             if (currentStatus == AccountStatus.APPROVED) {
-                throw new RuntimeException("User with this email already exists and is approved");
+                throw new RuntimeException("An account with this email already exists.");
             }
             
             // For DISABLED status, you could implement reactivation here later

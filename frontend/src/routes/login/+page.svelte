@@ -72,6 +72,7 @@
 		</form>
 
 		<div class="hint-block">
+			<p><a href="/forgot-password">Forgot password?</a></p>
 			<p>Need an account? <a href="/signup">Create expert profile</a></p>
 		</div>
 	</section>

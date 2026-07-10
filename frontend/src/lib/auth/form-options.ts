@@ -139,6 +139,8 @@ export const employmentTypeOptions = [
 	'Internship',
 	'Volunteer'
 ] as const;
+export const professionalMembershipOrganizationOptions = ['IEEE', 'ZIE', 'ACCA', 'Other'] as const;
+export const membershipPositionOptions = ['Member', 'Professional Member', 'Fellow', 'Other'] as const;
 export const locationTypeOptions = ['On-site', 'Hybrid', 'Remote'] as const;
 export const monthOptions = [
 	'January',

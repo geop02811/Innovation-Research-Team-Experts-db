@@ -8,6 +8,8 @@
 	}
 
 	let { links, typeOptions, onchange }: Props = $props();
+	let activeIndex = $state<number | null>(null);
+	let editorElement: HTMLDivElement | undefined;
 
 	const createLink = (): ProfileLink => ({ type: 'LinkedIn', label: '', url: '' });
 
@@ -17,21 +19,47 @@
 
 	const removeLink = (index: number) => {
 		onchange(links.filter((_, itemIndex) => itemIndex !== index));
+		if (activeIndex === index) activeIndex = null;
+		else if (activeIndex !== null && activeIndex > index) activeIndex -= 1;
 	};
 
 	const addLink = () => {
-		onchange([...links, createLink()]);
+		const nextLinks = [...links, createLink()];
+		onchange(nextLinks);
+		activeIndex = nextLinks.length - 1;
 	};
+
+	const toggleCard = (index: number) => {
+		activeIndex = activeIndex === index ? null : index;
+	};
+
+	const closeWhenClickOutside = (event: MouseEvent) => {
+		if (!editorElement || !(event.target instanceof Node)) return;
+		if (!editorElement.contains(event.target)) activeIndex = null;
+	};
+
+	const linkSummary = (link: ProfileLink) => [link.label || link.type, link.url].filter(Boolean).join(' · ');
 </script>
 
-<div class="links-editor">
+<svelte:window onclick={closeWhenClickOutside} />
+
+<div class="links-editor" bind:this={editorElement}>
 	{#each links as link, index}
-		<div class="link-card">
+		<div class="link-card" class:collapsed={activeIndex !== index}>
 			<div class="link-card-header">
-				<h3>Profile link {index + 1}</h3>
+				<button
+					type="button"
+					class="card-toggle"
+					aria-expanded={activeIndex === index}
+					onclick={() => toggleCard(index)}
+				>
+					<span class="card-title">Profile link {index + 1}</span>
+					<span class="card-summary">{linkSummary(link)}</span>
+				</button>
 				<button type="button" class="remove-btn" onclick={() => removeLink(index)}>Remove</button>
 			</div>
 
+			{#if activeIndex === index}
 			<div class="link-grid">
 				<label>
 					Platform
@@ -63,6 +91,7 @@
 					oninput={(event) => updateLink(index, { url: event.currentTarget.value })}
 				/>
 			</label>
+			{/if}
 		</div>
 	{/each}
 
@@ -86,6 +115,10 @@
 		min-width: 0;
 	}
 
+	.link-card.collapsed {
+		gap: 0;
+	}
+
 	.link-card-header {
 		display: flex;
 		align-items: center;
@@ -93,9 +126,33 @@
 		gap: 1rem;
 	}
 
-	h3 {
+	.card-toggle {
+		border: 0;
+		background: transparent;
+		padding: 0;
+		display: grid;
+		gap: 0.22rem;
+		flex: 1;
+		min-width: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.card-title {
 		margin: 0;
 		font-size: 1rem;
+		font-weight: 800;
+	}
+
+	.card-summary {
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: var(--ink-soft);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.link-grid {
@@ -130,6 +187,12 @@
 		outline: none;
 		border-color: #0a3a8d;
 		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.12);
+	}
+
+	.card-toggle:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.16);
+		border-radius: 8px;
 	}
 
 	.add-btn,

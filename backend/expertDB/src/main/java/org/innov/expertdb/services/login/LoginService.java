@@ -20,7 +20,7 @@ public class LoginService {
     private final JwtService jwtService;
 
     public LoginResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.email())
+        User user = userRepository.findByEmail(loginRequest.email().trim().toLowerCase())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!passwordEncoder.matches(loginRequest.password(),user.getPasswordHash())){

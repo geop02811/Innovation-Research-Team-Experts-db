@@ -1,10 +1,22 @@
 <script lang="ts">
+	import ComplianceCredentialsEditor from '$lib/components/ComplianceCredentialsEditor.svelte';
 	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
 	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
+	import ProfessionalMembershipsEditor from '$lib/components/ProfessionalMembershipsEditor.svelte';
 	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
+	import {
+		credentialIssueDate,
+		membershipOrganizationName,
+		membershipPositionHeld,
+		membershipPeriod,
+		parseComplianceCredentials,
+		parseProfessionalMemberships,
+		serializeComplianceCredentials,
+		serializeProfessionalMemberships
+	} from '$lib/auth/structured-profile-fields';
 	import {
 		titlePrefixOptions,
 		academicRankOptions,
@@ -20,13 +32,21 @@
 		languageOptions,
 		languageProficiencyOptions,
 		locationTypeOptions,
+		membershipPositionOptions,
 		monthOptions,
+		professionalMembershipOrganizationOptions,
 		profileLinkTypeOptions,
 		yearOptions,
 		areasOfExpertiseOptions,
 		industrialAreasOptions
 	} from '$lib/auth/form-options';
-	import type { LanguageProficiency, ProfessionalExperience, ProfileLink } from '$lib/auth/types';
+	import type {
+		ComplianceCredential,
+		LanguageProficiency,
+		ProfessionalExperience,
+		ProfessionalMembership,
+		ProfileLink
+	} from '$lib/auth/types';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -160,6 +180,10 @@
 				typeof (item as ProfileLink).type === 'string' &&
 				typeof (item as ProfileLink).url === 'string'
 		);
+	const asProfessionalMemberships = (value: unknown): ProfessionalMembership[] =>
+		parseProfessionalMemberships(value);
+	const asComplianceCredentials = (value: unknown): ComplianceCredential[] =>
+		parseComplianceCredentials(value);
 
 	const normalizeUrl = (value: string) => {
 		const trimmed = value.trim();
@@ -210,7 +234,6 @@
 			formData.skillsAndCompetences.length > 0,
 			formData.languageProficiencies.length > 0,
 			formData.professionalExperiences.length > 0,
-			formData.profileLinks.length > 0,
 			formData.bio
 		];
 
@@ -234,8 +257,8 @@
 			highestQualification: profile?.highestQualification || '',
 			faculty: profile?.faculty || '',
 			department: profile?.department || '',
-			professionalMemberships: profile?.professionalMemberships || '',
-			complianceAccreditation: profile?.complianceAccreditation || '',
+			professionalMemberships: asProfessionalMemberships(profile?.professionalMemberships),
+			complianceCredentials: asComplianceCredentials(profile?.complianceAccreditation),
 			yearsOfConsultancyExperience: profile?.yearsOfConsultancyExperience || '',
 			consultancyAvailability: profile?.consultancyAvailability || '',
 			consultancyExperience: profile?.consultancyExperience || '',
@@ -359,8 +382,8 @@
 			highestQualification: formData.highestQualification,
 			faculty: formData.faculty,
 			department: formData.department,
-			professionalMemberships: formData.professionalMemberships,
-			complianceAccreditation: formData.complianceAccreditation,
+			professionalMemberships: serializeProfessionalMemberships(formData.professionalMemberships),
+			complianceAccreditation: serializeComplianceCredentials(formData.complianceCredentials),
 			yearsOfConsultancyExperience: formData.yearsOfConsultancyExperience,
 			consultancyAvailability: formData.consultancyAvailability,
 			consultancyExperience: summarizeExperiences(formData.professionalExperiences),
@@ -463,7 +486,6 @@
 						<li class:done={Boolean(formData.fullName && formData.phone)}>Personal details</li>
 						<li class:done={Boolean(formData.academicRank && formData.faculty)}>Academic profile</li>
 						<li class:done={formData.professionalExperiences.length > 0}>Experience</li>
-						<li class:done={formData.profileLinks.length > 0}>Links & publications</li>
 					</ul>
 				</div>
 			</aside>
@@ -623,26 +645,62 @@
 					<div class="field">
 						<span class="field-label">Professional Memberships</span>
 						{#if isEditing}
-							<textarea
-								bind:value={formData.professionalMemberships}
-								rows="2"
-								placeholder="e.g. IEEE, ZIE, ACCA"
-							></textarea>
+							<ProfessionalMembershipsEditor
+								memberships={formData.professionalMemberships}
+								organizationOptions={professionalMembershipOrganizationOptions}
+								positionOptions={membershipPositionOptions}
+								monthOptions={monthOptions}
+								yearOptions={yearOptions}
+								onchange={(value) => (formData.professionalMemberships = value)}
+							/>
 						{:else}
-							<span class="field-value">{formData.professionalMemberships || '—'}</span>
+							<div class="experience-list">
+								{#each formData.professionalMemberships as membership}
+									<article class="experience-card-view">
+										<h3>{membershipOrganizationName(membership) || 'Professional membership'}</h3>
+										<p class="experience-meta">Position held: {membershipPositionHeld(membership) || '—'}</p>
+										{#if membership.associatedWith}
+											<p class="experience-meta">Associated with: {membership.associatedWith}</p>
+										{/if}
+										{#if membershipPeriod(membership)}
+											<p class="experience-meta">{membershipPeriod(membership)}</p>
+										{/if}
+										<p class="field-value long-text">{membership.description || '—'}</p>
+									</article>
+								{:else}
+									<span class="field-value">—</span>
+								{/each}
+							</div>
 						{/if}
 					</div>
 
 					<div class="field">
 						<span class="field-label">Compliance / Accreditation</span>
 						{#if isEditing}
-							<textarea
-								bind:value={formData.complianceAccreditation}
-								rows="2"
-								placeholder="Licences, certifications, compliance standards"
-							></textarea>
+							<ComplianceCredentialsEditor
+								credentials={formData.complianceCredentials}
+								monthOptions={monthOptions}
+								yearOptions={yearOptions}
+								onchange={(value) => (formData.complianceCredentials = value)}
+							/>
 						{:else}
-							<span class="field-value">{formData.complianceAccreditation || '—'}</span>
+							<div class="experience-list">
+								{#each formData.complianceCredentials as credential}
+									<article class="experience-card-view">
+										<h3>{credential.name || 'Compliance credential'}</h3>
+										<p class="experience-meta">Issued by: {credential.issuingOrganization || '—'}</p>
+										{#if credentialIssueDate(credential)}
+											<p class="experience-meta">Issue date: {credentialIssueDate(credential)}</p>
+										{/if}
+										{#if credential.credentialUrl}
+											<p class="experience-meta">Credential ID / URL: {credential.credentialUrl}</p>
+										{/if}
+										<p class="field-value long-text">{credential.skillsAssociated || '—'}</p>
+									</article>
+								{:else}
+									<span class="field-value">—</span>
+								{/each}
+							</div>
 						{/if}
 					</div>
 				</section>

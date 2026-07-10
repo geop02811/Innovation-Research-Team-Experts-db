@@ -51,7 +51,6 @@
 			getArrayLength(profile.skillsAndCompetences) > 0,
 			getJsonArrayLength(profile.languageProficiencies) > 0,
 			getJsonArrayLength(profile.professionalExperiences) > 0,
-			getJsonArrayLength(profile.profileLinks) > 0,
 			profile.bio
 		];
 

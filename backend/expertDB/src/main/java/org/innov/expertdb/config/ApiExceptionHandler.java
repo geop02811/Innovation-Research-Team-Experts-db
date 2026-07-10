@@ -1,5 +1,6 @@
 package org.innov.expertdb.config;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,6 +16,20 @@ public class ApiExceptionHandler {
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
                 .orElse("Invalid request.");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityError(DataIntegrityViolationException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("An account with this email already exists.");
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeError(RuntimeException exception) {
+        String message = exception.getMessage() == null || exception.getMessage().isBlank()
+                ? "Request failed. Please try again."
+                : exception.getMessage();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }

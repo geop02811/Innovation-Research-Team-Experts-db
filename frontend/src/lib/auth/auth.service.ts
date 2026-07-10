@@ -161,6 +161,46 @@ export const authService = {
 		}
 	},
 
+	requestPasswordReset: async (email: string): Promise<{ ok: boolean; message: string }> => {
+		try {
+			const res = await fetch(`${API_BASE_URL}/api/auth/password-reset/request`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email })
+			});
+
+			const text = await res.text();
+			return {
+				ok: res.ok,
+				message: text || (res.ok ? 'Reset code sent.' : 'Could not request password reset.')
+			};
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
+	confirmPasswordReset: async (payload: {
+		email: string;
+		otp: string;
+		newPassword: string;
+	}): Promise<{ ok: boolean; message: string }> => {
+		try {
+			const res = await fetch(`${API_BASE_URL}/api/auth/password-reset/confirm`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+
+			const text = await res.text();
+			return {
+				ok: res.ok,
+				message: text || (res.ok ? 'Password reset successful.' : 'Could not reset password.')
+			};
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
 	logout: () => {
 		clearSession();
 	},

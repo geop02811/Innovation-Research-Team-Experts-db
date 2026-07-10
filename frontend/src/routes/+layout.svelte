@@ -2,7 +2,6 @@
 	import { authService } from '$lib/auth/auth.service';
 	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import type { LayoutData } from './$types';
 
 	let { children, data }: { children: import('svelte').Snippet; data: LayoutData } = $props();
@@ -21,7 +20,6 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link

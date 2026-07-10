@@ -5,10 +5,20 @@
 	import SelectField from '$lib/components/SelectField.svelte';
 	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
 	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
+	import ProfessionalMembershipsEditor from '$lib/components/ProfessionalMembershipsEditor.svelte';
+	import ComplianceCredentialsEditor from '$lib/components/ComplianceCredentialsEditor.svelte';
 	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
 	import { authService } from '$lib/auth/auth.service';
+	import {
+		hasCompleteComplianceCredentials,
+		hasCompleteProfessionalMemberships,
+		parseComplianceCredentials,
+		parseProfessionalMemberships,
+		serializeComplianceCredentials,
+		serializeProfessionalMemberships
+	} from '$lib/auth/structured-profile-fields';
 	import {
 		academicRankOptions,
 		areasOfExpertiseOptions,
@@ -22,7 +32,9 @@
 		languageOptions,
 		languageProficiencyOptions,
 		locationTypeOptions,
+		membershipPositionOptions,
 		monthOptions,
+		professionalMembershipOrganizationOptions,
 		preferredConsultancyTypeOptions,
 		profileLinkTypeOptions,
 		skillsOptions,
@@ -30,7 +42,14 @@
 		yearOptions,
 		yearsOfConsultancyOptions
 	} from '$lib/auth/form-options';
-	import type { ExpertProfile, LanguageProficiency, ProfessionalExperience, ProfileLink } from '$lib/auth/types';
+	import type {
+		ComplianceCredential,
+		ExpertProfile,
+		LanguageProficiency,
+		ProfessionalExperience,
+		ProfessionalMembership,
+		ProfileLink
+	} from '$lib/auth/types';
 
 	// ── Step state ──────────────────────────────────────────────────────────────
 	let currentStep = $state(1);
@@ -53,8 +72,8 @@
 	let universityEmail = $state('');
 	let phoneNumber = $state('');
 	let highestQualification = $state('');
-	let professionalMemberships = $state('');
-	let complianceAccreditation = $state('');
+	let professionalMemberships = $state<ProfessionalMembership[]>([]);
+	let complianceCredentials = $state<ComplianceCredential[]>([]);
 	let faculty = $state('');
 	let department = $state('');
 	let yearsOfConsultancyExperience = $state('');
@@ -71,7 +90,9 @@
 	let password = $state('');
 	let confirmPassword = $state('');
 	let profilePhotoDataUrl = $state('');
-	let error = $state('');
+	let stepError = $state('');
+	let passwordError = $state('');
+	let profilePhotoError = $state('');
 	let submitting = $state(false);
 	let draftReady = $state(false);
 
@@ -88,8 +109,9 @@
 		universityEmail: string;
 		phoneNumber: string;
 		highestQualification: string;
-		professionalMemberships: string;
-		complianceAccreditation: string;
+		profilePhotoDataUrl: string;
+		professionalMemberships: ProfessionalMembership[];
+		complianceCredentials: ComplianceCredential[];
 		faculty: string;
 		department: string;
 		yearsOfConsultancyExperience: string;
@@ -127,14 +149,19 @@
 	const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 	const PROFILE_PHOTO_SIZE = 400;
 	const MIN_PROFILE_PHOTO_DIMENSION = PROFILE_PHOTO_SIZE;
+	const PROFILE_PHOTO_REQUIRED_ERROR = 'Please upload a professional profile picture.';
+	const PASSWORD_REQUIRED_ERROR = 'Please enter and confirm your password.';
 	const PASSWORD_VALIDATION_ERRORS = [
 		'Passwords do not match.',
-		'Password must be at least 6 characters long.'
+		'Password must be at least 6 characters long.',
+		PASSWORD_REQUIRED_ERROR
 	];
 
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
 		Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+	const asProfessionalMembershipArray = (value: unknown) => parseProfessionalMemberships(value);
+	const asComplianceCredentialArray = (value: unknown) => parseComplianceCredentials(value);
 	const asProfessionalExperienceArray = (value: unknown) =>
 		Array.isArray(value)
 			? value.filter(
@@ -250,8 +277,9 @@
 		universityEmail,
 		phoneNumber,
 		highestQualification,
+		profilePhotoDataUrl,
 		professionalMemberships,
-		complianceAccreditation,
+		complianceCredentials,
 		faculty,
 		department,
 		yearsOfConsultancyExperience,
@@ -268,7 +296,8 @@
 	});
 
 	const restoreSignupDraft = (draft: Partial<SignupDraft>) => {
-		currentStep = clampStep(draft.currentStep);
+		const restoredStep = clampStep(draft.currentStep);
+		currentStep = restoredStep > 1 ? 1 : restoredStep;
 		titlePrefix = asString(draft.titlePrefix);
 		fullName = asString(draft.fullName);
 		contactDetails = asString(draft.contactDetails);
@@ -282,8 +311,9 @@
 		universityEmail = asString(draft.universityEmail);
 		phoneNumber = asString(draft.phoneNumber);
 		highestQualification = asString(draft.highestQualification);
-		professionalMemberships = asString(draft.professionalMemberships);
-		complianceAccreditation = asString(draft.complianceAccreditation);
+		profilePhotoDataUrl = asString(draft.profilePhotoDataUrl);
+		professionalMemberships = asProfessionalMembershipArray(draft.professionalMemberships);
+		complianceCredentials = asComplianceCredentialArray(draft.complianceCredentials);
 		faculty = asString(draft.faculty);
 		department = asString(draft.department);
 		yearsOfConsultancyExperience = asString(draft.yearsOfConsultancyExperience);
@@ -320,20 +350,21 @@
 	const onPhotoChange = async (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
+		profilePhotoError = '';
 		if (!file) {
 			profilePhotoDataUrl = '';
 			return;
 		}
 
 		if (file.size > MAX_FILE_BYTES) {
-			error = 'Profile picture must be 5 MB or smaller.';
+			profilePhotoError = 'Profile picture must be 5 MB or smaller.';
 			profilePhotoDataUrl = '';
 			input.value = '';
 			return;
 		}
 
 		if (!file.type.startsWith('image/')) {
-			error = 'Profile picture must be an image file.';
+			profilePhotoError = 'Profile picture must be an image file.';
 			profilePhotoDataUrl = '';
 			input.value = '';
 			return;
@@ -384,7 +415,7 @@
 			reader.readAsDataURL(file);
 		}).catch((photoError) => {
 			const message = photoError instanceof Error ? photoError.message : 'Cannot process image file.';
-			error = message;
+			profilePhotoError = message;
 			profilePhotoDataUrl = '';
 			input.value = '';
 			return '';
@@ -392,7 +423,7 @@
 
 		if (!dataUrl) return;
 
-		error = '';
+		profilePhotoError = '';
 		profilePhotoDataUrl = dataUrl;
 	};
 
@@ -401,14 +432,16 @@
 		if (password && confirmPassword && password !== confirmPassword) return 'Passwords do not match.';
 		return null;
 	};
+	const isPasswordLengthError = () => passwordError === 'Password must be at least 6 characters long.';
+	const isConfirmPasswordError = () => passwordError === 'Passwords do not match.';
 
 	const validatePasswordEntry = () => {
-		const passwordError = validatePasswordFields();
-		if (passwordError) {
-			error = passwordError;
+		const validationMessage = validatePasswordFields();
+		if (validationMessage) {
+			passwordError = validationMessage;
 			return;
 		}
-		if (PASSWORD_VALIDATION_ERRORS.includes(error)) error = '';
+		passwordError = '';
 	};
 
 	// ── Per-step validation ─────────────────────────────────────────────────────
@@ -419,8 +452,8 @@
 					return 'Please complete all fields to continue.';
 				if (!isValidUzEmail(universityEmail))
 					return 'Please enter a valid UZ student, admin, or departmental email address.';
-				if (!profilePhotoDataUrl || !password || !confirmPassword)
-					return 'Please complete all account fields to continue.';
+				if (!profilePhotoDataUrl) return PROFILE_PHOTO_REQUIRED_ERROR;
+				if (!password || !confirmPassword) return PASSWORD_REQUIRED_ERROR;
 				return validatePasswordFields();
 				break;
 			case 2:
@@ -428,11 +461,13 @@
 					!resolvedAcademicRank() ||
 					!highestQualification ||
 					!faculty ||
-					!department ||
-					!professionalMemberships ||
-					!complianceAccreditation
+					!department
 				)
 					return 'Please complete all fields to continue.';
+				if (!hasCompleteProfessionalMemberships(professionalMemberships))
+					return 'Please add at least one complete professional membership.';
+				if (!hasCompleteComplianceCredentials(complianceCredentials))
+					return 'Please add at least one complete compliance or accreditation credential.';
 				break;
 			case 3:
 				if (
@@ -459,9 +494,7 @@
 					return 'Please complete the title, organization, start year, and summary for each experience.';
 				break;
 			case 5:
-				if (profileLinks.length === 0)
-					return 'Please add at least one profile or publication link.';
-				if (!hasCompleteProfileLinks())
+				if (profileLinks.length > 0 && !hasCompleteProfileLinks())
 					return 'Please complete the platform and URL for each profile link.';
 				break;
 		}
@@ -470,24 +503,57 @@
 
 	const validateSignup = (): string | null => {
 		for (let step = 1; step <= totalSteps; step += 1) {
-			const stepError = validateStep(step);
-			if (stepError) {
+			const validationMessage = validateStep(step);
+			if (validationMessage) {
 				currentStep = step;
-				return stepError;
+				return validationMessage;
 			}
 		}
 		return null;
 	};
 
+	const setValidationMessage = (validationMessage: string) => {
+		if (validationMessage === PROFILE_PHOTO_REQUIRED_ERROR) {
+			profilePhotoError = validationMessage;
+			stepError = '';
+			return;
+		}
+		if (PASSWORD_VALIDATION_ERRORS.includes(validationMessage)) {
+			passwordError = validationMessage;
+			stepError = '';
+			return;
+		}
+		stepError = validationMessage;
+	};
+
 	const goToStep = (step: number) => {
-		error = '';
+		stepError = '';
 		currentStep = Math.min(Math.max(step, 1), totalSteps);
 	};
 
+	const requestStep = (step: number) => {
+		const targetStep = Math.min(Math.max(step, 1), totalSteps);
+		if (targetStep <= currentStep) {
+			goToStep(targetStep);
+			return;
+		}
+
+		for (let candidateStep = 1; candidateStep < targetStep; candidateStep += 1) {
+			const validationMessage = validateStep(candidateStep);
+			if (validationMessage) {
+				currentStep = candidateStep;
+				setValidationMessage(validationMessage);
+				return;
+			}
+		}
+
+		goToStep(targetStep);
+	};
+
 	const nextStep = () => {
-		const stepError = validateStep(currentStep);
-		if (stepError) {
-			error = stepError;
+		const validationMessage = validateStep(currentStep);
+		if (validationMessage) {
+			setValidationMessage(validationMessage);
 			return;
 		}
 		goToStep(currentStep + 1);
@@ -498,9 +564,9 @@
 	};
 
 	const submit = async () => {
-		const stepError = validateSignup();
-		if (stepError) {
-			error = stepError;
+		const validationMessage = validateSignup();
+		if (validationMessage) {
+			setValidationMessage(validationMessage);
 			return;
 		}
 
@@ -515,8 +581,8 @@
 			universityEmail,
 			phoneNumber,
 			highestQualification,
-			professionalMemberships,
-			complianceAccreditation,
+			professionalMemberships: serializeProfessionalMemberships(professionalMemberships),
+			complianceAccreditation: serializeComplianceCredentials(complianceCredentials),
 			faculty,
 			department: department as ExpertProfile['department'],
 			yearsOfConsultancyExperience:
@@ -543,7 +609,7 @@
 		});
 		submitting = false;
 		if (!result.ok) {
-			error = result.message;
+			stepError = result.message;
 			return;
 		}
 		draftReady = false;
@@ -573,7 +639,7 @@
 					class="step"
 					class:active={currentStep === i + 1}
 					class:done={currentStep > i + 1}
-					onclick={() => goToStep(i + 1)}
+					onclick={() => requestStep(i + 1)}
 					aria-current={currentStep === i + 1 ? 'step' : undefined}
 				>
 					<span class="step-circle">{i + 1}</span>
@@ -585,13 +651,13 @@
 			{/each}
 		</nav>
 
-		{#if error}
-			<p class="error-msg" role="alert">{error}</p>
-		{/if}
-
 		<!-- ── Step 1: Personal & Account ─────────────────────────────────── -->
 		{#if currentStep === 1}
 			<div class="step-body">
+				{#if stepError}
+					<p class="error-msg section-error" role="alert">{stepError}</p>
+				{/if}
+
 				<div class="two grid">
 					<SelectField
 						label="Full Name Prefix"
@@ -645,6 +711,10 @@
 					<input type="file" accept="image/*" onchange={onPhotoChange} />
 				</label>
 
+				{#if profilePhotoError}
+					<p class="error-msg field-error" role="alert">{profilePhotoError}</p>
+				{/if}
+
 				{#if profilePhotoDataUrl}
 					<img src={profilePhotoDataUrl} alt="Profile preview" class="photo-preview" />
 				{/if}
@@ -652,7 +722,17 @@
 				<div class="two grid">
 					<label>
 						Password
-						<input type="password" bind:value={password} minlength="6" oninput={validatePasswordEntry} />
+						<input
+							type="password"
+							bind:value={password}
+							minlength="6"
+							oninput={validatePasswordEntry}
+							aria-invalid={isPasswordLengthError() ? 'true' : undefined}
+							aria-describedby={isPasswordLengthError() ? 'password-error' : undefined}
+						/>
+						{#if isPasswordLengthError()}
+							<span id="password-error" class="field-error" role="alert">{passwordError}</span>
+						{/if}
 					</label>
 					<label>
 						Confirm Password
@@ -661,7 +741,12 @@
 							bind:value={confirmPassword}
 							minlength="6"
 							oninput={validatePasswordEntry}
+							aria-invalid={isConfirmPasswordError() ? 'true' : undefined}
+							aria-describedby={isConfirmPasswordError() ? 'confirm-password-error' : undefined}
 						/>
+						{#if isConfirmPasswordError()}
+							<span id="confirm-password-error" class="field-error" role="alert">{passwordError}</span>
+						{/if}
 					</label>
 				</div>
 			</div>
@@ -670,6 +755,10 @@
 		<!-- ── Step 2: Academic Profile ─────────────────────────────────── -->
 		{#if currentStep === 2}
 			<div class="step-body">
+				{#if stepError}
+					<p class="error-msg section-error" role="alert">{stepError}</p>
+				{/if}
+
 				<div class="two grid">
 					<SelectField
 						label="Academic Title / Rank"
@@ -711,26 +800,37 @@
 					/>
 				</div>
 
-				<label>
-					Professional Memberships
-					<textarea bind:value={professionalMemberships} rows="2" placeholder="e.g. IEEE, ZIE, ACCA"
-					></textarea>
-				</label>
+				<div class="field-block">
+					<span class="field-label">Professional Memberships</span>
+					<ProfessionalMembershipsEditor
+						memberships={professionalMemberships}
+						organizationOptions={professionalMembershipOrganizationOptions}
+						positionOptions={membershipPositionOptions}
+						monthOptions={monthOptions}
+						yearOptions={yearOptions}
+						onchange={(value) => (professionalMemberships = value)}
+					/>
+				</div>
 
-				<label>
-					Compliance / Accreditation
-					<textarea
-						bind:value={complianceAccreditation}
-						rows="2"
-						placeholder="List any licenses, certifications, or compliance standards"
-					></textarea>
-				</label>
+				<div class="field-block">
+					<span class="field-label">Compliance / Accreditation</span>
+					<ComplianceCredentialsEditor
+						credentials={complianceCredentials}
+						monthOptions={monthOptions}
+						yearOptions={yearOptions}
+						onchange={(value) => (complianceCredentials = value)}
+					/>
+				</div>
 			</div>
 		{/if}
 
 		<!-- ── Step 3: Expertise & Skills ───────────────────────────────── -->
 		{#if currentStep === 3}
 			<div class="step-body">
+				{#if stepError}
+					<p class="error-msg section-error" role="alert">{stepError}</p>
+				{/if}
+
 				<TagFilter
 					label="Areas of Expertise"
 					selected={areasOfExpertise}
@@ -772,6 +872,10 @@
 		<!-- ── Step 4: Experience ───────────────────────────────────────── -->
 		{#if currentStep === 4}
 			<div class="step-body">
+				{#if stepError}
+					<p class="error-msg section-error" role="alert">{stepError}</p>
+				{/if}
+
 				<div class="two grid">
 					<SelectField
 						label="Years of Experience"
@@ -819,8 +923,12 @@
 		<!-- ── Step 5: Profiles & Publications ─────────────────────────── -->
 		{#if currentStep === 5}
 			<div class="step-body">
+				{#if stepError}
+					<p class="error-msg section-error" role="alert">{stepError}</p>
+				{/if}
+
 				<p class="step-intro">
-					Add public profile and publication links collaborators can use to review your work.
+					Optionally add public profile and publication links collaborators can use to review your work.
 				</p>
 
 				<ProfileLinksEditor
@@ -977,6 +1085,18 @@
 		min-width: 0;
 	}
 
+	.field-block {
+		display: grid;
+		gap: 0.65rem;
+		min-width: 0;
+	}
+
+	.field-label {
+		font-weight: 700;
+		font-size: 0.95rem;
+		color: var(--ink);
+	}
+
 	input:not([type='checkbox']),
 	textarea {
 		box-sizing: border-box;
@@ -1029,6 +1149,19 @@
 		padding: 0.65rem 0.8rem;
 		border-radius: 10px;
 		margin: 0;
+	}
+
+	.field-error {
+		color: #b42318;
+		font-size: 0.84rem;
+		font-weight: 600;
+		line-height: 1.35;
+		margin: -0.12rem 0 0;
+	}
+
+	input[aria-invalid='true'] {
+		border-color: #e5484d;
+		box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.12);
 	}
 
 	/* ── Navigation ── */

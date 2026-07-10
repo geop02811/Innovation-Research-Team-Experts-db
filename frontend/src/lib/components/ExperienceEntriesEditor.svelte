@@ -18,6 +18,8 @@
 		locationTypeOptions,
 		onchange
 	}: Props = $props();
+	let activeIndex = $state<number | null>(null);
+	let editorElement: HTMLDivElement | undefined;
 
 	const createExperience = (): ProfessionalExperience => ({
 		title: '',
@@ -52,21 +54,63 @@
 
 	const removeExperience = (index: number) => {
 		onchange(experiences.filter((_, itemIndex) => itemIndex !== index));
+		if (activeIndex === index) activeIndex = null;
+		else if (activeIndex !== null && activeIndex > index) activeIndex -= 1;
 	};
 
 	const addExperience = () => {
-		onchange([...experiences, createExperience()]);
+		const nextExperiences = [...experiences, createExperience()];
+		onchange(nextExperiences);
+		activeIndex = nextExperiences.length - 1;
 	};
+
+	const toggleCard = (index: number) => {
+		activeIndex = activeIndex === index ? null : index;
+	};
+
+	const closeWhenClickOutside = (event: MouseEvent) => {
+		if (!editorElement || !(event.target instanceof Node)) return;
+		if (!editorElement.contains(event.target)) activeIndex = null;
+	};
+
+	const experienceDateRange = (experience: ProfessionalExperience) => {
+		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
+		const end = experience.isCurrent
+			? 'Present'
+			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
+		return [start, end].filter(Boolean).join(' - ');
+	};
+
+	const experienceSummary = (experience: ProfessionalExperience) =>
+		[
+			experience.title || 'Experience details',
+			experience.organization,
+			experience.employmentType,
+			experienceDateRange(experience)
+		]
+			.filter(Boolean)
+			.join(' · ');
 </script>
 
-<div class="experiences-editor">
+<svelte:window onclick={closeWhenClickOutside} />
+
+<div class="experiences-editor" bind:this={editorElement}>
 	{#each experiences as experience, index}
-		<div class="experience-card">
+		<div class="experience-card" class:collapsed={activeIndex !== index}>
 			<div class="experience-card-header">
-				<h3>Experience {index + 1}</h3>
+				<button
+					type="button"
+					class="card-toggle"
+					aria-expanded={activeIndex === index}
+					onclick={() => toggleCard(index)}
+				>
+					<span class="card-title">Experience {index + 1}</span>
+					<span class="card-summary">{experienceSummary(experience)}</span>
+				</button>
 				<button type="button" class="remove-btn" onclick={() => removeExperience(index)}>Remove</button>
 			</div>
 
+			{#if activeIndex === index}
 			<div class="field-grid two">
 				<label>
 					Title
@@ -201,6 +245,7 @@
 					oninput={(event) => updateExperience(index, { summary: event.currentTarget.value })}
 				></textarea>
 			</label>
+			{/if}
 		</div>
 	{/each}
 
@@ -224,6 +269,10 @@
 		min-width: 0;
 	}
 
+	.experience-card.collapsed {
+		gap: 0;
+	}
+
 	.experience-card-header {
 		display: flex;
 		align-items: center;
@@ -231,9 +280,33 @@
 		gap: 1rem;
 	}
 
-	h3 {
+	.card-toggle {
+		border: 0;
+		background: transparent;
+		padding: 0;
+		display: grid;
+		gap: 0.22rem;
+		flex: 1;
+		min-width: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.card-title {
 		margin: 0;
 		font-size: 1rem;
+		font-weight: 800;
+	}
+
+	.card-summary {
+		font-size: 0.86rem;
+		font-weight: 600;
+		color: var(--ink-soft);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.field-grid {
@@ -299,10 +372,11 @@
 		transform: translateX(1rem);
 	}
 
-	.current-role-toggle:focus-visible {
+	.current-role-toggle:focus-visible,
+	.card-toggle:focus-visible {
 		outline: none;
 		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.16);
-		border-radius: 999px;
+		border-radius: 8px;
 	}
 
 	input,
