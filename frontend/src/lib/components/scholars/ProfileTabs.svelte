@@ -140,14 +140,16 @@
 	.profile-tabs-container {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 1.15rem;
 		min-width: 0;
 	}
 
 	.profile-tabs {
+		position: relative;
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 0.75rem;
+		border-top: 1px solid #dfe5ef;
 		border-bottom: 1px solid #dfe5ef;
 		min-width: 0;
 	}
@@ -157,7 +159,7 @@
 		background: transparent;
 		border: 0;
 		border-radius: 0;
-		padding: 0.9rem 0.25rem 0.95rem;
+		padding: 0.65rem 0.25rem 0.7rem;
 		font-size: clamp(0.88rem, 1.35vw, 1.12rem);
 		font-weight: 800;
 		line-height: 1.16;
@@ -176,7 +178,7 @@
 		position: absolute;
 		left: 0;
 		right: 0;
-		top: 0;
+		top: -1px;
 		height: 3px;
 		background: transparent;
 	}
