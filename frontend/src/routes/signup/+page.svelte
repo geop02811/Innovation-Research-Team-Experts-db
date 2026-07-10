@@ -76,6 +76,8 @@
 	let complianceCredentials = $state<ComplianceCredential[]>([]);
 	let faculty = $state('');
 	let department = $state('');
+	let researchInterests = $state('');
+	let researchGroups = $state('');
 	let yearsOfConsultancyExperience = $state('');
 	let professionalExperiences = $state<ProfessionalExperience[]>([]);
 	let consultancyAvailability = $state('');
@@ -114,6 +116,8 @@
 		complianceCredentials: ComplianceCredential[];
 		faculty: string;
 		department: string;
+		researchInterests: string;
+		researchGroups: string;
 		yearsOfConsultancyExperience: string;
 		professionalExperiences: ProfessionalExperience[];
 		consultancyAvailability: string;
@@ -282,6 +286,8 @@
 		complianceCredentials,
 		faculty,
 		department,
+		researchInterests,
+		researchGroups,
 		yearsOfConsultancyExperience,
 		professionalExperiences,
 		consultancyAvailability,
@@ -316,6 +322,8 @@
 		complianceCredentials = asComplianceCredentialArray(draft.complianceCredentials);
 		faculty = asString(draft.faculty);
 		department = asString(draft.department);
+		researchInterests = asString(draft.researchInterests);
+		researchGroups = asString(draft.researchGroups);
 		yearsOfConsultancyExperience = asString(draft.yearsOfConsultancyExperience);
 		professionalExperiences = asProfessionalExperienceArray(draft.professionalExperiences);
 		consultancyAvailability = asString(draft.consultancyAvailability);
@@ -470,6 +478,7 @@
 					return 'Please add at least one complete compliance or accreditation credential.';
 				break;
 			case 3:
+				if (!researchInterests) return 'Please describe your research interests.';
 				if (
 					areasOfExpertise.length === 0 ||
 					industrialAreasOfExpertise.length === 0 ||
@@ -577,6 +586,8 @@
 			fullName,
 			contactDetails,
 			bio,
+			researchInterests,
+			researchGroups,
 			academicRank: resolvedAcademicRank(),
 			universityEmail,
 			phoneNumber,
@@ -830,6 +841,24 @@
 				{#if stepError}
 					<p class="error-msg section-error" role="alert">{stepError}</p>
 				{/if}
+
+				<label>
+					Research Interests
+					<textarea
+						bind:value={researchInterests}
+						rows="4"
+						placeholder="Describe your main research interests, themes, and methods."
+					></textarea>
+				</label>
+
+				<label>
+					Research Groups
+					<textarea
+						bind:value={researchGroups}
+						rows="3"
+						placeholder="Optional, e.g. Machine Learning — UZ AI Lab"
+					></textarea>
+				</label>
 
 				<TagFilter
 					label="Areas of Expertise"

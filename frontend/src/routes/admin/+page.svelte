@@ -314,6 +314,19 @@
 												<p>{user.bio}</p>
 											</div>
 										{/if}
+										<div class="detail-section wide-section">
+											<p class="section-label">Research</p>
+											<div class="detail-card-list">
+												<article class="profile-detail-card">
+													<h4>Research Interests</h4>
+													<p class="long-text">{user.researchInterests || '—'}</p>
+												</article>
+												<article class="profile-detail-card">
+													<h4>Research Groups</h4>
+													<p class="long-text">{user.researchGroups || '—'}</p>
+												</article>
+											</div>
+										</div>
 										<div class="detail-section">
 											<p class="section-label">Academic</p>
 											<div class="profile-detail-card compact-card">

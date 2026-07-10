@@ -6,12 +6,12 @@
 	}
 
 	let { scholar }: Props = $props();
-	type TabId = 'bio' | 'skills' | 'experience' | 'profiles';
+	type TabId = 'bio' | 'research' | 'experience' | 'profiles';
 	let activeTab = $state<TabId>('bio');
 
 	const tabs: { id: TabId; label: string }[] = [
 		{ id: 'bio', label: 'Biography' },
-		{ id: 'skills', label: 'Skills & Competence' },
+		{ id: 'research', label: 'Research' },
 		{ id: 'experience', label: 'Experience' },
 		{ id: 'profiles', label: 'Profiles & Publications' }
 	];
@@ -46,50 +46,15 @@
 				<h2>Biography</h2>
 				<p class="bio-copy">{scholar.bio || scholar.shortBio || 'No bio has been added yet.'}</p>
 			</section>
-		{:else if activeTab === 'skills'}
+		{:else if activeTab === 'research'}
 			<section class="tab-content active" role="tabpanel">
-				<h2>Skills &amp; Competence</h2>
-				<div class="section-grid">
-					<div class="subsection-card">
-						<h3>Areas of Expertise</h3>
-						<div class="tag-list">
-							{#each scholar.areasOfExpertise ?? [] as item}
-								<span>{item}</span>
-							{:else}
-								<p>No areas added yet.</p>
-							{/each}
-						</div>
-					</div>
-					<div class="subsection-card">
-						<h3>Skills</h3>
-						<div class="tag-list">
-							{#each scholar.sections.find((section) => section.title === 'Skills & Competences')?.body.split(' · ').filter(Boolean) ?? [] as item}
-								<span>{item}</span>
-							{:else}
-								<p>No skills added yet.</p>
-							{/each}
-						</div>
-					</div>
-					<div class="subsection-card">
-						<h3>Industrial Areas</h3>
-						<div class="tag-list">
-							{#each scholar.industrialAreasOfExpertise ?? [] as item}
-								<span>{item}</span>
-							{:else}
-								<p>No industrial areas added yet.</p>
-							{/each}
-						</div>
-					</div>
-					<div class="subsection-card">
-						<h3>Languages</h3>
-						<div class="tag-list">
-							{#each scholar.languageProficiencies?.length ? scholar.languageProficiencies : (scholar.languagesSpoken ?? []).map((language) => ({ language, proficiency: '' })) as item}
-								<span>{item.language}{item.proficiency ? ` · ${item.proficiency}` : ''}</span>
-							{:else}
-								<p>No languages added yet.</p>
-							{/each}
-						</div>
-					</div>
+				<div class="research-block">
+					<h2>Research Interests</h2>
+					<p class="research-copy">{scholar.researchInterests || 'No research interests have been added yet.'}</p>
+				</div>
+				<div class="research-block">
+					<h2>Research Groups</h2>
+					<p class="research-copy">{scholar.researchGroups || 'No research groups have been added yet.'}</p>
 				</div>
 			</section>
 		{:else if activeTab === 'experience'}
@@ -233,18 +198,12 @@
 		margin: 0;
 	}
 
-	.section-grid,
 	.experience-grid,
 	.link-grid {
 		display: grid;
 		gap: 1rem;
 	}
 
-	.section-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.subsection-card,
 	.experience-card,
 	.profile-link-card {
 		display: grid;
@@ -255,27 +214,20 @@
 		background: #fff;
 	}
 
-	.subsection-card h3,
 	.experience-card h3 {
 		margin: 0;
 		font-size: 1rem;
 		color: var(--ink, #1f2a44);
 	}
 
-	.tag-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.45rem;
+	.research-block {
+		display: grid;
+		gap: 0.75rem;
+		max-width: 760px;
 	}
 
-	.tag-list span {
-		border-radius: 999px;
-		background: #f3f6fb;
-		border: 1px solid #d9e0ec;
-		padding: 0.35rem 0.65rem;
-		font-size: 0.82rem;
-		font-weight: 700;
-		color: #41506a;
+	.research-copy {
+		white-space: pre-wrap;
 	}
 
 	.experience-meta {
@@ -307,10 +259,6 @@
 		.profile-tabs {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.35rem 0.75rem;
-		}
-
-		.section-grid {
-			grid-template-columns: 1fr;
 		}
 	}
 </style>

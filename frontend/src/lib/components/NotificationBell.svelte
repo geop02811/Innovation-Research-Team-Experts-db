@@ -48,6 +48,7 @@
 			profile.highestQualification,
 			profile.faculty,
 			profile.department,
+			profile.researchInterests,
 			getArrayLength(profile.skillsAndCompetences) > 0,
 			getJsonArrayLength(profile.languageProficiencies) > 0,
 			getJsonArrayLength(profile.professionalExperiences) > 0,

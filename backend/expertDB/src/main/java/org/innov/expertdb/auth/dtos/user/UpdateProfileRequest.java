@@ -5,6 +5,8 @@ public record UpdateProfileRequest(
         String titlePrefix,
         String phoneNumber,
         String bio,
+        String researchInterests,
+        String researchGroups,
         String faculty,
         String department,
         String academicRank,

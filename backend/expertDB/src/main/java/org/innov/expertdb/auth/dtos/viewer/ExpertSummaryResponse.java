@@ -13,6 +13,8 @@ public record ExpertSummaryResponse(
         String universityEmail,
         String phoneNumber,
         String bio,
+        String researchInterests,
+        String researchGroups,
         String consultancyExperience,
         String consultancyAvailability,
         String yearsOfConsultancyExperience,

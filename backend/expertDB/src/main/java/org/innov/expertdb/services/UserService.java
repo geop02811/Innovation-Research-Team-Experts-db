@@ -41,6 +41,8 @@ public class UserService {
         user.setFullName(request.fullName());
         user.setContactDetails(request.contactDetails());
         user.setBio(request.bio());
+        user.setResearchInterests(request.researchInterests());
+        user.setResearchGroups(request.researchGroups());
         user.setAcademicRank(request.academicRank());
         user.setUniversityEmail(request.universityEmail());
         user.setPhoneNumber(request.phoneNumber());

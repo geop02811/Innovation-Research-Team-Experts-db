@@ -112,6 +112,8 @@ const mapToScholar = (e: Record<string, string>): Scholar => ({
 	location: e.faculty ?? '',
 	researchAreas: e.areasOfExpertise ? e.areasOfExpertise.split(',').map((s: string) => s.trim()) : [],
 	bio: e.bio ?? e.notes ?? '',
+	researchInterests: e.researchInterests ?? '',
+	researchGroups: e.researchGroups ?? '',
 	shortBio: e.bio ?? e.notes ?? '',
 	links: parseProfileLinks(e.profileLinks),
 	professionalExperiences: parseProfessionalExperiences(e.professionalExperiences, e.consultancyExperience),

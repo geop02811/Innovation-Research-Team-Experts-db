@@ -11,6 +11,8 @@ public record UserProfileResponse(
         String phoneNumber,
         String universityEmail,
         String bio,
+        String researchInterests,
+        String researchGroups,
         String faculty,
         String department,
         String academicRank,

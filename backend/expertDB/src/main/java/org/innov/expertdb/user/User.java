@@ -57,6 +57,12 @@ public class User {
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
+    @Column(name = "research_interests", columnDefinition = "TEXT")
+    private String researchInterests;
+
+    @Column(name = "research_groups", columnDefinition = "TEXT")
+    private String researchGroups;
+
     @Column(name = "academic_rank")
     private String academicRank;
 

@@ -18,6 +18,8 @@ public record AdminUserResponse(
         String fullName,
         String contactDetails,
         String bio,
+        String researchInterests,
+        String researchGroups,
         String academicRank,
         String universityEmail,
         String phoneNumber,

@@ -84,6 +84,8 @@ export const authService = {
 					fullName: p.fullName,
 					contactDetails: p.contactDetails,
 					bio: p.bio,
+					researchInterests: p.researchInterests,
+					researchGroups: p.researchGroups,
 					academicRank: p.academicRank,
 					universityEmail: p.universityEmail,
 					phoneNumber: p.phoneNumber,

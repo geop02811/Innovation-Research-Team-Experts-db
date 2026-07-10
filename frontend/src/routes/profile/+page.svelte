@@ -234,6 +234,7 @@
 			formData.skillsAndCompetences.length > 0,
 			formData.languageProficiencies.length > 0,
 			formData.professionalExperiences.length > 0,
+			formData.researchInterests,
 			formData.bio
 		];
 
@@ -257,6 +258,8 @@
 			highestQualification: profile?.highestQualification || '',
 			faculty: profile?.faculty || '',
 			department: profile?.department || '',
+			researchInterests: profile?.researchInterests || '',
+			researchGroups: profile?.researchGroups || '',
 			professionalMemberships: asProfessionalMemberships(profile?.professionalMemberships),
 			complianceCredentials: asComplianceCredentials(profile?.complianceAccreditation),
 			yearsOfConsultancyExperience: profile?.yearsOfConsultancyExperience || '',
@@ -382,6 +385,8 @@
 			highestQualification: formData.highestQualification,
 			faculty: formData.faculty,
 			department: formData.department,
+			researchInterests: formData.researchInterests,
+			researchGroups: formData.researchGroups,
 			professionalMemberships: serializeProfessionalMemberships(formData.professionalMemberships),
 			complianceAccreditation: serializeComplianceCredentials(formData.complianceCredentials),
 			yearsOfConsultancyExperience: formData.yearsOfConsultancyExperience,
@@ -485,6 +490,7 @@
 						<li class:done={Boolean(formData.profilePhotoDataUrl)}>Profile photo</li>
 						<li class:done={Boolean(formData.fullName && formData.phone)}>Personal details</li>
 						<li class:done={Boolean(formData.academicRank && formData.faculty)}>Academic profile</li>
+						<li class:done={Boolean(formData.researchInterests)}>Research interests</li>
 						<li class:done={formData.professionalExperiences.length > 0}>Experience</li>
 					</ul>
 				</div>
@@ -839,6 +845,24 @@
 					</div>
 
 					{#if isEditing}
+						<label class="field">
+							<span class="field-label">Research Interests</span>
+							<textarea
+								bind:value={formData.researchInterests}
+								rows="4"
+								placeholder="Describe your main research interests, themes, and methods."
+							></textarea>
+						</label>
+
+						<label class="field">
+							<span class="field-label">Research Groups</span>
+							<textarea
+								bind:value={formData.researchGroups}
+								rows="3"
+								placeholder="Optional, e.g. Machine Learning — UZ AI Lab"
+							></textarea>
+						</label>
+
 						<TagFilter
 							label="Areas of Expertise"
 							selected={formData.areasOfExpertise}
@@ -874,6 +898,14 @@
 						</div>
 					{:else}
 						<div class="expertise-view-grid">
+							<div class="expertise-group expertise-group-wide">
+								<span class="field-label">Research Interests</span>
+								<p class="field-value long-text">{formData.researchInterests || '—'}</p>
+							</div>
+							<div class="expertise-group expertise-group-wide">
+								<span class="field-label">Research Groups</span>
+								<p class="field-value long-text">{formData.researchGroups || '—'}</p>
+							</div>
 							<div class="expertise-group">
 								<span class="field-label">Areas of Expertise</span>
 								<div class="tags-row">
@@ -1488,6 +1520,9 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+	}
+	.expertise-group-wide {
+		grid-column: 1 / -1;
 	}
 
 	.photo-upload-label {

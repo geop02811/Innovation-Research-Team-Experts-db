@@ -43,6 +43,8 @@ export interface Scholar {
 	location: string;
 	researchAreas: string[];
 	bio: string;
+	researchInterests?: string;
+	researchGroups?: string;
 	shortBio: string;
 	sections: ScholarProfileSection[];
 	links: ScholarLink[];

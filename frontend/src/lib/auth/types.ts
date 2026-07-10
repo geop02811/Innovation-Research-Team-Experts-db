@@ -54,6 +54,8 @@ export interface ExpertProfile {
 	fullName: string;
 	contactDetails: string;
 	bio: string;
+	researchInterests: string;
+	researchGroups: string;
 	academicRank: string;
 	universityEmail: string;
 	phoneNumber: string;
@@ -124,6 +126,8 @@ export interface AdminUser {
 	fullName: string | null;
 	contactDetails: string | null;
 	bio: string | null;
+	researchInterests: string | null;
+	researchGroups: string | null;
 	academicRank: string | null;
 	universityEmail: string | null;
 	phoneNumber: string | null;

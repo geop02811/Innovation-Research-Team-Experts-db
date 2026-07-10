@@ -48,7 +48,7 @@ class SignUpServiceTest {
                 "password123",
                 null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null
         );
 
         expectedResponse = new RegisterResponse(
@@ -88,7 +88,7 @@ class SignUpServiceTest {
                 "password123",
                 null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null
         );
         User existingUser = new User();
         existingUser.setEmail(validRequest.email().toLowerCase());
