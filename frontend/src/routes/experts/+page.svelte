@@ -38,6 +38,8 @@
 
 	const filteredScholars = $derived(
 		activeScholars.filter((scholar) => {
+			const isCurrentUser = data.session?.id === scholar.id;
+
 			// When a backend search is active, text matching is already done server-side
 			const searchMatches = appliedSearch === '' || searchResults !== null;
 
@@ -89,6 +91,7 @@
 				);
 
 			return (
+				!isCurrentUser &&
 				searchMatches &&
 				qualificationMatches &&
 				facultyMatches &&
