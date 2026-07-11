@@ -96,7 +96,7 @@ export const facultyDepartmentMap: Record<FacultyName, readonly string[]> = {
 		'Department of Social Work'
 	],
 	'Veterinary Science': ['Department of Animal Disease Intelligence', 'Department of Zoonotic Diseases and Food Safety', 'Department of Veterinary Pharmaceuticals Ethno-medicine and Vaccinology','Department of Aquatic Health and Apiculture','Department of Animal Reproductive Technologies and Nutrition'],
-	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies', 'Agro Industrial Park']
+	'Institutes & Units': ['Environment Climate and Sustainable Development Institute', 'Centre for Postgraduate Studies', 'Agro Industrial Park','Research, Innovation and Industrialisation Directorate','Information and Communication Technology Services']
 }; 
 
 export const allDepartmentOptions = Array.from(
@@ -114,11 +114,9 @@ export const getDepartmentOptionsByFaculty = (faculty: string) => {
 };
 export const yearsOfConsultancyOptions = ['0-2 years', '3-5 years', '6-10 years', '10+ years'] as const;
 export const consultancyAvailabilityOptions = [
-	'Full-time',
-	'Part-time',
-	'Short-term (<3 months)',
-	'Medium-term (3-12 months)',
-	'Long-term (>1 year)'
+	'Short-term',
+	'Medium-term',
+	'Long-term'
 ] as const;
 export const preferredConsultancyTypeOptions = [
 	'Advisory',
@@ -141,6 +139,17 @@ export const employmentTypeOptions = [
 ] as const;
 export const professionalMembershipOrganizationOptions = ['IEEE', 'ZIE', 'ACCA', 'Other'] as const;
 export const membershipPositionOptions = ['Member', 'Professional Member', 'Fellow', 'Other'] as const;
+export const researchInterestOptions = [
+	'Machine Learning',
+	'Data Science',
+	'Artificial Intelligence',
+	'Climate Research',
+	'Public Health',
+	'Agriculture',
+	'Education',
+	'Governance',
+	'Other'
+] as const;
 export const locationTypeOptions = ['On-site', 'Hybrid', 'Remote'] as const;
 export const monthOptions = [
 	'January',

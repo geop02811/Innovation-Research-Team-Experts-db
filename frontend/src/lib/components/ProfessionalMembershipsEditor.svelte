@@ -158,7 +158,7 @@
 
 			<div class="field-grid two">
 				<label>
-					Start month
+					Start month <span class="optional-text">optional</span>
 					<select
 						value={membership.startMonth}
 						onchange={(event) => updateMembership(index, { startMonth: event.currentTarget.value })}
@@ -170,7 +170,7 @@
 					</select>
 				</label>
 				<label>
-					Start year
+					Start year <span class="optional-text">optional</span>
 					<select
 						value={membership.startYear}
 						onchange={(event) => updateMembership(index, { startYear: event.currentTarget.value })}
@@ -198,11 +198,11 @@
 			</button>
 
 			{#if membership.isCurrent}
-				<p class="period-note">End date is recorded as Present.</p>
+				<p class="period-note">Dates are optional. If a start date is added, the end date is recorded as Present.</p>
 			{:else}
 				<div class="field-grid two">
 					<label>
-						End month
+						End month <span class="optional-text">optional</span>
 						<select
 							value={membership.endMonth}
 							onchange={(event) => updateMembership(index, { endMonth: event.currentTarget.value })}
@@ -214,7 +214,7 @@
 						</select>
 					</label>
 					<label>
-						End year
+						End year <span class="optional-text">optional</span>
 						<select
 							value={membership.endYear}
 							onchange={(event) => updateMembership(index, { endYear: event.currentTarget.value })}
@@ -315,6 +315,12 @@
 		gap: 0.35rem;
 		font-weight: 700;
 		min-width: 0;
+	}
+
+	.optional-text {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--ink-soft);
 	}
 
 	input,

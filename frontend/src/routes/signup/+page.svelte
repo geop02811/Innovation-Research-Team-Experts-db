@@ -7,6 +7,7 @@
 	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
 	import ProfessionalMembershipsEditor from '$lib/components/ProfessionalMembershipsEditor.svelte';
 	import ComplianceCredentialsEditor from '$lib/components/ComplianceCredentialsEditor.svelte';
+	import ResearchGroupsEditor from '$lib/components/ResearchGroupsEditor.svelte';
 	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
@@ -19,6 +20,13 @@
 		serializeComplianceCredentials,
 		serializeProfessionalMemberships
 	} from '$lib/auth/structured-profile-fields';
+	import {
+		hasCompleteResearchGroups,
+		parseResearchGroups,
+		parseResearchInterests,
+		serializeResearchGroups,
+		serializeResearchInterests
+	} from '$lib/auth/research-profile-fields';
 	import {
 		academicRankOptions,
 		areasOfExpertiseOptions,
@@ -37,6 +45,7 @@
 		professionalMembershipOrganizationOptions,
 		preferredConsultancyTypeOptions,
 		profileLinkTypeOptions,
+		researchInterestOptions,
 		skillsOptions,
 		titlePrefixOptions,
 		yearOptions,
@@ -48,7 +57,8 @@
 		LanguageProficiency,
 		ProfessionalExperience,
 		ProfessionalMembership,
-		ProfileLink
+		ProfileLink,
+		ResearchGroup
 	} from '$lib/auth/types';
 
 	// ── Step state ──────────────────────────────────────────────────────────────
@@ -76,8 +86,8 @@
 	let complianceCredentials = $state<ComplianceCredential[]>([]);
 	let faculty = $state('');
 	let department = $state('');
-	let researchInterests = $state('');
-	let researchGroups = $state('');
+	let researchInterests = $state<string[]>([]);
+	let researchGroups = $state<ResearchGroup[]>([]);
 	let yearsOfConsultancyExperience = $state('');
 	let professionalExperiences = $state<ProfessionalExperience[]>([]);
 	let consultancyAvailability = $state('');
@@ -116,8 +126,8 @@
 		complianceCredentials: ComplianceCredential[];
 		faculty: string;
 		department: string;
-		researchInterests: string;
-		researchGroups: string;
+		researchInterests: string[];
+		researchGroups: ResearchGroup[];
 		yearsOfConsultancyExperience: string;
 		professionalExperiences: ProfessionalExperience[];
 		consultancyAvailability: string;
@@ -164,6 +174,8 @@
 	const asString = (value: unknown) => (typeof value === 'string' ? value : '');
 	const asStringArray = (value: unknown) =>
 		Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+	const asResearchInterestArray = (value: unknown) => parseResearchInterests(value);
+	const asResearchGroupArray = (value: unknown) => parseResearchGroups(value);
 	const asProfessionalMembershipArray = (value: unknown) => parseProfessionalMemberships(value);
 	const asComplianceCredentialArray = (value: unknown) => parseComplianceCredentials(value);
 	const asProfessionalExperienceArray = (value: unknown) =>
@@ -322,8 +334,8 @@
 		complianceCredentials = asComplianceCredentialArray(draft.complianceCredentials);
 		faculty = asString(draft.faculty);
 		department = asString(draft.department);
-		researchInterests = asString(draft.researchInterests);
-		researchGroups = asString(draft.researchGroups);
+		researchInterests = asResearchInterestArray(draft.researchInterests);
+		researchGroups = asResearchGroupArray(draft.researchGroups);
 		yearsOfConsultancyExperience = asString(draft.yearsOfConsultancyExperience);
 		professionalExperiences = asProfessionalExperienceArray(draft.professionalExperiences);
 		consultancyAvailability = asString(draft.consultancyAvailability);
@@ -478,7 +490,9 @@
 					return 'Please add at least one complete compliance or accreditation credential.';
 				break;
 			case 3:
-				if (!researchInterests) return 'Please describe your research interests.';
+				if (researchInterests.length === 0) return 'Please add at least one research interest.';
+				if (!hasCompleteResearchGroups(researchGroups))
+					return 'Please complete the group name and associated organization for each research group.';
 				if (
 					areasOfExpertise.length === 0 ||
 					industrialAreasOfExpertise.length === 0 ||
@@ -586,8 +600,8 @@
 			fullName,
 			contactDetails,
 			bio,
-			researchInterests,
-			researchGroups,
+			researchInterests: serializeResearchInterests(researchInterests),
+			researchGroups: serializeResearchGroups(researchGroups),
 			academicRank: resolvedAcademicRank(),
 			universityEmail,
 			phoneNumber,
@@ -842,23 +856,20 @@
 					<p class="error-msg section-error" role="alert">{stepError}</p>
 				{/if}
 
-				<label>
-					Research Interests
-					<textarea
-						bind:value={researchInterests}
-						rows="4"
-						placeholder="Describe your main research interests, themes, and methods."
-					></textarea>
-				</label>
+				<TagFilter
+					label="Research Interests"
+					selected={researchInterests}
+					options={[...researchInterestOptions]}
+					onchange={(value) => (researchInterests = value)}
+				/>
 
-				<label>
-					Research Groups
-					<textarea
-						bind:value={researchGroups}
-						rows="3"
-						placeholder="Optional, e.g. Machine Learning — UZ AI Lab"
-					></textarea>
-				</label>
+				<div class="field-block">
+					<span class="field-label">Research Groups</span>
+					<ResearchGroupsEditor
+						groups={researchGroups}
+						onchange={(value) => (researchGroups = value)}
+					/>
+				</div>
 
 				<TagFilter
 					label="Areas of Expertise"

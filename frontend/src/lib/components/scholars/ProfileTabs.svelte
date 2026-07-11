@@ -23,6 +23,15 @@
 			: [experience.endMonth, experience.endYear].filter(Boolean).join(' ');
 		return [start, end].filter(Boolean).join(' - ');
 	};
+
+	const formatExperienceSummary = (summary: string) =>
+		summary
+			.replace(/(:)([A-Z][A-Za-z &/()-]{2,45}:)/g, '$1\n$2')
+			.replace(/([a-z)])([A-Z][A-Za-z &/()-]{2,45}:)/g, '$1\n$2')
+			.replace(/(\.|\?|!)([A-Z][a-z])/g, '$1\n$2')
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
 </script>
 
 <div class="profile-tabs-container">
@@ -50,11 +59,26 @@
 			<section class="tab-content active" role="tabpanel">
 				<div class="research-block">
 					<h2>Research Interests</h2>
-					<p class="research-copy">{scholar.researchInterests || 'No research interests have been added yet.'}</p>
+					<div class="tag-list">
+						{#each scholar.researchInterests ?? [] as interest}
+							<span>{interest}</span>
+						{:else}
+							<p>No research interests have been added yet.</p>
+						{/each}
+					</div>
 				</div>
 				<div class="research-block">
 					<h2>Research Groups</h2>
-					<p class="research-copy">{scholar.researchGroups || 'No research groups have been added yet.'}</p>
+					<div class="research-group-list">
+						{#each scholar.researchGroups ?? [] as group}
+							<article class="research-group-card">
+								<h3>{group.name || 'Research group'}</h3>
+								<p>{group.organization || 'Associated organization not set'}</p>
+							</article>
+						{:else}
+							<p>No research groups have been added yet.</p>
+						{/each}
+					</div>
 				</div>
 			</section>
 		{:else if activeTab === 'experience'}
@@ -76,7 +100,15 @@
 									{[experience.location, experience.locationType].filter(Boolean).join(' · ')}
 								</p>
 							{/if}
-							<p>{experience.summary || 'No summary added.'}</p>
+							{#if experience.summary}
+								<div class="experience-summary-list">
+									{#each formatExperienceSummary(experience.summary) as line}
+										<p>{line}</p>
+									{/each}
+								</div>
+							{:else}
+								<p>No summary added.</p>
+							{/if}
 						</article>
 					{:else}
 						<p>No experience has been added yet.</p>
@@ -226,14 +258,63 @@
 		max-width: 760px;
 	}
 
-	.research-copy {
-		white-space: pre-wrap;
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.tag-list span {
+		border-radius: 999px;
+		background: #f3f6fb;
+		border: 1px solid #d9e0ec;
+		padding: 0.4rem 0.7rem;
+		font-size: 0.86rem;
+		font-weight: 800;
+		color: #41506a;
+	}
+
+	.research-group-list {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.research-group-card {
+		display: grid;
+		gap: 0.28rem;
+		border: 1px solid #dfe5ef;
+		border-left: 3px solid var(--uz-orange, #e87722);
+		border-radius: 8px;
+		padding: 0.9rem 1rem;
+		background: #fff;
+	}
+
+	.research-group-card h3 {
+		margin: 0;
+		font-size: 1rem;
+		color: var(--ink, #1f2a44);
+	}
+
+	.research-group-card p {
+		margin: 0;
+		font-weight: 700;
+		color: #6a7282;
 	}
 
 	.experience-meta {
 		font-size: 0.86rem;
 		font-weight: 700;
 		color: #6a7282;
+	}
+
+	.experience-summary-list {
+		display: grid;
+		gap: 0.45rem;
+		line-height: 1.6;
+	}
+
+	.experience-summary-list p {
+		margin: 0;
 	}
 
 	.profile-link-card {

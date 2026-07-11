@@ -3,6 +3,7 @@
 	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
 	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
 	import ProfessionalMembershipsEditor from '$lib/components/ProfessionalMembershipsEditor.svelte';
+	import ResearchGroupsEditor from '$lib/components/ResearchGroupsEditor.svelte';
 	import ProfileLinksEditor from '$lib/components/ProfileLinksEditor.svelte';
 	import MultiSelectFilter from '$lib/components/scholars/MultiSelectFilter.svelte';
 	import TagFilter from '$lib/components/scholars/TagFilter.svelte';
@@ -17,6 +18,12 @@
 		serializeComplianceCredentials,
 		serializeProfessionalMemberships
 	} from '$lib/auth/structured-profile-fields';
+	import {
+		parseResearchGroups,
+		parseResearchInterests,
+		serializeResearchGroups,
+		serializeResearchInterests
+	} from '$lib/auth/research-profile-fields';
 	import {
 		titlePrefixOptions,
 		academicRankOptions,
@@ -36,6 +43,7 @@
 		monthOptions,
 		professionalMembershipOrganizationOptions,
 		profileLinkTypeOptions,
+		researchInterestOptions,
 		yearOptions,
 		areasOfExpertiseOptions,
 		industrialAreasOptions
@@ -45,7 +53,8 @@
 		LanguageProficiency,
 		ProfessionalExperience,
 		ProfessionalMembership,
-		ProfileLink
+		ProfileLink,
+		ResearchGroup
 	} from '$lib/auth/types';
 	import type { PageData } from './$types';
 
@@ -184,6 +193,8 @@
 		parseProfessionalMemberships(value);
 	const asComplianceCredentials = (value: unknown): ComplianceCredential[] =>
 		parseComplianceCredentials(value);
+	const asResearchInterests = (value: unknown): string[] => parseResearchInterests(value);
+	const asResearchGroups = (value: unknown): ResearchGroup[] => parseResearchGroups(value);
 
 	const normalizeUrl = (value: string) => {
 		const trimmed = value.trim();
@@ -234,7 +245,7 @@
 			formData.skillsAndCompetences.length > 0,
 			formData.languageProficiencies.length > 0,
 			formData.professionalExperiences.length > 0,
-			formData.researchInterests,
+			formData.researchInterests.length > 0,
 			formData.bio
 		];
 
@@ -258,8 +269,8 @@
 			highestQualification: profile?.highestQualification || '',
 			faculty: profile?.faculty || '',
 			department: profile?.department || '',
-			researchInterests: profile?.researchInterests || '',
-			researchGroups: profile?.researchGroups || '',
+			researchInterests: asResearchInterests(profile?.researchInterests),
+			researchGroups: asResearchGroups(profile?.researchGroups),
 			professionalMemberships: asProfessionalMemberships(profile?.professionalMemberships),
 			complianceCredentials: asComplianceCredentials(profile?.complianceAccreditation),
 			yearsOfConsultancyExperience: profile?.yearsOfConsultancyExperience || '',
@@ -385,8 +396,8 @@
 			highestQualification: formData.highestQualification,
 			faculty: formData.faculty,
 			department: formData.department,
-			researchInterests: formData.researchInterests,
-			researchGroups: formData.researchGroups,
+			researchInterests: serializeResearchInterests(formData.researchInterests),
+			researchGroups: serializeResearchGroups(formData.researchGroups),
 			professionalMemberships: serializeProfessionalMemberships(formData.professionalMemberships),
 			complianceAccreditation: serializeComplianceCredentials(formData.complianceCredentials),
 			yearsOfConsultancyExperience: formData.yearsOfConsultancyExperience,
@@ -490,7 +501,7 @@
 						<li class:done={Boolean(formData.profilePhotoDataUrl)}>Profile photo</li>
 						<li class:done={Boolean(formData.fullName && formData.phone)}>Personal details</li>
 						<li class:done={Boolean(formData.academicRank && formData.faculty)}>Academic profile</li>
-						<li class:done={Boolean(formData.researchInterests)}>Research interests</li>
+						<li class:done={formData.researchInterests.length > 0}>Research interests</li>
 						<li class:done={formData.professionalExperiences.length > 0}>Experience</li>
 					</ul>
 				</div>
@@ -845,23 +856,20 @@
 					</div>
 
 					{#if isEditing}
-						<label class="field">
-							<span class="field-label">Research Interests</span>
-							<textarea
-								bind:value={formData.researchInterests}
-								rows="4"
-								placeholder="Describe your main research interests, themes, and methods."
-							></textarea>
-						</label>
+						<TagFilter
+							label="Research Interests"
+							selected={formData.researchInterests}
+							options={[...researchInterestOptions]}
+							onchange={(v) => (formData.researchInterests = v)}
+						/>
 
-						<label class="field">
+						<div class="field">
 							<span class="field-label">Research Groups</span>
-							<textarea
-								bind:value={formData.researchGroups}
-								rows="3"
-								placeholder="Optional, e.g. Machine Learning — UZ AI Lab"
-							></textarea>
-						</label>
+							<ResearchGroupsEditor
+								groups={formData.researchGroups}
+								onchange={(v) => (formData.researchGroups = v)}
+							/>
+						</div>
 
 						<TagFilter
 							label="Areas of Expertise"
@@ -900,11 +908,26 @@
 						<div class="expertise-view-grid">
 							<div class="expertise-group expertise-group-wide">
 								<span class="field-label">Research Interests</span>
-								<p class="field-value long-text">{formData.researchInterests || '—'}</p>
+								<div class="tags-row">
+									{#each formData.researchInterests as item}
+										<span class="tag">{item}</span>
+									{:else}
+										<span class="field-value">—</span>
+									{/each}
+								</div>
 							</div>
 							<div class="expertise-group expertise-group-wide">
 								<span class="field-label">Research Groups</span>
-								<p class="field-value long-text">{formData.researchGroups || '—'}</p>
+								<div class="experience-list">
+									{#each formData.researchGroups as group}
+										<article class="experience-card-view">
+											<h3>{group.name || 'Research group'}</h3>
+											<p class="experience-meta">{group.organization || 'Associated organization not set'}</p>
+										</article>
+									{:else}
+										<span class="field-value">—</span>
+									{/each}
+								</div>
 							</div>
 							<div class="expertise-group">
 								<span class="field-label">Areas of Expertise</span>

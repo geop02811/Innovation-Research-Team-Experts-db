@@ -179,9 +179,6 @@ export const hasCompleteProfessionalMemberships = (memberships: ProfessionalMemb
 		(membership) =>
 			Boolean(membershipOrganizationName(membership)) &&
 			Boolean(membershipPositionHeld(membership)) &&
-			Boolean(membership.startMonth) &&
-			Boolean(membership.startYear) &&
-			(Boolean(membership.isCurrent) || (Boolean(membership.endMonth) && Boolean(membership.endYear))) &&
 			Boolean(membership.description.trim())
 	);
 
@@ -191,8 +188,5 @@ export const hasCompleteComplianceCredentials = (credentials: ComplianceCredenti
 		(credential) =>
 			Boolean(credential.name.trim()) &&
 			Boolean(credential.issuingOrganization.trim()) &&
-			Boolean(credential.issueMonth) &&
-			Boolean(credential.issueYear) &&
-			Boolean(credential.credentialUrl.trim()) &&
 			Boolean(credential.skillsAssociated.trim())
 	);

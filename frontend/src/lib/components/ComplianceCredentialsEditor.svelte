@@ -98,7 +98,7 @@
 
 			<div class="field-grid two">
 				<label>
-					Issue month
+					Issue month <span class="optional-text">optional</span>
 					<select
 						value={credential.issueMonth}
 						onchange={(event) => updateCredential(index, { issueMonth: event.currentTarget.value })}
@@ -110,7 +110,7 @@
 					</select>
 				</label>
 				<label>
-					Issue year
+					Issue year <span class="optional-text">optional</span>
 					<select
 						value={credential.issueYear}
 						onchange={(event) => updateCredential(index, { issueYear: event.currentTarget.value })}
@@ -124,7 +124,7 @@
 			</div>
 
 			<label>
-				Credential ID / URL
+				Credential ID / URL <span class="optional-text">optional</span>
 				<input
 					value={credential.credentialUrl}
 					placeholder="https://..."
@@ -219,6 +219,12 @@
 		gap: 0.35rem;
 		font-weight: 700;
 		min-width: 0;
+	}
+
+	.optional-text {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--ink-soft);
 	}
 
 	input,

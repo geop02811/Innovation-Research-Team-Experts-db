@@ -49,6 +49,11 @@ export interface ComplianceCredential {
 	skillsAssociated: string;
 }
 
+export interface ResearchGroup {
+	name: string;
+	organization: string;
+}
+
 export interface ExpertProfile {
 	titlePrefix: 'Eng' | 'Dr' | 'Prof' | 'Mr' | 'Mrs' | 'Ms';
 	fullName: string;
@@ -68,11 +73,9 @@ export interface ExpertProfile {
 	consultancyExperience: string;
 	professionalExperiences: ProfessionalExperience[];
 	consultancyAvailability:
-		| 'Full-time'
-		| 'Part-time'
-		| 'Short-term (<3 months)'
-		| 'Medium-term (3-12 months)'
-		| 'Long-term (>1 year)';
+		| 'Short-term'
+		| 'Medium-term'
+		| 'Long-term';
 	preferredConsultancyTypes: string[];
 	geographicScope: 'Local' | 'Regional' | 'Continental' | 'International';
 	skillsAndCompetences: string[];

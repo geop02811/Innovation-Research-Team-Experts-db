@@ -9,6 +9,7 @@
 		parseComplianceCredentials,
 		parseProfessionalMemberships
 	} from '$lib/auth/structured-profile-fields';
+	import { parseResearchGroups, parseResearchInterests } from '$lib/auth/research-profile-fields';
 	import type { GrantItem, GrantPayload, EventItem, EventPayload, CompetitionItem, CompetitionPayload, AlumniNewsItem, AlumniNewsPayload } from '$lib/auth/auth.service';
 	import type { AdminUser, ProfessionalExperience, ProfileLink, UserRole } from '$lib/auth/types';
 
@@ -232,6 +233,15 @@
 			.map((item) => item.trim())
 			.filter(Boolean);
 
+	const formatExperienceSummary = (summary: string) =>
+		summary
+			.replace(/(:)([A-Z][A-Za-z &/()-]{2,45}:)/g, '$1\n$2')
+			.replace(/([a-z)])([A-Z][A-Za-z &/()-]{2,45}:)/g, '$1\n$2')
+			.replace(/(\.|\?|!)([A-Z][a-z])/g, '$1\n$2')
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
+
 	const experienceDateRange = (experience: ProfessionalExperience) => {
 		const start = [experience.startMonth, experience.startYear].filter(Boolean).join(' ');
 		const end = experience.isCurrent
@@ -300,6 +310,8 @@
 								{@const complianceCredentials = parseComplianceCredentials(user.complianceAccreditation)}
 								{@const experiences = parseProfessionalExperiences(user.professionalExperiences, user.consultancyExperience)}
 								{@const links = parseProfileLinks(user.profileLinks)}
+									{@const researchInterests = parseResearchInterests(user.researchInterests)}
+									{@const researchGroups = parseResearchGroups(user.researchGroups)}
 								<div class="detail-drawer">
 									<div class="detail-grid">
 										<div class="detail-section">
@@ -319,12 +331,25 @@
 											<div class="detail-card-list">
 												<article class="profile-detail-card">
 													<h4>Research Interests</h4>
-													<p class="long-text">{user.researchInterests || '—'}</p>
+													<div class="pill-row">
+														{#each researchInterests as interest}
+															<span class="pill">{interest}</span>
+														{:else}
+															<span class="muted-text">No research interests supplied.</span>
+														{/each}
+													</div>
 												</article>
-												<article class="profile-detail-card">
-													<h4>Research Groups</h4>
-													<p class="long-text">{user.researchGroups || '—'}</p>
-												</article>
+												{#each researchGroups as group}
+													<article class="profile-detail-card">
+														<h4>{group.name || 'Research group'}</h4>
+														<p class="detail-card-meta">{group.organization || 'Associated organization not set'}</p>
+													</article>
+												{:else}
+													<article class="profile-detail-card">
+														<h4>Research Groups</h4>
+														<p class="muted-text">No research groups supplied.</p>
+													</article>
+												{/each}
 											</div>
 										</div>
 										<div class="detail-section">
@@ -373,7 +398,15 @@
 														{#if experience.location || experience.locationType}
 															<p>{[experience.location, experience.locationType].filter(Boolean).join(' • ')}</p>
 														{/if}
-														<p class="long-text">{experience.summary || '—'}</p>
+														{#if experience.summary}
+															<div class="experience-summary-list">
+																{#each formatExperienceSummary(experience.summary) as line}
+																	<p>{line}</p>
+																{/each}
+															</div>
+														{:else}
+															<p class="long-text">—</p>
+														{/if}
 													</article>
 												{:else}
 													<p class="muted-text">No experience details supplied.</p>
@@ -1003,6 +1036,16 @@
 	.long-text {
 		white-space: pre-wrap;
 		line-height: 1.55;
+	}
+
+	.experience-summary-list {
+		display: grid;
+		gap: 0.45rem;
+		line-height: 1.55;
+	}
+
+	.experience-summary-list p {
+		margin: 0;
 	}
 
 	.muted-text {

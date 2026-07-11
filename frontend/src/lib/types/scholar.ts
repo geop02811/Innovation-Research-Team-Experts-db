@@ -19,6 +19,11 @@ export interface ScholarExperience {
 	summary: string;
 }
 
+export interface ScholarResearchGroup {
+	name: string;
+	organization: string;
+}
+
 export interface ScholarProfileSection {
 	title: string;
 	body: string;
@@ -43,8 +48,8 @@ export interface Scholar {
 	location: string;
 	researchAreas: string[];
 	bio: string;
-	researchInterests?: string;
-	researchGroups?: string;
+	researchInterests?: string[];
+	researchGroups?: ScholarResearchGroup[];
 	shortBio: string;
 	sections: ScholarProfileSection[];
 	links: ScholarLink[];
