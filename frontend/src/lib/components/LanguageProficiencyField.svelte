@@ -10,6 +10,7 @@
 		proficiencyOptions: readonly string[];
 		onLanguagesChange: (selected: string[]) => void;
 		onEntriesChange: (entries: LanguageProficiency[]) => void;
+		validationRequested?: boolean;
 		allowCustom?: boolean;
 		customPlaceholder?: string;
 	}
@@ -22,15 +23,32 @@
 		proficiencyOptions,
 		onLanguagesChange,
 		onEntriesChange,
+		validationRequested = false,
 		allowCustom = false,
 		customPlaceholder
 	}: Props = $props();
+	let selectedTouched = $state(false);
+	let proficiencyTouched = $state<Record<string, boolean>>({});
 
 	const normalizedKey = (value: string) => value.trim().toLowerCase();
+	const shouldShowSelectedError = () => validationRequested || selectedTouched;
 
 	const getEntry = (language: string): LanguageProficiency => {
 		const key = normalizedKey(language);
 		return entries.find((entry) => normalizedKey(entry.language) === key) ?? { language, proficiency: '' };
+	};
+
+	const getSelectedError = () =>
+		shouldShowSelectedError() && selected.length === 0 ? 'Please add at least one language.' : '';
+
+	const touchProficiency = (language: string) => {
+		proficiencyTouched[normalizedKey(language)] = true;
+	};
+
+	const getProficiencyError = (language: string) => {
+		const entry = getEntry(language);
+		if (!(validationRequested || proficiencyTouched[normalizedKey(language)])) return '';
+		return entry.proficiency ? '' : 'Please select a proficiency level.';
 	};
 
 	const updateProficiency = (language: string, proficiency: string) => {
@@ -50,6 +68,8 @@
 		{options}
 		{allowCustom}
 		{customPlaceholder}
+		error={getSelectedError()}
+		onfocusout={() => (selectedTouched = true)}
 		onchange={onLanguagesChange}
 	/>
 
@@ -62,6 +82,8 @@
 					<select
 						value={entry.proficiency}
 						aria-label={`${language} proficiency`}
+						aria-invalid={getProficiencyError(language) ? 'true' : undefined}
+						onfocusout={() => touchProficiency(language)}
 						onchange={(event) => updateProficiency(language, event.currentTarget.value)}
 					>
 						<option value="">Select proficiency</option>
@@ -69,6 +91,9 @@
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
+					{#if getProficiencyError(language)}
+						<span class="field-error" role="alert">{getProficiencyError(language)}</span>
+					{/if}
 				</label>
 			{/each}
 		</div>
@@ -122,6 +147,13 @@
 		outline: none;
 		border-color: #0a3a8d;
 		box-shadow: 0 0 0 3px rgba(10, 58, 141, 0.12);
+	}
+
+	.field-error {
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: #b42318;
+		line-height: 1.35;
 	}
 
 	@media (max-width: 620px) {

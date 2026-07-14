@@ -103,10 +103,11 @@
 	let confirmPassword = $state('');
 	let profilePhotoDataUrl = $state('');
 	let stepError = $state('');
-	let passwordError = $state('');
 	let profilePhotoError = $state('');
 	let submitting = $state(false);
 	let draftReady = $state(false);
+	let validationRequested = $state(false);
+	let touchedFields = $state<Record<string, boolean>>({});
 
 	const SIGNUP_DRAFT_STORAGE_KEY = 'uz_signup_draft_v1';
 
@@ -142,6 +143,81 @@
 	};
 
 	const availableDepartmentOptions = $derived(getDepartmentOptionsByFaculty(faculty));
+	const markTouched = (field: string) => {
+		touchedFields[field] = true;
+	};
+	const shouldShowFieldError = (field: string) => touchedFields[field] || validationRequested;
+	const showRequiredError = (field: string, value: string, message: string) =>
+		shouldShowFieldError(field) && !value.trim() ? message : '';
+	const showArrayError = (field: string, values: readonly unknown[], message: string) =>
+		shouldShowFieldError(field) && values.length === 0 ? message : '';
+	const getTitlePrefixError = () => showRequiredError('titlePrefix', titlePrefix, 'Please select a title prefix.');
+	const getFullNameError = () => showRequiredError('fullName', fullName, 'Please enter your full name.');
+	const getUniversityEmailError = () => {
+		if (!shouldShowFieldError('universityEmail')) return '';
+		if (!universityEmail.trim()) return 'Please enter your university email.';
+		if (!isValidUzEmail(universityEmail))
+			return 'Please enter a valid UZ student, admin, or departmental email address.';
+		return '';
+	};
+	const getPhoneNumberError = () => showRequiredError('phoneNumber', phoneNumber, 'Please enter your phone number.');
+	const getContactDetailsError = () => showRequiredError('contactDetails', contactDetails, 'Please enter your contact details.');
+	const getBioError = () => showRequiredError('bio', bio, 'Please enter your bio.');
+	const getProfilePhotoRequiredError = () =>
+		shouldShowFieldError('profilePhoto') && !profilePhotoDataUrl ? PROFILE_PHOTO_REQUIRED_ERROR : '';
+	const getPasswordError = () => {
+		if (!shouldShowFieldError('password')) return '';
+		if (!password.trim()) return 'Please enter a password.';
+		if (password.length < 6) return 'Password must be at least 6 characters long.';
+		return '';
+	};
+	const getConfirmPasswordError = () => {
+		if (!shouldShowFieldError('confirmPassword')) return '';
+		if (!confirmPassword.trim()) return 'Please confirm your password.';
+		if (password && confirmPassword && password !== confirmPassword) return 'Passwords do not match.';
+		return '';
+	};
+	const getAcademicRankError = () =>
+		showRequiredError('academicRank', academicRank, 'Please select an academic title / rank.');
+	const getCustomAcademicRankError = () =>
+		shouldShowFieldError('customAcademicRank') && isCustomAcademicRank && !customAcademicRank.trim()
+			? 'Please enter your academic title or rank.'
+			: '';
+	const getHighestQualificationError = () =>
+		showRequiredError('highestQualification', highestQualification, 'Please select your highest qualification.');
+	const getFacultyError = () => showRequiredError('faculty', faculty, 'Please select your faculty / institute / unit.');
+	const getDepartmentError = () =>
+		showRequiredError('department', department, 'Please select your department / institute / unit.');
+	const getResearchInterestsError = () =>
+		showArrayError('researchInterests', researchInterests, 'Please add at least one research interest.');
+	const getAreasOfExpertiseError = () =>
+		showArrayError('areasOfExpertise', areasOfExpertise, 'Please select at least one area of expertise.');
+	const getIndustrialAreasError = () =>
+		showArrayError(
+			'industrialAreasOfExpertise',
+			industrialAreasOfExpertise,
+			'Please select at least one industrial area of expertise.'
+		);
+	const getSkillsError = () =>
+		showArrayError('skillsAndCompetences', skillsAndCompetences, 'Please select at least one skill or competence.');
+	const getLanguagesError = () =>
+		showArrayError('languagesSpoken', languagesSpoken, 'Please add at least one language.');
+	const getYearsOfExperienceError = () =>
+		showRequiredError('yearsOfConsultancyExperience', yearsOfConsultancyExperience, 'Please select your years of experience.');
+	const getConsultancyAvailabilityError = () =>
+		showRequiredError('consultancyAvailability', consultancyAvailability, 'Please select your consultancy availability.');
+	const getPreferredConsultancyTypesError = () =>
+		showArrayError(
+			'preferredConsultancyTypes',
+			preferredConsultancyTypes,
+			'Please select at least one preferred research or consultancy type.'
+		);
+	const getGeographicScopeError = () =>
+		showArrayError('geographicScope', geographicScope, 'Please select at least one geographic scope.');
+	const getProfileLinksError = () =>
+		shouldShowFieldError('profileLinks') && profileLinks.length > 0 && !hasCompleteProfileLinks()
+			? 'Please complete the platform and URL for each profile link.'
+			: '';
 	const isCustomAcademicRank = $derived(
 		academicRank === 'Other' ||
 		(Boolean(academicRank) && !(academicRankOptions as readonly string[]).includes(academicRank))
@@ -370,6 +446,7 @@
 	const onPhotoChange = async (event: Event) => {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
+		markTouched('profilePhoto');
 		profilePhotoError = '';
 		if (!file) {
 			profilePhotoDataUrl = '';
@@ -448,20 +525,10 @@
 	};
 
 	const validatePasswordFields = (): string | null => {
-		if (password && password.length < 6) return 'Password must be at least 6 characters long.';
-		if (password && confirmPassword && password !== confirmPassword) return 'Passwords do not match.';
+		if (!password || !confirmPassword) return PASSWORD_REQUIRED_ERROR;
+		if (password.length < 6) return 'Password must be at least 6 characters long.';
+		if (password !== confirmPassword) return 'Passwords do not match.';
 		return null;
-	};
-	const isPasswordLengthError = () => passwordError === 'Password must be at least 6 characters long.';
-	const isConfirmPasswordError = () => passwordError === 'Passwords do not match.';
-
-	const validatePasswordEntry = () => {
-		const validationMessage = validatePasswordFields();
-		if (validationMessage) {
-			passwordError = validationMessage;
-			return;
-		}
-		passwordError = '';
 	};
 
 	// ── Per-step validation ─────────────────────────────────────────────────────
@@ -536,16 +603,6 @@
 	};
 
 	const setValidationMessage = (validationMessage: string) => {
-		if (validationMessage === PROFILE_PHOTO_REQUIRED_ERROR) {
-			profilePhotoError = validationMessage;
-			stepError = '';
-			return;
-		}
-		if (PASSWORD_VALIDATION_ERRORS.includes(validationMessage)) {
-			passwordError = validationMessage;
-			stepError = '';
-			return;
-		}
 		stepError = validationMessage;
 	};
 
@@ -555,30 +612,10 @@
 	};
 
 	const requestStep = (step: number) => {
-		const targetStep = Math.min(Math.max(step, 1), totalSteps);
-		if (targetStep <= currentStep) {
-			goToStep(targetStep);
-			return;
-		}
-
-		for (let candidateStep = 1; candidateStep < targetStep; candidateStep += 1) {
-			const validationMessage = validateStep(candidateStep);
-			if (validationMessage) {
-				currentStep = candidateStep;
-				setValidationMessage(validationMessage);
-				return;
-			}
-		}
-
-		goToStep(targetStep);
+		goToStep(step);
 	};
 
 	const nextStep = () => {
-		const validationMessage = validateStep(currentStep);
-		if (validationMessage) {
-			setValidationMessage(validationMessage);
-			return;
-		}
 		goToStep(currentStep + 1);
 	};
 
@@ -587,6 +624,7 @@
 	};
 
 	const submit = async () => {
+		validationRequested = true;
 		const validationMessage = validateSignup();
 		if (validationMessage) {
 			setValidationMessage(validationMessage);
@@ -689,11 +727,21 @@
 						value={titlePrefix}
 						placeholder="Select title"
 						options={titlePrefixOptions}
+						error={getTitlePrefixError()}
+						onfocusout={() => markTouched('titlePrefix')}
 						onchange={(value) => (titlePrefix = value)}
 					/>
 					<label>
 						Full Name
-						<input bind:value={fullName} placeholder="e.g. George Penyaitu" />
+						<input
+							bind:value={fullName}
+							placeholder="e.g. George Penyaitu"
+							onblur={() => markTouched('fullName')}
+							aria-invalid={getFullNameError() ? 'true' : undefined}
+						/>
+						{#if getFullNameError()}
+							<span class="field-error" role="alert">{getFullNameError()}</span>
+						{/if}
 					</label>
 				</div>
 
@@ -704,11 +752,24 @@
 							type="email"
 							bind:value={universityEmail}
 							placeholder="e.g. firstname.surname@innovhub.uz.ac.zw"
+							onblur={() => markTouched('universityEmail')}
+							aria-invalid={getUniversityEmailError() ? 'true' : undefined}
 						/>
+						{#if getUniversityEmailError()}
+							<span class="field-error" role="alert">{getUniversityEmailError()}</span>
+						{/if}
 					</label>
 					<label>
 						Phone Number
-						<input bind:value={phoneNumber} placeholder="+263 77 000 0000" />
+						<input
+							bind:value={phoneNumber}
+							placeholder="+263 77 000 0000"
+							onblur={() => markTouched('phoneNumber')}
+							aria-invalid={getPhoneNumberError() ? 'true' : undefined}
+						/>
+						{#if getPhoneNumberError()}
+							<span class="field-error" role="alert">{getPhoneNumberError()}</span>
+						{/if}
 					</label>
 				</div>
 
@@ -718,7 +779,12 @@
 						bind:value={contactDetails}
 						rows="3"
 						placeholder="Office address, preferred contact method, etc."
+						onblur={() => markTouched('contactDetails')}
+						aria-invalid={getContactDetailsError() ? 'true' : undefined}
 					></textarea>
+					{#if getContactDetailsError()}
+						<span class="field-error" role="alert">{getContactDetailsError()}</span>
+					{/if}
 				</label>
 
 				<label>
@@ -728,7 +794,12 @@
 						rows="4"
 						maxlength="600"
 						placeholder="Write the short professional bio shown on your researcher card and profile."
+						onblur={() => markTouched('bio')}
+						aria-invalid={getBioError() ? 'true' : undefined}
 					></textarea>
+					{#if getBioError()}
+						<span class="field-error" role="alert">{getBioError()}</span>
+					{/if}
 				</label>
 
 				<label>
@@ -736,8 +807,8 @@
 					<input type="file" accept="image/*" onchange={onPhotoChange} />
 				</label>
 
-				{#if profilePhotoError}
-					<p class="error-msg field-error" role="alert">{profilePhotoError}</p>
+				{#if profilePhotoError || getProfilePhotoRequiredError()}
+					<p class="error-msg field-error" role="alert">{profilePhotoError || getProfilePhotoRequiredError()}</p>
 				{/if}
 
 				{#if profilePhotoDataUrl}
@@ -751,12 +822,11 @@
 							type="password"
 							bind:value={password}
 							minlength="6"
-							oninput={validatePasswordEntry}
-							aria-invalid={isPasswordLengthError() ? 'true' : undefined}
-							aria-describedby={isPasswordLengthError() ? 'password-error' : undefined}
+							onblur={() => markTouched('password')}
+							aria-invalid={getPasswordError() ? 'true' : undefined}
 						/>
-						{#if isPasswordLengthError()}
-							<span id="password-error" class="field-error" role="alert">{passwordError}</span>
+						{#if getPasswordError()}
+							<span class="field-error" role="alert">{getPasswordError()}</span>
 						{/if}
 					</label>
 					<label>
@@ -765,12 +835,11 @@
 							type="password"
 							bind:value={confirmPassword}
 							minlength="6"
-							oninput={validatePasswordEntry}
-							aria-invalid={isConfirmPasswordError() ? 'true' : undefined}
-							aria-describedby={isConfirmPasswordError() ? 'confirm-password-error' : undefined}
+							onblur={() => markTouched('confirmPassword')}
+							aria-invalid={getConfirmPasswordError() ? 'true' : undefined}
 						/>
-						{#if isConfirmPasswordError()}
-							<span id="confirm-password-error" class="field-error" role="alert">{passwordError}</span>
+						{#if getConfirmPasswordError()}
+							<span class="field-error" role="alert">{getConfirmPasswordError()}</span>
 						{/if}
 					</label>
 				</div>
@@ -790,6 +859,8 @@
 						value={academicRank}
 						placeholder="Select rank"
 						options={academicRankOptions}
+						error={getAcademicRankError()}
+						onfocusout={() => markTouched('academicRank')}
 						onchange={onAcademicRankChange}
 					/>
 					<SelectField
@@ -797,6 +868,8 @@
 						value={highestQualification}
 						placeholder="Select qualification"
 						options={highestQualificationOptions}
+						error={getHighestQualificationError()}
+						onfocusout={() => markTouched('highestQualification')}
 						onchange={(value) => (highestQualification = value)}
 					/>
 				</div>
@@ -804,7 +877,15 @@
 				{#if isCustomAcademicRank}
 					<label>
 						Custom Academic Title / Rank
-						<input bind:value={customAcademicRank} placeholder="Enter your academic title or rank" />
+						<input
+							bind:value={customAcademicRank}
+							placeholder="Enter your academic title or rank"
+							onblur={() => markTouched('customAcademicRank')}
+							aria-invalid={getCustomAcademicRankError() ? 'true' : undefined}
+						/>
+						{#if getCustomAcademicRankError()}
+							<span class="field-error" role="alert">{getCustomAcademicRankError()}</span>
+						{/if}
 					</label>
 				{/if}
 
@@ -814,6 +895,8 @@
 						value={faculty}
 						placeholder="Select faculty, institute or unit"
 						options={facultyOptions}
+						error={getFacultyError()}
+						onfocusout={() => markTouched('faculty')}
 						onchange={onFacultyChange}
 					/>
 					<SelectField
@@ -821,6 +904,8 @@
 						value={department}
 						placeholder="Select department, institute or unit"
 						options={availableDepartmentOptions}
+						error={getDepartmentError()}
+						onfocusout={() => markTouched('department')}
 						onchange={(value) => (department = value)}
 					/>
 				</div>
@@ -860,6 +945,8 @@
 					label="Research Interests"
 					selected={researchInterests}
 					options={[...researchInterestOptions]}
+					error={getResearchInterestsError()}
+					onfocusout={() => markTouched('researchInterests')}
 					onchange={(value) => (researchInterests = value)}
 				/>
 
@@ -875,6 +962,8 @@
 					label="Areas of Expertise"
 					selected={areasOfExpertise}
 					options={[...areasOfExpertiseOptions]}
+					error={getAreasOfExpertiseError()}
+					onfocusout={() => markTouched('areasOfExpertise')}
 					onchange={(value) => (areasOfExpertise = value)}
 				/>
 
@@ -882,6 +971,8 @@
 					label="Industrial Areas of Expertise"
 					selected={industrialAreasOfExpertise}
 					options={[...industrialAreasOptions]}
+					error={getIndustrialAreasError()}
+					onfocusout={() => markTouched('industrialAreasOfExpertise')}
 					onchange={(value) => (industrialAreasOfExpertise = value)}
 				/>
 
@@ -892,6 +983,8 @@
 						options={[...skillsOptions]}
 						allowCustom
 						customPlaceholder="Add custom skill or competence"
+						error={getSkillsError()}
+						onfocusout={() => markTouched('skillsAndCompetences')}
 						onchange={(value) => (skillsAndCompetences = value)}
 					/>
 					<LanguageProficiencyField
@@ -902,6 +995,7 @@
 						proficiencyOptions={languageProficiencyOptions}
 						allowCustom
 						customPlaceholder="Add custom language"
+						validationRequested={validationRequested}
 						onLanguagesChange={syncLanguageProficiencies}
 						onEntriesChange={(value) => (languageProficiencies = value)}
 					/>
@@ -922,6 +1016,8 @@
 						value={yearsOfConsultancyExperience}
 						placeholder="Select years"
 						options={yearsOfConsultancyOptions}
+						error={getYearsOfExperienceError()}
+						onfocusout={() => markTouched('yearsOfConsultancyExperience')}
 						onchange={(value) => (yearsOfConsultancyExperience = value)}
 					/>
 					<SelectField
@@ -929,6 +1025,8 @@
 						value={consultancyAvailability}
 						placeholder="Select availability"
 						options={consultancyAvailabilityOptions}
+						error={getConsultancyAvailabilityError()}
+						onfocusout={() => markTouched('consultancyAvailability')}
 						onchange={(value) => (consultancyAvailability = value)}
 					/>
 				</div>
@@ -938,12 +1036,16 @@
 						label="Preferred Research / Consultancy"
 						selected={preferredConsultancyTypes}
 						options={[...preferredConsultancyTypeOptions]}
+						error={getPreferredConsultancyTypesError()}
+						onfocusout={() => markTouched('preferredConsultancyTypes')}
 						onchange={(value) => (preferredConsultancyTypes = value)}
 					/>
 					<MultiSelectFilter
 						label="Geographic Scope"
 						selected={geographicScope}
 						options={[...geographicScopeOptions]}
+						error={getGeographicScopeError()}
+						onfocusout={() => markTouched('geographicScope')}
 						onchange={(value) => (geographicScope = value)}
 					/>
 				</div>
@@ -974,6 +1076,8 @@
 				<ProfileLinksEditor
 					links={profileLinks}
 					typeOptions={profileLinkTypeOptions}
+					error={getProfileLinksError()}
+					onfocusout={() => markTouched('profileLinks')}
 					onchange={(value) => (profileLinks = value)}
 				/>
 			</div>

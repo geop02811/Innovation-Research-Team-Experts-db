@@ -4,6 +4,8 @@
 		selected: string[];
 		options: string[];
 		onchange: (selected: string[]) => void;
+		error?: string;
+		onfocusout?: () => void;
 		allowCustom?: boolean;
 		customTrigger?: string;
 		customPlaceholder?: string;
@@ -14,6 +16,8 @@
 		selected,
 		options,
 		onchange,
+		error = '',
+		onfocusout,
 		allowCustom = false,
 		customTrigger = 'Other',
 		customPlaceholder
@@ -21,6 +25,7 @@
 	let isOpen = $state(false);
 	let customEntryOpen = $state(false);
 	let customValue = $state('');
+	let root: HTMLDivElement | undefined;
 
 	const normalizeValue = (value: string) => value.trim().replace(/\s+/g, ' ');
 	const valueKey = (value: string) => normalizeValue(value).toLowerCase();
@@ -62,9 +67,15 @@
 	const closeDropdown = () => {
 		isOpen = false;
 	};
+
+	const handleFocusOut = (event: FocusEvent) => {
+		if (event.relatedTarget instanceof Node && root?.contains(event.relatedTarget)) return;
+		closeDropdown();
+		onfocusout?.();
+	};
 </script>
 
-<div class="multi-select-filter">
+<div class="multi-select-filter" bind:this={root} onfocusout={handleFocusOut}>
 	<div class="label-container"><span class="label-text">{label}</span></div>
 	<div class="dropdown-wrapper" role="presentation" onmouseleave={closeDropdown}>
 		<button
@@ -73,6 +84,7 @@
 			onclick={() => (isOpen = !isOpen)}
 			aria-expanded={isOpen}
 			aria-haspopup="listbox"
+			data-invalid={error ? 'true' : undefined}
 		>
 			<span class="selected-count">
 				{selected.length > 0 ? `${selected.length} selected` : `${label}`}
@@ -132,6 +144,10 @@
 				</span>
 			{/each}
 		</div>
+	{/if}
+
+	{#if error}
+		<p class="field-error" role="alert">{error}</p>
 	{/if}
 </div>
 
@@ -310,6 +326,13 @@
 
 	.remove:hover {
 		color: #000;
+	}
+
+	.field-error {
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: #b42318;
+		line-height: 1.35;
 	}
 
 	@media (max-width: 420px) {

@@ -7,14 +7,17 @@
 		placeholder: string;
 		options: readonly string[];
 		onchange: (value: string) => void;
+		error?: string;
+		onfocusout?: () => void;
 	}
 
-	let { label, value, placeholder, options, onchange }: Props = $props();
+	let { label, value, placeholder, options, onchange, error = '', onfocusout }: Props = $props();
 	let isOpen = $state(false);
 	let activeIndex = $state(0);
 	let root: HTMLDivElement;
 
 	const fieldId = $derived(`select-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+	const errorId = $derived(`${fieldId}-error`);
 	const getOptionValues = () => ['', ...options];
 
 	const openMenu = () => {
@@ -30,6 +33,12 @@
 	const selectValue = (selectedValue: string) => {
 		onchange(selectedValue);
 		closeMenu();
+	};
+
+	const handleFocusOut = (event: FocusEvent) => {
+		if (event.relatedTarget instanceof Node && root?.contains(event.relatedTarget)) return;
+		closeMenu();
+		onfocusout?.();
 	};
 
 	const moveActiveOption = (offset: number) => {
@@ -71,7 +80,7 @@
 	});
 </script>
 
-<div class="select-field" bind:this={root}>
+<div class="select-field" bind:this={root} onfocusout={handleFocusOut}>
 	<span id={`${fieldId}-label`} class="select-label">{label}</span>
 	<button
 		type="button"
@@ -82,6 +91,8 @@
 		aria-haspopup="listbox"
 		aria-expanded={isOpen}
 		aria-labelledby={`${fieldId}-label ${fieldId}-value`}
+		data-invalid={error ? 'true' : undefined}
+		aria-describedby={error ? errorId : undefined}
 	>
 		<span id={`${fieldId}-value`} class="select-value">{value || placeholder}</span>
 		<span class="select-arrow" aria-hidden="true">⌄</span>
@@ -104,6 +115,10 @@
 				</button>
 			{/each}
 		</div>
+	{/if}
+
+	{#if error}
+		<span id={errorId} class="field-error" role="alert">{error}</span>
 	{/if}
 </div>
 
@@ -202,6 +217,18 @@
 	.select-option.selected {
 		background: #0a3a8d;
 		color: #fff;
+	}
+
+	.field-error {
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: #b42318;
+		line-height: 1.35;
+	}
+
+	.select-button[data-invalid='true'] {
+		border-color: #b42318;
+		box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.12);
 	}
 
 	@media (max-width: 700px) {

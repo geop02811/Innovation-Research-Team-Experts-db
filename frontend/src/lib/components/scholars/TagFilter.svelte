@@ -4,10 +4,13 @@
 		selected: string[];
 		options: string[];
 		onchange: (selected: string[]) => void;
+		error?: string;
+		onfocusout?: () => void;
 	}
 
-	let { label, selected, options, onchange }: Props = $props();
+	let { label, selected, options, onchange, error = '', onfocusout }: Props = $props();
 	let customTag = $state('');
+	let root: HTMLDivElement | undefined;
 
 	const normalizeTag = (tag: string) => tag.trim().replace(/\s+/g, ' ');
 	const tagKey = (tag: string) => normalizeTag(tag).toLowerCase();
@@ -48,9 +51,14 @@
 		}
 		customTag = '';
 	};
+
+	const handleFocusOut = (event: FocusEvent) => {
+		if (event.relatedTarget instanceof Node && root?.contains(event.relatedTarget)) return;
+		onfocusout?.();
+	};
 </script>
 
-<div class="tag-filter">
+<div class="tag-filter" bind:this={root} onfocusout={handleFocusOut}>
 	<div class="label-container"><span class="label-text">{label}</span></div>
 	<div class="available-tags">
 		{#each visibleOptions as option}
@@ -101,6 +109,10 @@
 				{/each}
 			</div>
 		</div>
+	{/if}
+
+	{#if error}
+		<p class="field-error" role="alert">{error}</p>
 	{/if}
 </div>
 
@@ -280,6 +292,15 @@
 
 	.remove-btn:hover {
 		opacity: 0.8;
+	}
+
+	.field-error {
+		grid-column: 1 / -1;
+		margin: 0.25rem 0 0;
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: #b42318;
+		line-height: 1.35;
 	}
 
 	@media (max-width: 420px) {

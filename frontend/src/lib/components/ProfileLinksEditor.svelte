@@ -5,9 +5,11 @@
 		links: ProfileLink[];
 		typeOptions: readonly string[];
 		onchange: (links: ProfileLink[]) => void;
+		error?: string;
+		onfocusout?: () => void;
 	}
 
-	let { links, typeOptions, onchange }: Props = $props();
+	let { links, typeOptions, onchange, error = '', onfocusout }: Props = $props();
 	let activeIndex = $state<number | null>(null);
 	let editorElement: HTMLDivElement | undefined;
 
@@ -38,12 +40,17 @@
 		if (!editorElement.contains(event.target)) activeIndex = null;
 	};
 
+	const closeWhenFocusLeaves = (event: FocusEvent) => {
+		if (event.relatedTarget instanceof Node && editorElement?.contains(event.relatedTarget)) return;
+		onfocusout?.();
+	};
+
 	const linkSummary = (link: ProfileLink) => [link.label || link.type, link.url].filter(Boolean).join(' · ');
 </script>
 
 <svelte:window onclick={closeWhenClickOutside} />
 
-<div class="links-editor" bind:this={editorElement}>
+<div class="links-editor" bind:this={editorElement} onfocusout={closeWhenFocusLeaves}>
 	{#each links as link, index}
 		<div class="link-card" class:collapsed={activeIndex !== index}>
 			<div class="link-card-header">
@@ -96,6 +103,10 @@
 	{/each}
 
 	<button type="button" class="add-btn" onclick={addLink}>+ Add profile or publication link</button>
+
+	{#if error}
+		<p class="field-error" role="alert">{error}</p>
+	{/if}
 </div>
 
 <style>
@@ -215,6 +226,13 @@
 		background: #f5e8e8;
 		color: #9b1c1c;
 		padding: 0.45rem 0.75rem;
+	}
+
+	.field-error {
+		font-size: 0.84rem;
+		font-weight: 600;
+		color: #b42318;
+		line-height: 1.35;
 	}
 
 	@media (max-width: 700px) {
