@@ -551,15 +551,21 @@
 					!department
 				)
 					return 'Please complete all fields to continue.';
-				if (!hasCompleteProfessionalMemberships(professionalMemberships))
-					return 'Please add at least one complete professional membership.';
-				if (!hasCompleteComplianceCredentials(complianceCredentials))
-					return 'Please add at least one complete compliance or accreditation credential.';
+				if (
+					professionalMemberships.length > 0 &&
+					!hasCompleteProfessionalMemberships(professionalMemberships)
+				)
+					return 'Please complete or remove any professional membership entries.';
+				if (
+					complianceCredentials.length > 0 &&
+					!hasCompleteComplianceCredentials(complianceCredentials)
+				)
+					return 'Please complete or remove any compliance or accreditation entries.';
 				break;
 			case 3:
 				if (researchInterests.length === 0) return 'Please add at least one research interest.';
 				if (!hasCompleteResearchGroups(researchGroups))
-					return 'Please complete the group name and associated organization for each research group.';
+					return 'Please complete or remove the group name and associated organization for each research group.';
 				if (
 					areasOfExpertise.length === 0 ||
 					industrialAreasOfExpertise.length === 0 ||
@@ -585,7 +591,7 @@
 				break;
 			case 5:
 				if (profileLinks.length > 0 && !hasCompleteProfileLinks())
-					return 'Please complete the platform and URL for each profile link.';
+					return 'Please complete or remove each profile link entry.';
 				break;
 		}
 		return null;
@@ -691,7 +697,9 @@
 		<p class="kicker">Researcher Registration</p>
 		<h1>Create your researcher profile</h1>
 		<p class="helper">
-			All fields are mandatory. Once your profile is approved, you will be able to log in.
+			Most fields are mandatory. Professional memberships, compliance or accreditation,
+			research groups, and profile or publication links are optional. Once your profile is
+			approved, you will be able to log in.
 		</p>
 
 		<!-- Step indicator -->
