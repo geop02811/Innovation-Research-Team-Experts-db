@@ -4,6 +4,7 @@
 	import type { GrantItem } from '$lib/auth/auth.service';
 
 	const API_BASE_URL = '';
+	const grantsForwardUrl = 'https://www.grantsforward.com/';
 
 	let grants = $state<GrantItem[]>([]);
 	let loadError = $state('');
@@ -127,6 +128,7 @@
 	const statusLabel: Record<string, string> = { OPEN: 'Open', UPCOMING: 'Upcoming', CLOSED: 'Closed', RUNNING: 'Running', INTERNAL: 'Internal' };
 	const countByStatus = (s: string) => grants.filter((g) => g.status === s).length;
 	const countByCategory = (c: string) => grants.filter((g) => g.category === c).length;
+	const showDefaultFundingFallback = $derived(!appliedSearch && !selectedCategory && (!selectedStatus || selectedStatus === 'INTERNAL'));
 </script>
 
 <svelte:head>
@@ -232,10 +234,19 @@
 		<!-- Grant list -->
 		<div class="gp-list">
 			{#if filteredGrants.length === 0}
-				<div class="gp-empty">
-					No funding opportunities match your search.
-					{#if hasFilters}<button type="button" onclick={clearFilters}>Clear filters</button>{/if}
-				</div>
+				{#if !showDefaultFundingFallback}
+					<div class="gp-empty">
+						No funding opportunities match your search.
+						<button type="button" onclick={clearFilters}>Clear filters</button>
+					</div>
+				{:else}
+					<a class="gp-fallback-card" href={grantsForwardUrl} target="_blank" rel="noopener noreferrer">
+						<span class="gp-fallback-eyebrow">External funding database</span>
+						<strong>Explore GrantsForward</strong>
+						<span>Browse current funding opportunities while this list is being updated.</span>
+						<span class="gp-fallback-action">Open GrantsForward →</span>
+					</a>
+				{/if}
 			{:else}
 				{#each filteredGrants as grant (grant.id)}
 					<article class="gp-card" class:gp-card-featured={grant.featured} class:gp-card-closed={grant.status === 'closed'}>
@@ -578,6 +589,49 @@
 		text-decoration: underline;
 		font-size: inherit;
 		padding: 0;
+	}
+	.gp-fallback-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		background: #fff;
+		border: 1px solid #e0dcd4;
+		border-left: 4px solid var(--uz-orange);
+		padding: 1.5rem 1.6rem;
+		color: var(--ink);
+		text-decoration: none;
+		box-shadow: 0 2px 6px rgba(27,43,78,0.05);
+		transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+	}
+	.gp-fallback-card:hover {
+		border-color: #d8cfc1;
+		box-shadow: 0 8px 22px rgba(27,43,78,0.1);
+		transform: translateY(-1px);
+	}
+	.gp-fallback-eyebrow {
+		font-size: 0.72rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--uz-orange-dark);
+	}
+	.gp-fallback-card strong {
+		font-family: 'Fraunces', serif;
+		font-size: 1.2rem;
+		color: var(--uz-navy);
+	}
+	.gp-fallback-card span:not(.gp-fallback-eyebrow):not(.gp-fallback-action) {
+		font-size: 0.92rem;
+		line-height: 1.55;
+		color: var(--ink-soft);
+	}
+	.gp-fallback-action {
+		margin-top: 0.25rem;
+		font-size: 0.82rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--uz-orange);
 	}
 
 	/* Apply hover button */

@@ -14,6 +14,7 @@
 	let events = $state<EventItem[]>([]);
 	let alumniNews = $state<AlumniNewsItem[]>([]);
 	let grants = $state<GrantItem[]>([]);
+	const grantsForwardUrl = 'https://www.grantsforward.com/';
 
 	// Running projects = funding-opportunities with status RUNNING pulled from the grants management system
 	const runningProjects = $derived(grants.filter((g) => g.status === 'RUNNING'));
@@ -297,7 +298,12 @@
 			<h2 class="hp-section-title">Internal Funding Opportunities</h2>
 		</div>
 		{#if internalGrants.length === 0}
-			<p class="hp-empty-tab">No internal funding opportunities posted yet. Check back soon.</p>
+			<a class="hp-fallback-card" href={grantsForwardUrl} target="_blank" rel="noopener noreferrer">
+				<span class="hp-fallback-eyebrow">External funding database</span>
+				<strong>Explore GrantsForward</strong>
+				<span>Browse current funding opportunities while internal funding updates are being prepared.</span>
+				<span class="hp-fallback-action">Open GrantsForward →</span>
+			</a>
 		{:else}
 			<div class="hp-grant-list">
 				{#each internalGrants.slice(0, 3) as grant (grant.id)}
@@ -348,7 +354,12 @@
 		</div>
 
 		{#if grants.length === 0}
-			<p class="hp-empty-tab">No funding opportunities posted yet. Check back soon.</p>
+			<a class="hp-fallback-card" href={grantsForwardUrl} target="_blank" rel="noopener noreferrer">
+				<span class="hp-fallback-eyebrow">External funding database</span>
+				<strong>Explore GrantsForward</strong>
+				<span>Browse current funding opportunities while new UZ funding opportunities are being prepared.</span>
+				<span class="hp-fallback-action">Open GrantsForward →</span>
+			</a>
 		{:else}
 			<div class="hp-grant-list">
 				{#each grants.slice(0, 3) as grant (grant.id)}
@@ -895,6 +906,49 @@
 	display: flex;
 	flex-direction: column;
 	gap: 1.1rem;
+}
+.hp-fallback-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	background: #faf9f6;
+	border: 1px solid #e8e4dc;
+	border-left: 4px solid var(--uz-orange);
+	padding: 1.5rem 1.6rem;
+	color: var(--ink);
+	text-decoration: none;
+	box-shadow: 0 2px 6px rgba(27, 43, 78, 0.06);
+	transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.hp-fallback-card:hover {
+	border-color: #d8cfc1;
+	box-shadow: 0 8px 22px rgba(27, 43, 78, 0.1);
+	transform: translateY(-1px);
+}
+.hp-fallback-eyebrow {
+	font-size: 0.72rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--uz-orange-dark);
+}
+.hp-fallback-card strong {
+	font-family: 'Fraunces', serif;
+	font-size: 1.2rem;
+	color: var(--uz-navy);
+}
+.hp-fallback-card span:not(.hp-fallback-eyebrow):not(.hp-fallback-action) {
+	font-size: 0.92rem;
+	line-height: 1.55;
+	color: var(--ink-soft);
+}
+.hp-fallback-action {
+	margin-top: 0.25rem;
+	font-size: 0.82rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--uz-orange);
 }
 .hp-grant-item {
 	position: relative;
