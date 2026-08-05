@@ -124,6 +124,45 @@ export const authService = {
 		}
 	},
 
+	verifySignupOtp: async (payload: {
+		email: string;
+		otp: string;
+	}): Promise<{ ok: boolean; message: string }> => {
+		try {
+			const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+
+			const text = await res.text();
+			return {
+				ok: res.ok,
+				message: text || (res.ok ? 'Email verified.' : 'Could not verify code.')
+			};
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
+	resendSignupOtp: async (email: string): Promise<{ ok: boolean; message: string }> => {
+		try {
+			const res = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email })
+			});
+
+			const text = await res.text();
+			return {
+				ok: res.ok,
+				message: text || (res.ok ? 'A new code has been sent.' : 'Could not resend code.')
+			};
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Please try again later.' };
+		}
+	},
+
 	login: async (
 		email: string,
 		password: string

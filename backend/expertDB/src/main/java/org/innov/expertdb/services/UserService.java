@@ -32,6 +32,7 @@ public class UserService {
         user.setEmail(request.email().trim().toLowerCase());
         user.setRole(role);
         user.setStatus(status);
+        user.setEnabled(false);
 
         String hashedPassword = passwordEncoder.encode(request.password());
         user.setPasswordHash(hashedPassword);

@@ -5,6 +5,8 @@ import org.innov.expertdb.auth.dtos.password.PasswordResetConfirmRequest;
 import org.innov.expertdb.auth.dtos.password.PasswordResetRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterRequest;
 import org.innov.expertdb.auth.dtos.register.RegisterResponse;
+import org.innov.expertdb.auth.dtos.signup.ResendOtpRequest;
+import org.innov.expertdb.auth.dtos.signup.VerifyOtpRequest;
 import org.innov.expertdb.services.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,5 +47,17 @@ public class AuthController {
      public ResponseEntity<String> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
          authService.confirmPasswordReset(request);
          return ResponseEntity.ok("Password reset successful. You can now log in.");
+     }
+
+     @PostMapping("/verify-otp")
+     public ResponseEntity<String> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+         authService.verifySignupOtp(request);
+         return ResponseEntity.ok("Email verified. Your registration is now pending admin approval.");
+     }
+
+     @PostMapping("/resend-otp")
+     public ResponseEntity<String> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+         authService.resendSignupOtp(request);
+         return ResponseEntity.ok("A new verification code has been sent to your email.");
      }
  }

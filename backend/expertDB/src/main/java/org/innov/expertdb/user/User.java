@@ -44,6 +44,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
 
+    @Column(name = "enabled", nullable = false, columnDefinition = "boolean not null default true")
+    private boolean enabled = true;
+
     // Expert profile fields
     @Column(name = "title_prefix")
     private String titlePrefix;

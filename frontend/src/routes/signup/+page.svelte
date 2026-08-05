@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import SelectField from '$lib/components/SelectField.svelte';
 	import LanguageProficiencyField from '$lib/components/LanguageProficiencyField.svelte';
 	import ExperienceEntriesEditor from '$lib/components/ExperienceEntriesEditor.svelte';
@@ -684,7 +684,76 @@
 		draftReady = false;
 		if (browser) localStorage.removeItem(SIGNUP_DRAFT_STORAGE_KEY);
 
-		await goto('/login?message=Account created. Await admin approval before login.');
+		phase = 'verify';
+		otpInfo = `We sent a 6-digit verification code to ${universityEmail.trim().toLowerCase()}.`;
+		startResendCooldown();
+	};
+
+	// ── Step 2: OTP verification ──────────────────────────────────────────
+	let phase = $state<'wizard' | 'verify'>('wizard');
+	let otp = $state('');
+	let otpError = $state('');
+	let otpInfo = $state('');
+	let verifying = $state(false);
+	let resending = $state(false);
+	let resendCooldown = $state(0);
+	let resendInterval: ReturnType<typeof setInterval> | undefined;
+
+	const startResendCooldown = () => {
+		resendCooldown = 60;
+		if (resendInterval) clearInterval(resendInterval);
+		resendInterval = setInterval(() => {
+			resendCooldown = Math.max(0, resendCooldown - 1);
+			if (resendCooldown === 0 && resendInterval) {
+				clearInterval(resendInterval);
+				resendInterval = undefined;
+			}
+		}, 1000);
+	};
+
+	onDestroy(() => {
+		if (resendInterval) clearInterval(resendInterval);
+	});
+
+	const verifyOtp = async (event: SubmitEvent) => {
+		event.preventDefault();
+		otpError = '';
+
+		if (!/^\d{6}$/.test(otp.trim())) {
+			otpError = 'Enter the 6-digit code sent to your email.';
+			return;
+		}
+
+		verifying = true;
+		const result = await authService.verifySignupOtp({
+			email: universityEmail.trim().toLowerCase(),
+			otp: otp.trim()
+		});
+		verifying = false;
+
+		if (!result.ok) {
+			otpError = result.message;
+			return;
+		}
+
+		await goto(`/login?message=${encodeURIComponent(result.message)}`);
+	};
+
+	const resendOtp = async () => {
+		if (resendCooldown > 0 || resending) return;
+		resending = true;
+		otpError = '';
+
+		const result = await authService.resendSignupOtp(universityEmail.trim().toLowerCase());
+		resending = false;
+
+		if (!result.ok) {
+			otpError = result.message;
+			return;
+		}
+
+		otpInfo = result.message;
+		startResendCooldown();
 	};
 </script>
 
@@ -696,11 +765,67 @@
 	<section class="signup-card">
 		<p class="kicker">Researcher Registration</p>
 		<h1>Create your researcher profile</h1>
-		<p class="helper">
-			Most fields are mandatory. Professional memberships, compliance or accreditation,
-			research groups, and profile or publication links are optional. Once your profile is
-			approved, you will be able to log in.
-		</p>
+		{#if phase === 'wizard'}
+			<p class="helper">
+				Most fields are mandatory. Professional memberships, compliance or accreditation,
+				research groups, and profile or publication links are optional. Once your profile is
+				approved, you will be able to log in.
+			</p>
+		{:else}
+			<p class="helper">
+				We restrict registration to University of Zimbabwe email addresses. Enter the 6-digit
+				code we emailed you to confirm your address before your profile is sent for admin review.
+			</p>
+		{/if}
+
+		{#if phase === 'verify'}
+			<div class="step-body">
+				{#if otpInfo}
+					<p class="info-msg">{otpInfo}</p>
+				{/if}
+				{#if otpError}
+					<p class="error-msg section-error" role="alert">{otpError}</p>
+				{/if}
+
+				<form onsubmit={verifyOtp}>
+					<label>
+						Verification code
+						<input
+							inputmode="numeric"
+							bind:value={otp}
+							required
+							maxlength="6"
+							placeholder="6-digit code"
+						/>
+					</label>
+
+					<div class="form-actions">
+						<button type="submit" class="btn-next" disabled={verifying}>
+							{verifying ? 'Verifying...' : 'Verify email'}
+						</button>
+						<button
+							type="button"
+							class="btn-back"
+							onclick={resendOtp}
+							disabled={resendCooldown > 0 || resending}
+						>
+							{resendCooldown > 0
+								? `Resend code (${resendCooldown}s)`
+								: resending
+									? 'Resending...'
+									: 'Resend code'}
+						</button>
+					</div>
+				</form>
+
+				<div class="hint-block">
+					<p class="dev-note">
+						During local development, check backend logs for the verification code if SMTP is
+						not configured.
+					</p>
+				</div>
+			</div>
+		{:else}
 
 		<!-- Step indicator -->
 		<nav class="stepper" aria-label="Registration steps">
@@ -1104,6 +1229,7 @@
 				</button>
 			{/if}
 		</div>
+		{/if}
 	</section>
 </main>
 
@@ -1301,6 +1427,25 @@
 		padding: 0.65rem 0.8rem;
 		border-radius: 10px;
 		margin: 0;
+	}
+
+	.info-msg {
+		background: #ecf6ff;
+		color: #0a3a8d;
+		padding: 0.6rem 0.8rem;
+		border-radius: 10px;
+		margin: 0 0 1rem;
+	}
+
+	.hint-block {
+		margin-top: 1rem;
+		font-size: 0.92rem;
+		color: var(--ink-soft);
+	}
+
+	.hint-block .dev-note {
+		font-size: 0.84rem;
+		line-height: 1.45;
 	}
 
 	.field-error {

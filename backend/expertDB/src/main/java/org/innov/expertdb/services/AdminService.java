@@ -30,6 +30,9 @@ public class AdminService {
     public void approveUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!user.isEnabled()) {
+            throw new RuntimeException("This account has not verified its email yet.");
+        }
         user.setRole(Role.VIEWER);
         user.setStatus(AccountStatus.ACTIVE);
         user.setTokenVersion(user.getTokenVersion() + 1);
@@ -64,7 +67,7 @@ public class AdminService {
     }
 
     public List<AdminUserResponse> getAllUsers() {
-        return userRepository.findAll()
+        return userRepository.findByEnabledTrue()
                 .stream()
                 .map(this::toAdminResponse)
                 .collect(Collectors.toList());
@@ -80,7 +83,7 @@ public class AdminService {
     }
 
     public AdminNotificationsResponse getNotifications() {
-        List<User> pending = userRepository.findByStatus(AccountStatus.PENDING);
+        List<User> pending = userRepository.findByStatusAndEnabledTrue(AccountStatus.PENDING);
         List<PendingUserNotification> items = pending.stream()
                 .map(u -> new PendingUserNotification(
                         u.getId().toString(),

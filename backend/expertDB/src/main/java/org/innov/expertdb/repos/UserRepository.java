@@ -20,6 +20,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByStatusAndCreatedAtAfter(AccountStatus status, Instant since);
 
+    List<User> findByStatusAndEnabledTrue(AccountStatus status);
+
+    List<User> findByEnabledTrue();
+
     @Query("""
         SELECT u FROM User u
         WHERE u.status = :status
