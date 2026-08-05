@@ -59,22 +59,29 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteUser(UUID id) {
+    public void deleteUser(UUID id, UUID currentUserId) {
+        if (id.equals(currentUserId)) {
+            throw new RuntimeException("You cannot delete your own account.");
+        }
         if (!userRepository.existsById(id)) {
             throw new org.innov.expertdb.user.UserNotFoundException("User not found");
         }
         userRepository.deleteById(id);
     }
 
-    public List<AdminUserResponse> getAllUsers() {
+    public List<AdminUserResponse> getAllUsers(UUID currentUserId) {
         return userRepository.findByEnabledTrue()
                 .stream()
+                .filter(u -> !u.getId().equals(currentUserId))
                 .map(this::toAdminResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public void updateRole(UUID id, String role) {
+    public void updateRole(UUID id, String role, UUID currentUserId) {
+        if (id.equals(currentUserId)) {
+            throw new RuntimeException("You cannot change your own role.");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(Role.valueOf(role));

@@ -7,7 +7,9 @@ import java.util.UUID;
 import org.innov.expertdb.auth.dtos.admin.AdminNotificationsResponse;
 import org.innov.expertdb.auth.dtos.admin.AdminUserResponse;
 import org.innov.expertdb.services.AdminService;
+import org.innov.expertdb.user.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,8 +33,8 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<AdminUserResponse>> getAllUsers() {
-        return ResponseEntity.ok(adminService.getAllUsers());
+    public ResponseEntity<List<AdminUserResponse>> getAllUsers(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(adminService.getAllUsers(currentUser.getId()));
     }
 
     @PutMapping("/users/{id}/approve")
@@ -54,14 +56,15 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/role")
-    public ResponseEntity<Void> updateRole(@PathVariable UUID id, @RequestBody Map<String, String> body) {
-        adminService.updateRole(id, body.get("role"));
+    public ResponseEntity<Void> updateRole(@PathVariable UUID id, @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal User currentUser) {
+        adminService.updateRole(id, body.get("role"), currentUser.getId());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        adminService.deleteUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id, @AuthenticationPrincipal User currentUser) {
+        adminService.deleteUser(id, currentUser.getId());
         return ResponseEntity.noContent().build();
     }
 }
