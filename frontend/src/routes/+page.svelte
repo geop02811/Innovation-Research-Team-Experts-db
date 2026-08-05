@@ -14,7 +14,7 @@
 	let events = $state<EventItem[]>([]);
 	let alumniNews = $state<AlumniNewsItem[]>([]);
 	let grants = $state<GrantItem[]>([]);
-	const grantsForwardUrl = 'https://www.grantsforward.com/';
+	const grantsForwardUrl = 'https://www.grantforward.com/';
 
 	// Running projects = funding-opportunities with status RUNNING pulled from the grants management system
 	const runningProjects = $derived(grants.filter((g) => g.status === 'RUNNING'));
