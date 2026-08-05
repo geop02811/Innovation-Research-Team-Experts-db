@@ -14,6 +14,7 @@ import org.innov.expertdb.auth.dtos.viewer.ViewerNotificationsResponse;
 import org.innov.expertdb.auth.dtos.viewer.ViewerNotificationsResponse.NewExpertNotification;
 import org.innov.expertdb.repos.UserRepository;
 import org.innov.expertdb.user.AccountStatus;
+import org.innov.expertdb.user.Role;
 import org.innov.expertdb.user.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -129,7 +130,9 @@ public class ViewerController {
             users = userRepository.searchActive(AccountStatus.ACTIVE, q.trim());
         } else {
             users = userRepository.findAll().stream()
-                    .filter(u -> u.getStatus() == AccountStatus.ACTIVE && u.getFullName() != null)
+                    .filter(u -> u.getStatus() == AccountStatus.ACTIVE
+                            && u.getRole() != Role.USER
+                            && u.getFullName() != null)
                     .sorted((a, b) -> {
                         String nameA = a.getFullName() != null ? a.getFullName() : "";
                         String nameB = b.getFullName() != null ? b.getFullName() : "";
@@ -146,7 +149,9 @@ public class ViewerController {
         Instant since = Instant.now().minus(Duration.ofDays(30));
         List<User> newExperts = userRepository.findByStatusAndCreatedAtAfter(AccountStatus.ACTIVE, since)
                 .stream()
-                .filter(u -> !u.getId().equals(currentUser.getId()) && u.getFullName() != null)
+                .filter(u -> !u.getId().equals(currentUser.getId())
+                        && u.getRole() != Role.USER
+                        && u.getFullName() != null)
                 .collect(Collectors.toList());
 
         List<NewExpertNotification> items = newExperts.stream()

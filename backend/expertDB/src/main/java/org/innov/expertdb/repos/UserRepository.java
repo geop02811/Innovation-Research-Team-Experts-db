@@ -27,6 +27,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
         SELECT u FROM User u
         WHERE u.status = :status
+          AND u.role != org.innov.expertdb.user.Role.USER
           AND u.fullName IS NOT NULL
           AND (
             LOWER(u.fullName)                    LIKE LOWER(CONCAT('%', :q, '%')) OR
