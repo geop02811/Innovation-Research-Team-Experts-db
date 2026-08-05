@@ -1,13 +1,17 @@
+# syntax=docker/dockerfile:1
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace
 
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw -B -DskipTests dependency:go-offline
+RUN chmod +x mvnw
+
+# Cache Maven dependencies across builds
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -DskipTests dependency:go-offline
 
 COPY src src
-RUN ./mvnw -B -DskipTests package
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -DskipTests package
 
 FROM eclipse-temurin:21-jre
 

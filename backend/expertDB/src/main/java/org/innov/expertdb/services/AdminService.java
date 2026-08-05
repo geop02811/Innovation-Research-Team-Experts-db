@@ -58,7 +58,7 @@ public class AdminService {
     @Transactional
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found");
+            throw new org.innov.expertdb.user.UserNotFoundException("User not found");
         }
         userRepository.deleteById(id);
     }

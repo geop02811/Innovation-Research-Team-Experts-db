@@ -165,6 +165,20 @@
 		await loadUsers();
 	};
 
+	let deleteUserError = $state('');
+
+	const deleteUser = async (user: AdminUser) => {
+		if (!confirm(`Permanently delete ${displayName(user)}? This cannot be undone.`)) return;
+		deleteUserError = '';
+		const result = await authService.deleteUser(user.id);
+		if (!result.ok) {
+			deleteUserError = result.message ?? 'Failed to delete user.';
+			return;
+		}
+		users = users.filter((u) => u.id !== user.id);
+		if (expandedId === user.id) expandedId = null;
+	};
+
 	const displayName = (u: AdminUser) =>
 		`${u.titlePrefix ?? ''} ${u.fullName ?? u.name + ' ' + u.surname}`.trim();
 
@@ -542,6 +556,9 @@
 
 		{#if activeTab === 'all'}
 			<section class="panel">
+	{#if deleteUserError}
+					<p class="error-msg">{deleteUserError}</p>
+				{/if}
 				{#if !loading && users.length === 0}
 					<p class="empty-msg">No users found.</p>
 				{:else}
@@ -550,8 +567,9 @@
 							<span>User</span>
 							<span>Status</span>
 							<span>Role</span>
+							<span></span>
 						</div>
-						{#each users as user}
+						{#each users as user (user.id)}
 							<div class="pt-row">
 								<div class="pt-user">
 									{#if user.profilePhotoDataUrl}
@@ -575,6 +593,7 @@
 									<option value="VIEWER">Viewer</option>
 									<option value="ADMIN">Admin</option>
 								</select>
+								<button type="button" class="btn-delete" onclick={() => deleteUser(user)}>Delete</button>
 							</div>
 						{/each}
 					</div>
@@ -1215,7 +1234,7 @@
 	.pt-header,
 	.pt-row {
 		display: grid;
-		grid-template-columns: 1fr 120px 140px;
+		grid-template-columns: 1fr 120px 140px 80px;
 		align-items: center;
 		gap: 1rem;
 		padding: 0.75rem 1rem;
@@ -1297,7 +1316,7 @@
 
 		.pt-header,
 		.pt-row {
-			grid-template-columns: 1fr 90px 110px;
+			grid-template-columns: 1fr 90px 110px 70px;
 			gap: 0.5rem;
 			padding: 0.65rem 0.75rem;
 		}

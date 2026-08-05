@@ -236,6 +236,18 @@ export const authService = {
 		});
 	},
 
+	deleteUser: async (id: string): Promise<{ ok: boolean; message?: string }> => {
+		try {
+			const res = await authFetch(`${API_BASE_URL}/api/admin/users/${id}`, { method: 'DELETE' });
+			if (!res.ok) {
+				return { ok: false, message: (await res.text()) || `Server error ${res.status}` };
+			}
+			return { ok: true };
+		} catch {
+			return { ok: false, message: 'Could not reach the server. Is the backend running?' };
+		}
+	},
+
 	updateProfile: async (payload: Record<string, unknown>): Promise<{ ok: boolean; message: string; profile?: unknown }> => {
 		try {
 			const res = await authFetch(`${API_BASE_URL}/api/viewer/profile`, {
