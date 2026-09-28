@@ -43,7 +43,29 @@ docker compose logs -f frontend
 docker compose down
 ```
 
-Data is stored in the `expertdb_data` Docker volume, so `docker compose down` does not delete the database. To remove the database volume intentionally, run `docker compose down -v`.
+### Data safety and backups
+
+The database lives in an **external** Docker volume (`POSTGRES_VOLUME` in `.env`). Compose never deletes external volumes, so neither `docker compose down` nor `docker compose down -v` can remove the database. On a new machine, create the volume once before the first `up`:
+
+```sh
+docker volume create innovation-research-team-experts-db_expertdb_data
+```
+
+If Compose reports that the external volume is not found, check `docker volume ls` and set `POSTGRES_VOLUME` to the existing name instead of creating an empty one.
+
+The `db-backup` container takes a `pg_dump` once a day into `./backups` (`BACKUP_DIR`) and keeps `BACKUP_KEEP_DAYS` days of dumps. It is a plain host folder, so dumps survive even if the volume itself is deleted. Copy that folder off the server regularly for protection against losing the server.
+
+To take a backup right now:
+
+```sh
+docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > backups/manual-$(date +%F_%H%M).dump
+```
+
+To restore a dump:
+
+```sh
+docker compose exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' < backups/<file>.dump
+```
 
 ### Password reset emails
 

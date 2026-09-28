@@ -59,5 +59,43 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
 
+  db-backup:
+    image: postgres:18
+    container_name: expertdb-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-expert_db}
+      PGUSER: ${POSTGRES_USER:-expert_app}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    # A host folder rather than a volume, so no compose command can remove the dumps.
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        while true; do
+          file="/backups/$${PGDATABASE}-$$(date +%Y-%m-%d_%H%M).dump"
+          if pg_dump -Fc -f "$$file.partial"; then
+            mv "$$file.partial" "$$file"
+            echo "Backup written to $$file"
+            find /backups -name '*.dump' -mtime +$${BACKUP_KEEP_DAYS} -delete
+          else
+            rm -f "$$file.partial"
+            echo "Backup failed" >&2
+          fi
+          sleep "$${BACKUP_INTERVAL_SECONDS}"
+        done
+
 volumes:
+  # External so `docker compose down -v` can never delete the database.
+  # Create it once with: docker volume create <name>
   expertdb_data:
+    external: true
+    name: ${POSTGRES_VOLUME:-innovation-research-team-experts-db_expertdb_data}
